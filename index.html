@@ -828,8 +828,8 @@ footer{
   // SMARTSHEET_WORKER_URL is set, writes just stay local-only in this
   // browser tab (no staging, no db capability — this file runs on a plain
   // host, so there's nothing to fall back to).
-  const SMARTSHEET_WORKER_URL = ''; // e.g. 'https://snow-bidding-sync.yoursubdomain.workers.dev'
-  const DASHBOARD_KEY = ''; // the same random string you set as the Worker's DASHBOARD_KEY secret
+  const SMARTSHEET_WORKER_URL = 'https://snow-bidding-sync.zkranich.workers.dev'; // e.g. 'https://snow-bidding-sync.yoursubdomain.workers.dev'
+  const DASHBOARD_KEY = 'fdi-snow-7Kq2xR9mVt4L'; // the same random string you set as the Worker's DASHBOARD_KEY secret
 
   let lastSyncOk = null; // null = not configured/not attempted, true/false = last call's result
   async function syncFieldToSmartsheet(rowId, field, value){
