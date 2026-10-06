@@ -1,8 +1,7 @@
 # Real Google Map — setup (about 5 minutes)
 
 The Contract Accepted map becomes a real Google Map with one pin per store,
-as classic teardrop pins with the store number on each one (same look as the Parkinson portal), colored by Vendor Status (red / yellow / green / grey). Click a pin for the
-store, customer, address, vendor status and an "Open in Google Maps" link.
+as classic teardrop pins with the store number on each one (same look as the Parkinson portal), colored by Vendor Status (red / yellow / green / grey). Layout matches the Parkinson portal: wide map on the left, store list on the right. Click a pin or a store in the list to zoom in and see the store, customer, address, vendor status and an "Open in Google Maps" link.
 Until a key is added, the old schematic map keeps working.
 
 ## 1. Get a Google Maps API key

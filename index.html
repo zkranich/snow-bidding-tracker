@@ -2879,23 +2879,29 @@ footer{
   // any other CS store number. Scope is CS-prefixed stores only, per Zak.
   const CONTRACT_TEMPLATES = {
     managed: {
+      // 2026 CubeSmart "Snowplowing Contract - Managed" (Zak's Snow_Plow_Contract_Managed_2026.pdf).
+      // The source PDF has no form fields, so fields were added at each blank
+      // (templates/managed.pdf: contract, terms + signature, Exhibit A, Insurance Schedule).
       file: 'templates/managed.pdf',
       filenameSuffix: 'Managed',
       fields: {
-        serviceProviderName: 'text_1jbef',
-        termMonths: 'text_2rfxp',
-        termMonthsCheckbox: 'checkbox_6wbqx',
-        termBegin: 'text_3qdsf',       // full date incl. year — no separate year field for begin date
-        termEndMonthDay: 'text_4dgji', // month/day only
-        termEndYear: 'text_5gtfo',     // 2-digit year
-        deicer: 'text_18dcqr',
-        eachAdditionalInch: 'text_14wuni',
+        serviceProviderName: 'serviceProviderName',
+        termMonths: 'termMonths',
+        termMonthsCheckbox: 'termMonthsCheckbox',
+        termBeginMonthDay: 'termBeginMD',
+        termBeginYear: 'termBeginYear',  // 2-digit, printed after the pre-printed "20"
+        termEndMonthDay: 'termEndMD',    // month/day only
+        termEndYear: 'termEndYear',      // 2-digit year
+        deicer: 'deicer',
+        eachAdditionalInch: 'fee_each_inch',
+        eachAdditionalInchTotal: 'total_each_inch',
+        exhibitA: 'exhibitA',
         tiers: {
-          fdi3_6:   { base: 'text_7uzye',  total: 'text_19onzl' },
-          fdi6_9:   { base: 'text_8sfgq',  total: 'text_21jwke' },
-          fdi10_12: { base: 'text_9qejc',  total: 'text_22vlxs' },
-          fdi13_15: { base: 'text_10vqfz', total: 'text_23imjm' },
-          fdi16_18: { base: 'text_11whjl', total: 'text_24mzdl' },
+          fdi3_6:   { base: 'fee_3_6',   total: 'total_3_6' },
+          fdi6_9:   { base: 'fee_7_9',   total: 'total_7_9' },
+          fdi10_12: { base: 'fee_10_12', total: 'total_10_12' },
+          fdi13_15: { base: 'fee_13_15', total: 'total_13_15' },
+          fdi16_18: { base: 'fee_16_18', total: 'total_16_18' },
         },
       },
     },
@@ -2995,6 +3001,8 @@ footer{
     const end = parseISODate(endStr) || parseISODate(DEFAULT_CONTRACT_END);
     return {
       beginFull: start.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      beginMonthDay: start.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }),
+      beginYear2: String(start.getFullYear()).slice(-2),
       endFull: end.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
       endMonthDay: end.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }),
       endYear2: String(end.getFullYear()).slice(-2),
@@ -3345,11 +3353,16 @@ footer{
         setPdfText(form, tmpl.fields.serviceProviderName, SERVICE_PROVIDER_NAME);
         setPdfText(form, tmpl.fields.termMonths, term.months);
         try { form.getCheckBox(tmpl.fields.termMonthsCheckbox).check(); } catch(e){}
-        setPdfText(form, tmpl.fields.termBegin, term.beginFull);
+        setPdfText(form, tmpl.fields.termBeginMonthDay, term.beginMonthDay);
+        setPdfText(form, tmpl.fields.termBeginYear, term.beginYear2);
         setPdfText(form, tmpl.fields.termEndMonthDay, term.endMonthDay);
         setPdfText(form, tmpl.fields.termEndYear, term.endYear2);
         setPdfText(form, tmpl.fields.deicer, deicerVal);
         setPdfText(form, tmpl.fields.eachAdditionalInch, perInchVal);
+        setPdfText(form, tmpl.fields.eachAdditionalInchTotal, perInchVal);
+        // Exhibit A lists the store(s) this contract covers (the old template's
+        // sample entry was dropped; the 2026 form's Exhibit A is blank, so fill it).
+        setPdfText(form, tmpl.fields.exhibitA, `${r.store || ''}${r.address ? '  -  ' + r.address : ''}`);
         for (const [key, map] of Object.entries(tmpl.fields.tiers)){
           const v = tierVal(key);
           setPdfText(form, map.base, v);
@@ -3373,7 +3386,7 @@ footer{
       // CubeSmart's Exhibit A page (page 3) is boilerplate left over from the
       // template's original sample store and isn't filled in per-store —
       // drop it from every generated Owner Contract.
-      if (pdfDoc.getPageCount() > 2) pdfDoc.removePage(2);
+      if (kind !== 'managed' && pdfDoc.getPageCount() > 2) pdfDoc.removePage(2);
 
       // Auto-stamp the saved signature onto the "Service Provider Signature:"
       // line (now the last page, same table position on both the Owned and

@@ -28,3 +28,20 @@ Everything in the dashboard UI — filtering, sorting, the KPI tiles, the Contra
 
 ## Google Map
 See `MAP_SETUP.md` — add a Google Maps key and the Contract Accepted map becomes a real Google Map with one pin per store.
+
+
+## Projections tab
+A second tab next to Bidding. Season total (Dec-Mar) at the top, then December / January / February / March sections, then a store-by-store detail table. Pushes per month, the no-vendor-cost margin and seasonal installments are editable at the top of the tab and are remembered in your browser. Counts only Verbally Accepted + Contract Accepted stores; stores with no price entered show as "Needs pricing".
+
+## Staying connected to Smartsheet (two-way sync)
+
+- The page reads from and writes to Smartsheet through the Worker. Edits in the page save to Smartsheet right away; edits made in Smartsheet appear in the page on load, every 60 seconds, and when you switch back to the tab.
+- If the page can't find a Worker URL it shows a red "NOT connected" bar at the top with a form: paste the Worker URL and dashboard key once and click Connect. They're remembered in that browser. (Or put them in config.js next to index.html — config.js wins if both exist.)
+
+## Edits are always kept in the browser
+
+Every edit is saved in this browser first (so a refresh never loses it), then sent to Smartsheet. If Smartsheet isn't reachable or the Worker isn't connected, a bar shows how many edits are waiting and a **Sync now** button re-sends them. An edit is only forgotten once Smartsheet confirms it. Browser storage is per browser/device: use Sync now before switching computers or clearing browser data.
+
+## CubeSmart managed contract (2026 form)
+
+`templates/managed.pdf` is the 2026 CubeSmart "Snowplowing Contract - Managed" (4 pages: contract, terms + signature, Exhibit A, Insurance Schedule). The source PDF had no form fields, so fields were added at each blank. Autofill fills service provider, term, tier fees (3-6" through 16-18"), per-inch, de-icer, and lists the store and address on Exhibit A. CubeSmart owned (store numbers starting with 0) still uses `templates/owned.pdf`.

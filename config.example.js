@@ -6,5 +6,6 @@ window.SNOW_CONFIG = {
   // The same random string you saved as DASHBOARD_KEY on that Worker
   dashboardKey: '',
   // Google Maps JavaScript API key (MAP_SETUP.md) for the real Google Map. Leave '' to keep the schematic map.
-  googleMapsKey: '',
+  // Prefilled with the same key the Parkinson portal uses. Add https://zkranich.github.io/* to its allowed websites in Google Cloud.
+  googleMapsKey: 'AIzaSyBiW0zuaB27AFxKKBn69cnn8lPnC-B6CJA',
 };
