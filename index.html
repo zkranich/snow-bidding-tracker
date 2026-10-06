@@ -956,11 +956,55 @@ footer{
   let lastSyncDetail = '';
   let lastSyncOk = null; // null = not configured/not attempted, true/false = last call's result
   let inflightWrites = 0;
-  async function syncFieldToSmartsheet(rowId, field, value){
-    inflightWrites++;
-    try { return await syncFieldToSmartsheetInner(rowId, field, value); } finally { inflightWrites--; }
+
+  // ---- Local outbox: every edit is saved in THIS browser first (localStorage), so a
+  // refresh never loses it, then pushed to Smartsheet. An entry is only removed once
+  // Smartsheet confirms it; "Sync now" re-sends whatever is still waiting.
+  const OUTBOX_KEY = 'fdiSnowOutboxV1';
+  function outboxLoad(){ try { return JSON.parse(localStorage.getItem(OUTBOX_KEY) || '{}') || {}; } catch(e){ return {}; } }
+  function outboxSave(o){ try { localStorage.setItem(OUTBOX_KEY, JSON.stringify(o)); } catch(e){} }
+  function outboxCount(){ return Object.keys(outboxLoad()).length; }
+  function outboxPut(rowId, field, value){
+    const o = outboxLoad(); const ts = Date.now();
+    o[rowId + '|' + field] = { rowId, field, value: value === undefined ? null : value, ts };
+    outboxSave(o); return ts;
   }
-  async function syncFieldToSmartsheetInner(rowId, field, value){
+  function outboxClear(rowId, field, ts){
+    const o = outboxLoad(); const k = rowId + '|' + field;
+    if (o[k] && o[k].ts === ts){ delete o[k]; outboxSave(o); }
+  }
+  // Re-apply saved-but-unsynced edits on top of whatever the rows currently hold.
+  function applyOutbox(){
+    const o = outboxLoad(); const ents = Object.values(o); if (!ents.length) return 0;
+    const byId = new Map(); rows.forEach(r => { if (r.rowId != null) byId.set(String(r.rowId), r); });
+    let n = 0;
+    ents.forEach(e => {
+      const r = byId.get(String(e.rowId)); if (!r) return; n++;
+      if (e.field === 'customerStatus') r.customerStatus = e.value || null;
+      else if (e.field === 'vendorStatus') r.vendorStatus = e.value || null;
+      else if (e.field === 'lost') r.lost = !!e.value;
+      else if (e.field === 'region'){ if (e.value) r.region = String(e.value); }
+      else if (e.field === 'vendor2627') r.vendor2627 = e.value ? String(e.value) : '';
+      else if (Object.prototype.hasOwnProperty.call(LIVE_CONTRACT_COLUMNS, e.field)){
+        if (!r.contractParams) r.contractParams = {};
+        r.contractParams[e.field] = (e.value === '' || e.value === undefined) ? null : e.value;
+      }
+    });
+    return n;
+  }
+  async function syncOutboxNow(){
+    if (!SMARTSHEET_WORKER_URL) return;
+    const ents = Object.values(outboxLoad());
+    for (const e of ents){ await syncFieldToSmartsheetInner(e.rowId, e.field, e.value, e.ts); }
+    updateSyncBanner();
+  }
+  async function syncFieldToSmartsheet(rowId, field, value){
+    if (rowId == null) return { ok: false, reason: 'no-row-id' };
+    const ts = outboxPut(rowId, field, value);
+    inflightWrites++;
+    try { return await syncFieldToSmartsheetInner(rowId, field, value, ts); } finally { inflightWrites--; }
+  }
+  async function syncFieldToSmartsheetInner(rowId, field, value, ts){
     if (!SMARTSHEET_WORKER_URL || rowId == null) return { ok: false, reason: 'not-configured' };
     try {
       const resp = await fetch(SMARTSHEET_WORKER_URL.replace(/\/$/, '') + '/update', {
@@ -970,6 +1014,7 @@ footer{
       });
       const ok = resp.ok;
       lastSyncOk = ok;
+      if (ok && ts) outboxClear(rowId, field, ts);
       if (!ok){ lastSyncDetail = 'HTTP ' + resp.status + (resp.status===401||resp.status===403 ? ' (dashboard key rejected)' : resp.status===404 ? ' (Worker URL has no /update — wrong Worker?)' : ''); console.warn('Smartsheet sync failed for row', rowId, field, await resp.text().catch(() => '')); } else lastSyncDetail = '';
       updateSyncBanner();
       return { ok };
@@ -1073,6 +1118,7 @@ footer{
         r.lost = !!c[LIVE_COL.lost];
         if (c[LIVE_COL.region]) r.region = String(c[LIVE_COL.region]);
       });
+      applyOutbox(); // unsynced local edits win until Smartsheet confirms them
       // On a plain host (no db capability) Smartsheet is the single source of truth: once
       // it's been read back, drop the in-memory "pending" overlays so later edits made
       // directly in Smartsheet show up here instead of being masked by stale local ones.
@@ -1886,14 +1932,26 @@ footer{
       + (SMARTSHEET_WORKER_URL ? pendingContractMap.size + pendingVendorMap.size : 0);
     const otherN = (SMARTSHEET_WORKER_URL ? 0 : pendingContractMap.size + pendingVendorMap.size) + estimateCount() + ownerContractCount();
     const n = liveN + otherN;
+    const outN = outboxCount();
+    const addSyncBtn = () => {
+      const sb = document.createElement('button'); sb.type = 'button'; sb.textContent = 'Sync now';
+      sb.style.marginLeft = '8px';
+      sb.addEventListener('click', async () => { sb.disabled = true; sb.textContent = 'Syncing…'; await syncOutboxNow(); });
+      banner.append(sb);
+    };
     if (banner){
       if (SMARTSHEET_WORKER_URL){
-        if (lastSyncOk === false){
+        if (lastSyncOk !== false && outN > 0 && inflightWrites === 0){
+          banner.hidden = false;
+          banner.textContent = `💾 ${outN} edit${outN===1?'':'s'} saved in this browser but not yet confirmed in Smartsheet. `;
+          addSyncBtn();
+        } else if (lastSyncOk === false){
           banner.hidden = false;
           banner.textContent = `⚠ Smartsheet sync failed${lastSyncDetail ? ': ' + lastSyncDetail : ''}. Nothing is being saved or loaded. `;
           const rb = document.createElement('button'); rb.type = 'button'; rb.textContent = 'Re-enter Worker URL / key';
           rb.addEventListener('click', () => { try { localStorage.removeItem('fdiWorkerUrl'); localStorage.removeItem('fdiDashboardKey'); } catch(e){} location.reload(); });
           banner.append(rb);
+          if (outN > 0){ banner.append(document.createTextNode(` ${outN} edit${outN===1?' is':'s are'} safe in this browser. `)); addSyncBtn(); }
         } else if (otherN > 0){
           banner.hidden = false;
           banner.textContent = `✅ Statuses, region, contract rates, dates and 26/27 vendor save live to Smartsheet. ${otherN} staged upload${otherN===1?'':'s'} (vendor estimates / owner contracts) ${otherN===1?'doesn’t':'don’t'} save anywhere on this site yet.`;
@@ -1905,7 +1963,7 @@ footer{
         banner.hidden = false;
         banner.innerHTML = '';
         const msg = document.createElement('span');
-        msg.textContent = `🔴 NOT connected to Smartsheet — nothing you enter will save, and you're seeing the ${n>0 ? n+' unsaved change'+(n===1?'':'s')+' + ' : ''}snapshot baked into this page. Paste your Worker URL and dashboard key once: `;
+        msg.textContent = `🔴 Not connected to Smartsheet. Your edits are still kept in this browser${outN>0 ? ' ('+outN+' waiting to sync)' : ''}, but they won't reach Smartsheet until you connect. Paste your Worker URL and dashboard key once: `;
         const u = document.createElement('input'); u.type='text'; u.placeholder='https://snow-bidding-sync.xxx.workers.dev'; u.style.cssText='width:300px;margin:0 6px;';
         const k = document.createElement('input'); k.type='password'; k.placeholder='dashboard key'; k.style.cssText='width:160px;margin:0 6px;';
         const b = document.createElement('button'); b.type='button'; b.textContent='Connect';
@@ -3361,28 +3419,41 @@ footer{
   // It only stages/syncs through the real seasonal/vendorSeasonal inputs
   // (see the write-through wiring in render()), so it needs no field of its
   // own in CONTRACT_FIELDS or Smartsheet.
-  function quarterOf(v){
+  // Divisor for the Monthly companion: Devon (DSS) pays over 4 months; Public Storage (PS)
+  // uses the Projections "seasonal installments" setting (default 5, Nov-Mar) so the
+  // monthly shown here always matches what the Projections tab counts.
+  function monthlyDivisor(r){
+    if (storePrefixType(r.store) === 'PS'){
+      const d = (typeof projAssume !== 'undefined' && projAssume && Number(projAssume.seasonalMonths)) || 5;
+      return d >= 1 ? d : 5;
+    }
+    return 4;
+  }
+  function quarterOf(v, div){
+    div = Number(div) || 4;
     if (v === null || v === undefined || v === '') return '';
     const n = Number(v);
     if (Number.isNaN(n)) return '';
-    return Math.round((n / 4) * 100) / 100;
+    return Math.round((n / div) * 100) / 100;
   }
   function baseMonthlyItemHtml(r){
     const canEdit = r.rowId != null;
     const fdiVal = effectiveContractValue(r, 'seasonal');
     const vendVal = effectiveContractValue(r, 'vendorSeasonal');
-    const fdiMonthly = quarterOf(fdiVal);
-    const vendMonthly = quarterOf(vendVal);
+    const div = monthlyDivisor(r);
+    const isPS = storePrefixType(r.store) === 'PS';
+    const fdiMonthly = quarterOf(fdiVal, div);
+    const vendMonthly = quarterOf(vendVal, div);
     const margin = computeMargin(fdiVal, vendVal); // same ratio either way
     const disabledAttr = canEdit ? '' : 'disabled title="No Smartsheet row id on file — can\'t sync"';
     const input = (val, role, mirrorField) => `<span class="cp-input-wrap">
       <span class="cp-currency">$</span>
       <input type="number" step="0.01" inputmode="decimal" class="cp-input cp-basemonthly-input"
-        data-mirror-field="${mirrorField}" data-role="${role}"
+        data-mirror-field="${mirrorField}" data-role="${role}" data-div="${div}"
         value="${val === '' ? '' : val}" placeholder="&mdash;" ${disabledAttr}>
     </span>`;
     return `<div class="cp-item">
-      <div class="cp-name">Base Monthly</div>
+      <div class="cp-name">${isPS ? `Monthly (seasonal &divide; ${div})` : 'Base Monthly'}</div>
       <div class="cp-line"><span class="cp-line-label">FDI:</span>${input(fdiMonthly, 'fdi', 'seasonal')}</div>
       <div class="cp-line"><span class="cp-line-label">Vendor:</span>${input(vendMonthly, 'vendor', 'vendorSeasonal')}</div>
       <div class="cp-line cp-margin-line"><span class="cp-line-label">Margin:</span><span class="cp-margin-val ${margin.cls}">${margin.text}</span></div>
@@ -3404,7 +3475,7 @@ footer{
       // Devon Self Storage pays monthly, so alongside Seasonal (the season
       // total) show a reverse-linked Base Monthly = Seasonal / 4, placed
       // right before Seasonal.
-      const extra = (type === 'DSS' && k === 'seasonal') ? baseMonthlyItemHtml(r) : '';
+      const extra = ((type === 'DSS' || type === 'PS') && k === 'seasonal') ? baseMonthlyItemHtml(r) : '';
       return extra + item;
     }).join('');
     return `<div class="contract-params"><div class="k">Contract parameters</div><div class="v"><div class="cp-grid">${rowsHtml}</div></div></div>`;
@@ -3662,7 +3733,7 @@ footer{
             if (inp.dataset.field === 'seasonal' || inp.dataset.field === 'vendorSeasonal'){
               const mirror = detail.querySelector(`input.cp-basemonthly-input[data-mirror-field="${inp.dataset.field}"]`);
               if (mirror){
-                const q = quarterOf(inp.value);
+                const q = quarterOf(inp.value, mirror.dataset.div);
                 mirror.value = q === '' ? '' : String(q);
                 const item = mirror.closest('.cp-item');
                 if (item) refreshMarginForItem(item);
@@ -3689,7 +3760,7 @@ footer{
             let newSeasonal = '';
             if (raw !== ''){
               const n = Number(raw);
-              if (!Number.isNaN(n)) newSeasonal = Math.round(n * 4 * 100) / 100;
+              if (!Number.isNaN(n)) newSeasonal = Math.round(n * (Number(inp.dataset.div) || 4) * 100) / 100;
             }
             realInput.value = newSeasonal === '' ? '' : String(newSeasonal);
             stageContractChange(r, mirrorField, realInput, realInput.value);
@@ -4013,6 +4084,7 @@ footer{
     document.getElementById('tab-projections').addEventListener('click', () => showView('projections'));
   })();
 
+  applyOutbox();
   render();
   updateSyncBanner();
   loadLiveFromSmartsheet();
