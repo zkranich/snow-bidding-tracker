@@ -1,7 +1,7 @@
 # Real Google Map — setup (about 5 minutes)
 
 The Contract Accepted map becomes a real Google Map with one pin per store,
-colored by Vendor Status (red / yellow / green / grey). Click a pin for the
+as classic teardrop pins with the store number on each one (same look as the Parkinson portal), colored by Vendor Status (red / yellow / green / grey). Click a pin for the
 store, customer, address, vendor status and an "Open in Google Maps" link.
 Until a key is added, the old schematic map keeps working.
 
@@ -20,11 +20,14 @@ The key sits in a public web page, so restrict it:
 - **API restrictions:** Restrict key -> Maps JavaScript API and Geocoding API only.
 
 ## 3. Put it in the dashboard
-In `index.html`, find this line and paste the key between the quotes:
+Copy `config.example.js` to `config.js` (same folder as `index.html`), paste the
+key into `googleMapsKey: ''`, and upload `config.js` to GitHub. Replacing
+`index.html` later never touches `config.js`.
 
-    const GOOGLE_MAPS_API_KEY = '';
-
-Save/upload `index.html` to GitHub.
+**Shortcut:** your Parkinson Enterprises portal already uses a Google Maps key.
+You can reuse the same key — just make sure its website restriction includes
+`https://zkranich.github.io/*` (that covers every portal and this dashboard)
+and that both Maps JavaScript API and Geocoding API are enabled on it.
 
 ## Notes
 - First time the map opens it looks up each store's address (a few seconds for

@@ -2,6 +2,7 @@
 
 ## What's in here
 - `index.html` — the full dashboard (KPIs, status tracking, Contract Accepted map with zoom/pan, everything you've been using), wired for **live Smartsheet sync** on four fields. No build step.
+- `config.example.js` — copy to `config.js` and fill in your Worker URL, key and Google Maps key. Your settings live there, so a new `index.html` never wipes them.
 - `lib/pdf-lib.min.js` and `templates/*.pdf` — the PDF engine and the contract templates (Owned, Managed, DSS owner contracts plus the three FDI vendor subcontracts: CubeSmart, Seasonal, Per Push). **Upload these folders with `index.html`** — the Create Contract buttons won't work without them.
 - `worker.js` — the Cloudflare Worker that does the actual writing to Smartsheet (it holds the API token; the dashboard never does).
 - `WORKER_SETUP.md` — the one-time, ~10 minute setup to turn the sync on.

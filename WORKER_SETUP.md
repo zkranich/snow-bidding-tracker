@@ -36,24 +36,21 @@ Save.
 
 ## 4. Point the dashboard at the Worker
 
-1. Copy your Worker's URL — it's shown at the top of the Worker's page,
-   looks like `https://snow-bidding-sync.<your-subdomain>.workers.dev`.
-2. Open `index.html` in a text editor and find these two lines near the top
-   of the `<script>` block:
+1. Copy your Worker's URL — shown at the top of the Worker's page, looks like
+   `https://snow-bidding-sync.<your-subdomain>.workers.dev`.
+2. In the repo, copy `config.example.js` to a new file named `config.js`
+   (same folder as `index.html`) and fill in:
 
    ```js
-   const SMARTSHEET_WORKER_URL = '';
-   const DASHBOARD_KEY = '';
+   window.SNOW_CONFIG = {
+     workerUrl: 'https://snow-bidding-sync.<your-subdomain>.workers.dev',
+     dashboardKey: 'the same random string from step 3',
+     googleMapsKey: '',
+   };
    ```
 
-3. Fill them in:
-
-   ```js
-   const SMARTSHEET_WORKER_URL = 'https://snow-bidding-sync.<your-subdomain>.workers.dev';
-   const DASHBOARD_KEY = 'the same random string from step 3';
-   ```
-
-4. Save, and push/upload the updated `index.html` to your GitHub Pages repo.
+3. Upload `config.js` to GitHub. Because these settings live in `config.js`,
+   replacing `index.html` later never wipes them.
 
 ## 5. Test it
 
