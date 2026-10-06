@@ -946,11 +946,20 @@ footer{
   // These three settings can live in a separate config.js next to index.html (see config.example.js),
   // so replacing index.html never wipes them. You can also still paste values directly between the quotes.
   const SNOW_CONFIG = window.SNOW_CONFIG || {};
-  const SMARTSHEET_WORKER_URL = SNOW_CONFIG.workerUrl || ''; // e.g. 'https://snow-bidding-sync.yoursubdomain.workers.dev'
-  const DASHBOARD_KEY = SNOW_CONFIG.dashboardKey || ''; // the same random string you set as the Worker's DASHBOARD_KEY secret
+  // Worker URL + key: config.js wins; otherwise fall back to what was entered via the
+  // "Connect to Smartsheet" bar on this page (kept in this browser's localStorage), so a
+  // missing/overwritten config.js can never silently disconnect the dashboard.
+  function lsGet(k){ try { return localStorage.getItem(k) || ''; } catch(e){ return ''; } }
+  const SMARTSHEET_WORKER_URL = SNOW_CONFIG.workerUrl || lsGet('fdiWorkerUrl') || ''; // e.g. 'https://snow-bidding-sync.yoursubdomain.workers.dev'
+  const DASHBOARD_KEY = SNOW_CONFIG.dashboardKey || lsGet('fdiDashboardKey') || ''; // the same random string you set as the Worker's DASHBOARD_KEY secret
 
   let lastSyncOk = null; // null = not configured/not attempted, true/false = last call's result
+  let inflightWrites = 0;
   async function syncFieldToSmartsheet(rowId, field, value){
+    inflightWrites++;
+    try { return await syncFieldToSmartsheetInner(rowId, field, value); } finally { inflightWrites--; }
+  }
+  async function syncFieldToSmartsheetInner(rowId, field, value){
     if (!SMARTSHEET_WORKER_URL || rowId == null) return { ok: false, reason: 'not-configured' };
     try {
       const resp = await fetch(SMARTSHEET_WORKER_URL.replace(/\/$/, '') + '/update', {
@@ -1063,6 +1072,13 @@ footer{
         r.lost = !!c[LIVE_COL.lost];
         if (c[LIVE_COL.region]) r.region = String(c[LIVE_COL.region]);
       });
+      // On a plain host (no db capability) Smartsheet is the single source of truth: once
+      // it's been read back, drop the in-memory "pending" overlays so later edits made
+      // directly in Smartsheet show up here instead of being masked by stale local ones.
+      if (!dbApi && inflightWrites === 0){
+        pendingCustomerStatusMap.clear(); pendingVendorStatusMap.clear(); pendingLostMap.clear();
+        pendingContractMap.clear(); pendingVendorMap.clear(); pendingRegionMap.clear();
+      }
       lastSyncOk = true;
       if (tag) tag.textContent = 'LIVE ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
       console.log('Live Smartsheet load: matched', matched, 'of', rows.length, 'rows');
@@ -1879,11 +1895,22 @@ footer{
         } else {
           banner.hidden = true;
         }
-      } else if (n > 0){
-        banner.hidden = false;
-        banner.textContent = `⏳ ${n} change${n===1?'':'s'} staged locally only — set SMARTSHEET_WORKER_URL in this file (see WORKER_SETUP.md) to sync live, otherwise these are lost on refresh.`;
       } else {
-        banner.hidden = true;
+        // Not connected: ALWAYS say so, loudly, with a one-time connect form.
+        banner.hidden = false;
+        banner.innerHTML = '';
+        const msg = document.createElement('span');
+        msg.textContent = `🔴 NOT connected to Smartsheet — nothing you enter will save, and you're seeing the ${n>0 ? n+' unsaved change'+(n===1?'':'s')+' + ' : ''}snapshot baked into this page. Paste your Worker URL and dashboard key once: `;
+        const u = document.createElement('input'); u.type='text'; u.placeholder='https://snow-bidding-sync.xxx.workers.dev'; u.style.cssText='width:300px;margin:0 6px;';
+        const k = document.createElement('input'); k.type='password'; k.placeholder='dashboard key'; k.style.cssText='width:160px;margin:0 6px;';
+        const b = document.createElement('button'); b.type='button'; b.textContent='Connect';
+        b.addEventListener('click', () => {
+          const uv = u.value.trim(), kv = k.value.trim();
+          if (!/^https:\/\//.test(uv) || !kv){ u.style.outline = '2px solid red'; return; }
+          try { localStorage.setItem('fdiWorkerUrl', uv); localStorage.setItem('fdiDashboardKey', kv); } catch(e){}
+          location.reload();
+        });
+        banner.append(msg, u, k, b);
       }
     }
     const badge = document.getElementById('sync-btn-badge');
@@ -3982,6 +4009,21 @@ footer{
   })();
 
   render();
+  updateSyncBanner();
   loadLiveFromSmartsheet();
+  // Two-way sync: edits made directly in Smartsheet show up here without a manual
+  // refresh — re-pull every 60s and whenever the tab regains focus. Skipped while
+  // you're typing in a field or while a save is still in flight so nothing gets clobbered.
+  if (SMARTSHEET_WORKER_URL){
+    let lastPull = Date.now();
+    const busy = () => {
+      const a = document.activeElement;
+      return (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && !a.closest('#sync-banner')) || inflightWrites > 0;
+    };
+    const maybePull = () => { if (!busy() && Date.now() - lastPull > 15000){ lastPull = Date.now(); loadLiveFromSmartsheet(); } };
+    setInterval(() => { if (!document.hidden) maybePull(); }, 60000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) maybePull(); });
+    window.addEventListener('focus', maybePull);
+  }
 })();
 </script>
