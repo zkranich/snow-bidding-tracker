@@ -953,6 +953,7 @@ footer{
   const SMARTSHEET_WORKER_URL = SNOW_CONFIG.workerUrl || lsGet('fdiWorkerUrl') || ''; // e.g. 'https://snow-bidding-sync.yoursubdomain.workers.dev'
   const DASHBOARD_KEY = SNOW_CONFIG.dashboardKey || lsGet('fdiDashboardKey') || ''; // the same random string you set as the Worker's DASHBOARD_KEY secret
 
+  let lastSyncDetail = '';
   let lastSyncOk = null; // null = not configured/not attempted, true/false = last call's result
   let inflightWrites = 0;
   async function syncFieldToSmartsheet(rowId, field, value){
@@ -969,7 +970,7 @@ footer{
       });
       const ok = resp.ok;
       lastSyncOk = ok;
-      if (!ok) console.warn('Smartsheet sync failed for row', rowId, field, await resp.text().catch(() => ''));
+      if (!ok){ lastSyncDetail = 'HTTP ' + resp.status + (resp.status===401||resp.status===403 ? ' (dashboard key rejected)' : resp.status===404 ? ' (Worker URL has no /update — wrong Worker?)' : ''); console.warn('Smartsheet sync failed for row', rowId, field, await resp.text().catch(() => '')); } else lastSyncDetail = '';
       updateSyncBanner();
       return { ok };
     } catch (e) {
@@ -1041,7 +1042,7 @@ footer{
     const tag = document.getElementById('snapshot-date');
     try {
       const resp = await fetch(SMARTSHEET_WORKER_URL.replace(/\/$/, '') + '/rows', { headers: { 'X-Dashboard-Key': DASHBOARD_KEY } });
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      if (!resp.ok) throw new Error('HTTP ' + resp.status + (resp.status===401||resp.status===403 ? ' (dashboard key rejected)' : resp.status===404 ? ' (Worker URL has no /rows — wrong Worker?)' : ''));
       const sheet = await resp.json();
       if (!sheet || !Array.isArray(sheet.rows)) throw new Error('unexpected response');
       const byRow = new Map();
@@ -1086,6 +1087,7 @@ footer{
       updateSyncBanner();
     } catch(e){
       lastSyncOk = false;
+      lastSyncDetail = (e && e.message === 'Failed to fetch') ? 'could not reach the Worker URL (typo, or CORS)' : String((e && e.message) || e);
       console.warn('Live Smartsheet load failed — showing the snapshot baked into this page', e);
       updateSyncBanner();
     }
@@ -1888,7 +1890,10 @@ footer{
       if (SMARTSHEET_WORKER_URL){
         if (lastSyncOk === false){
           banner.hidden = false;
-          banner.textContent = `⚠ Last Smartsheet sync call failed — check the connection, or that the Worker URL/key in this file are still correct, then retry the edit.`;
+          banner.textContent = `⚠ Smartsheet sync failed${lastSyncDetail ? ': ' + lastSyncDetail : ''}. Nothing is being saved or loaded. `;
+          const rb = document.createElement('button'); rb.type = 'button'; rb.textContent = 'Re-enter Worker URL / key';
+          rb.addEventListener('click', () => { try { localStorage.removeItem('fdiWorkerUrl'); localStorage.removeItem('fdiDashboardKey'); } catch(e){} location.reload(); });
+          banner.append(rb);
         } else if (otherN > 0){
           banner.hidden = false;
           banner.textContent = `✅ Statuses, region, contract rates, dates and 26/27 vendor save live to Smartsheet. ${otherN} staged upload${otherN===1?'':'s'} (vendor estimates / owner contracts) ${otherN===1?'doesn’t':'don’t'} save anywhere on this site yet.`;
