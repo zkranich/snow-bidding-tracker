@@ -64,19 +64,24 @@ warning starting with "Smartsheet sync failed" or "Smartsheet sync error" —
 it'll say what went wrong (usually a typo'd URL or a key mismatch between
 the two files).
 
-## What this covers, and what it doesn't
+## What this covers
 
-Once this is wired up, **Customer Status, Vendor Status, Lost, and Region**
-edits sync live, both ways removed from the manual loop. Everything else —
-vendor name/contract notes, vendor estimate uploads, owner contract uploads —
-was never wired to this Worker and still has nowhere to persist on a plain
-host; the dashboard's banner will keep flagging those as needing manual
-handling. If you want those live too, that's a further step (each needs its
-own Smartsheet column or attachment API call) — just ask.
+Once the Worker is deployed with the current `worker.js`, these save straight
+to the matching Smartsheet column the moment you change them, and the page
+reads them back from Smartsheet every time it loads (so a refresh, or opening
+it on another computer, shows what you saved — look for "LIVE" next to the
+snapshot time at the top):
 
-The dashboard also still loads its *initial* data from a snapshot baked into
-`index.html`, not a live pull — so a brand new row added directly in
-Smartsheet, or a change made in Smartsheet itself, won't show up here until
-the page is rebuilt from a fresh export. The Worker's `GET /rows` endpoint
-is already in place for that next step (live reads), it's just not wired
-into the page yet.
+- Customer Status, Vendor Status, Lost, Region
+- 26/27 Vendor
+- All contract rates, FDI and vendor side (deicer, push tiers, per inch,
+  seasonal, SROA, Pfuetze tiers, salting)
+- Contract Start and Contract End
+
+**Important:** if you set up the Worker earlier, paste the new `worker.js`
+over the old one (Edit code -> replace everything -> Save and deploy). The
+old Worker only knows the first four fields.
+
+Still not saved anywhere on a plain web host: vendor estimate uploads and
+owner contract uploads (no file storage here), and brand-new rows added in
+Smartsheet — those only appear after `index.html` is rebuilt from a fresh pull.
