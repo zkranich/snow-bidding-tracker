@@ -2841,12 +2841,30 @@ footer{
     marginVal.className = 'cp-margin-val ' + m.cls;
   }
 
-  // Devon Self Storage seasonal contracts are priced on 15 pushes across the
-  // season: Seasonal = (2"-4" Push Rate + Deicer) x 15. Editing either input
+  // Devon Self Storage seasonal contracts are priced on a number of pushes (default 15,
+  // adjustable via the Pushes box): Seasonal = (2"-4" Push Rate + Deicer) x Pushes. Editing either input
   // always recalculates and overwrites Seasonal (and, through the existing
   // write-through, its Base Monthly mirror) for the matching FDI/Vendor side
   // — once both inputs on that side have a numeric value. Scope is DSS-
   // prefixed stores only, per Zak.
+  // Number of pushes the Devon seasonal price is built on. Default 15; adjustable per
+  // store from the "Pushes" box. Remembered in this browser; if it's not stored (e.g. on
+  // another device) it's inferred from the saved Seasonal when that divides evenly by
+  // (2"-4" push + deicer), so the box still shows the number the price was built on.
+  const DSS_DEFAULT_PUSHES = 15;
+  const DSS_PUSHES_KEY = 'fdiDssPushesV1';
+  function dssPushOverrides(){ try { return JSON.parse(localStorage.getItem(DSS_PUSHES_KEY) || '{}') || {}; } catch(e){ return {}; } }
+  function dssSetPushes(r, n){ try { const o = dssPushOverrides(); o[String(r.rowId)] = n; localStorage.setItem(DSS_PUSHES_KEY, JSON.stringify(o)); } catch(e){} }
+  function dssPushCount(r){
+    const o = dssPushOverrides()[String(r.rowId)];
+    if (Number(o) >= 1) return Number(o);
+    for (const [sk, pk, dk] of [['seasonal','fdi2_4','deicer'], ['vendorSeasonal','vendorFdi2_4','vendorDeicer']]){
+      const se = Number(effectiveContractValue(r, sk)), pu = Number(effectiveContractValue(r, pk)), de = Number(effectiveContractValue(r, dk));
+      const per = pu + de;
+      if (se > 0 && per > 0){ const n = se / per; if (n >= 1 && n <= 60 && Math.abs(n - Math.round(n)) < 0.02) return Math.round(n); }
+    }
+    return DSS_DEFAULT_PUSHES;
+  }
   const DSS_AUTOCALC_SEASONAL_FIELD = { deicer: 'seasonal', fdi2_4: 'seasonal', vendorDeicer: 'vendorSeasonal', vendorFdi2_4: 'vendorSeasonal' };
   function applyDssSeasonalAutocalc(r, detail, changedField){
     if (storePrefixType(r.store) !== 'DSS') return;
@@ -2858,7 +2876,9 @@ footer{
     if (Number.isNaN(deicerVal) || Number.isNaN(pushVal)) return; // need both to compute
     const seasonalInput = detail.querySelector(`input.cp-input[data-field="${seasonalField}"]`);
     if (!seasonalInput || !seasonalInput.dataset.rowid) return;
-    const newSeasonal = Math.round((deicerVal + pushVal) * 15 * 100) / 100;
+    const pushesInput = detail.querySelector('input.cp-pushes-input');
+    const nPushes = pushesInput ? (Number(pushesInput.value) || dssPushCount(r)) : dssPushCount(r);
+    const newSeasonal = Math.round((deicerVal + pushVal) * nPushes * 100) / 100;
     seasonalInput.value = String(newSeasonal);
     stageContractChange(r, seasonalField, seasonalInput, seasonalInput.value);
     const seasonalItem = seasonalInput.closest('.cp-item');
@@ -2879,23 +2899,29 @@ footer{
   // any other CS store number. Scope is CS-prefixed stores only, per Zak.
   const CONTRACT_TEMPLATES = {
     managed: {
+      // 2026 CubeSmart "Snowplowing Contract - Managed" (Zak's Snow_Plow_Contract_Managed_2026.pdf).
+      // The source PDF has no form fields, so fields were added at each blank
+      // (templates/managed.pdf: contract, terms + signature, Exhibit A, Insurance Schedule).
       file: 'templates/managed.pdf',
       filenameSuffix: 'Managed',
       fields: {
-        serviceProviderName: 'text_1jbef',
-        termMonths: 'text_2rfxp',
-        termMonthsCheckbox: 'checkbox_6wbqx',
-        termBegin: 'text_3qdsf',       // full date incl. year — no separate year field for begin date
-        termEndMonthDay: 'text_4dgji', // month/day only
-        termEndYear: 'text_5gtfo',     // 2-digit year
-        deicer: 'text_18dcqr',
-        eachAdditionalInch: 'text_14wuni',
+        serviceProviderName: 'serviceProviderName',
+        termMonths: 'termMonths',
+        termMonthsCheckbox: 'termMonthsCheckbox',
+        termBeginMonthDay: 'termBeginMD',
+        termBeginYear: 'termBeginYear',  // 2-digit, printed after the pre-printed "20"
+        termEndMonthDay: 'termEndMD',    // month/day only
+        termEndYear: 'termEndYear',      // 2-digit year
+        deicer: 'deicer',
+        eachAdditionalInch: 'fee_each_inch',
+        eachAdditionalInchTotal: 'total_each_inch',
+        exhibitA: 'exhibitA',
         tiers: {
-          fdi3_6:   { base: 'text_7uzye',  total: 'text_19onzl' },
-          fdi6_9:   { base: 'text_8sfgq',  total: 'text_21jwke' },
-          fdi10_12: { base: 'text_9qejc',  total: 'text_22vlxs' },
-          fdi13_15: { base: 'text_10vqfz', total: 'text_23imjm' },
-          fdi16_18: { base: 'text_11whjl', total: 'text_24mzdl' },
+          fdi3_6:   { base: 'fee_3_6',   total: 'total_3_6' },
+          fdi6_9:   { base: 'fee_7_9',   total: 'total_7_9' },
+          fdi10_12: { base: 'fee_10_12', total: 'total_10_12' },
+          fdi13_15: { base: 'fee_13_15', total: 'total_13_15' },
+          fdi16_18: { base: 'fee_16_18', total: 'total_16_18' },
         },
       },
     },
@@ -2995,6 +3021,8 @@ footer{
     const end = parseISODate(endStr) || parseISODate(DEFAULT_CONTRACT_END);
     return {
       beginFull: start.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      beginMonthDay: start.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }),
+      beginYear2: String(start.getFullYear()).slice(-2),
       endFull: end.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
       endMonthDay: end.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }),
       endYear2: String(end.getFullYear()).slice(-2),
@@ -3088,14 +3116,14 @@ footer{
       const salt = ev('vendorDeicer');
       let derivedPush = false;
       if (!hasVal(push) && isDss && hasVal(salt) && Number(salt) > 1){
-        push = Math.round((total / 15 - Number(salt)) * 100) / 100; derivedPush = true;
+        push = Math.round((total / dssPushCount(r) - Number(salt)) * 100) / 100; derivedPush = true;
       }
-      if (isDss){ f.num_pushes = '15'; f.num_salt = '15'; }
+      if (isDss){ f.num_pushes = String(dssPushCount(r)); f.num_salt = String(dssPushCount(r)); }
       const bits = [];
       if (hasVal(push)) bits.push(`2"-4" trigger: $${money2(push)} per push`);
       if (hasVal(salt) && Number(salt) > 1) bits.push(`Salt: $${money2(salt)} per application`);
       if (bits.length) f.notes = bits.join('. ') + '.';
-      if (derivedPush) warn.push('2"-4" push rate was backed out of Seasonal ÷ 15 − salt (no vendor push rate on file).');
+      if (derivedPush) warn.push('2"-4" push rate was backed out of Seasonal ÷ ' + dssPushCount(r) + ' − salt (no vendor push rate on file).');
       if (!hasVal(push)) warn.push('No 2"-4" push rate found — Notes has no trigger line.');
       if (!(hasVal(salt) && Number(salt) > 1)) warn.push('No vendor salt cost on file — Notes has no salt line.');
       warn.push('Monthly amounts = Seasonal ÷ 5 (Nov–Mar).');
@@ -3345,11 +3373,16 @@ footer{
         setPdfText(form, tmpl.fields.serviceProviderName, SERVICE_PROVIDER_NAME);
         setPdfText(form, tmpl.fields.termMonths, term.months);
         try { form.getCheckBox(tmpl.fields.termMonthsCheckbox).check(); } catch(e){}
-        setPdfText(form, tmpl.fields.termBegin, term.beginFull);
+        setPdfText(form, tmpl.fields.termBeginMonthDay, term.beginMonthDay);
+        setPdfText(form, tmpl.fields.termBeginYear, term.beginYear2);
         setPdfText(form, tmpl.fields.termEndMonthDay, term.endMonthDay);
         setPdfText(form, tmpl.fields.termEndYear, term.endYear2);
         setPdfText(form, tmpl.fields.deicer, deicerVal);
         setPdfText(form, tmpl.fields.eachAdditionalInch, perInchVal);
+        setPdfText(form, tmpl.fields.eachAdditionalInchTotal, perInchVal);
+        // Exhibit A lists the store(s) this contract covers (the old template's
+        // sample entry was dropped; the 2026 form's Exhibit A is blank, so fill it).
+        setPdfText(form, tmpl.fields.exhibitA, `${r.store || ''}${r.address ? '  -  ' + r.address : ''}`);
         for (const [key, map] of Object.entries(tmpl.fields.tiers)){
           const v = tierVal(key);
           setPdfText(form, map.base, v);
@@ -3373,7 +3406,7 @@ footer{
       // CubeSmart's Exhibit A page (page 3) is boilerplate left over from the
       // template's original sample store and isn't filled in per-store —
       // drop it from every generated Owner Contract.
-      if (pdfDoc.getPageCount() > 2) pdfDoc.removePage(2);
+      if (kind !== 'managed' && pdfDoc.getPageCount() > 2) pdfDoc.removePage(2);
 
       // Auto-stamp the saved signature onto the "Service Provider Signature:"
       // line (now the last page, same table position on both the Owned and
@@ -3419,31 +3452,53 @@ footer{
   // It only stages/syncs through the real seasonal/vendorSeasonal inputs
   // (see the write-through wiring in render()), so it needs no field of its
   // own in CONTRACT_FIELDS or Smartsheet.
-  function quarterOf(v){
+  // Divisor for the Monthly companion: Devon (DSS) pays over 4 months; Public Storage (PS)
+  // uses the Projections "seasonal installments" setting (default 5, Nov-Mar) so the
+  // monthly shown here always matches what the Projections tab counts.
+  function monthlyDivisor(r){
+    if (storePrefixType(r.store) === 'PS'){
+      const d = (typeof projAssume !== 'undefined' && projAssume && Number(projAssume.seasonalMonths)) || 5;
+      return d >= 1 ? d : 5;
+    }
+    return 4;
+  }
+  function quarterOf(v, div){
+    div = Number(div) || 4;
     if (v === null || v === undefined || v === '') return '';
     const n = Number(v);
     if (Number.isNaN(n)) return '';
-    return Math.round((n / 4) * 100) / 100;
+    return Math.round((n / div) * 100) / 100;
   }
   function baseMonthlyItemHtml(r){
     const canEdit = r.rowId != null;
     const fdiVal = effectiveContractValue(r, 'seasonal');
     const vendVal = effectiveContractValue(r, 'vendorSeasonal');
-    const fdiMonthly = quarterOf(fdiVal);
-    const vendMonthly = quarterOf(vendVal);
+    const div = monthlyDivisor(r);
+    const isPS = storePrefixType(r.store) === 'PS';
+    const fdiMonthly = quarterOf(fdiVal, div);
+    const vendMonthly = quarterOf(vendVal, div);
     const margin = computeMargin(fdiVal, vendVal); // same ratio either way
     const disabledAttr = canEdit ? '' : 'disabled title="No Smartsheet row id on file — can\'t sync"';
     const input = (val, role, mirrorField) => `<span class="cp-input-wrap">
       <span class="cp-currency">$</span>
       <input type="number" step="0.01" inputmode="decimal" class="cp-input cp-basemonthly-input"
-        data-mirror-field="${mirrorField}" data-role="${role}"
+        data-mirror-field="${mirrorField}" data-role="${role}" data-div="${div}"
         value="${val === '' ? '' : val}" placeholder="&mdash;" ${disabledAttr}>
     </span>`;
     return `<div class="cp-item">
-      <div class="cp-name">Base Monthly</div>
+      <div class="cp-name">${isPS ? `Monthly (seasonal &divide; ${div})` : 'Base Monthly'}</div>
       <div class="cp-line"><span class="cp-line-label">FDI:</span>${input(fdiMonthly, 'fdi', 'seasonal')}</div>
       <div class="cp-line"><span class="cp-line-label">Vendor:</span>${input(vendMonthly, 'vendor', 'vendorSeasonal')}</div>
       <div class="cp-line cp-margin-line"><span class="cp-line-label">Margin:</span><span class="cp-margin-val ${margin.cls}">${margin.text}</span></div>
+    </div>`;
+  }
+
+  function dssPushesItemHtml(r){
+    const canEdit = r.rowId != null;
+    return `<div class="cp-item">
+      <div class="cp-name">Pushes (seasonal basis)</div>
+      <div class="cp-line"><input type="number" min="1" max="60" step="1" inputmode="numeric" class="cp-input cp-pushes-input" value="${dssPushCount(r)}" ${canEdit ? '' : 'disabled'} title="Seasonal = (2&quot;-4&quot; push rate + deicer) &times; pushes" style="width:70px;"></div>
+      <div class="cp-line"><span class="cp-line-label" style="min-width:0;font-size:11px;">Seasonal = (push + deicer) &times; pushes</span></div>
     </div>`;
   }
 
@@ -3462,7 +3517,7 @@ footer{
       // Devon Self Storage pays monthly, so alongside Seasonal (the season
       // total) show a reverse-linked Base Monthly = Seasonal / 4, placed
       // right before Seasonal.
-      const extra = (type === 'DSS' && k === 'seasonal') ? baseMonthlyItemHtml(r) : '';
+      const extra = (type === 'DSS' && k === 'seasonal' ? dssPushesItemHtml(r) : '') + ((type === 'DSS' || type === 'PS') && k === 'seasonal' ? baseMonthlyItemHtml(r) : '');
       return extra + item;
     }).join('');
     return `<div class="contract-params"><div class="k">Contract parameters</div><div class="v"><div class="cp-grid">${rowsHtml}</div></div></div>`;
@@ -3720,7 +3775,7 @@ footer{
             if (inp.dataset.field === 'seasonal' || inp.dataset.field === 'vendorSeasonal'){
               const mirror = detail.querySelector(`input.cp-basemonthly-input[data-mirror-field="${inp.dataset.field}"]`);
               if (mirror){
-                const q = quarterOf(inp.value);
+                const q = quarterOf(inp.value, mirror.dataset.div);
                 mirror.value = q === '' ? '' : String(q);
                 const item = mirror.closest('.cp-item');
                 if (item) refreshMarginForItem(item);
@@ -3735,6 +3790,23 @@ footer{
         // editing one writes through to the real seasonal/vendorSeasonal
         // input (x4) and stages the change there, so syncing still only
         // ever deals with the one real field.
+        // Devon "Pushes" box: changing it recalculates Seasonal (FDI and Vendor) as
+        // (2"-4" push + deicer) x pushes and stages/syncs the new Seasonal values.
+        detail.querySelectorAll('input.cp-pushes-input').forEach(inp => {
+          inp.addEventListener('click', e => e.stopPropagation());
+          inp.addEventListener('mousedown', e => e.stopPropagation());
+          inp.addEventListener('change', e => {
+            e.stopPropagation();
+            let n = Math.round(Number(inp.value));
+            if (!Number.isFinite(n) || n < 1) n = DSS_DEFAULT_PUSHES;
+            if (n > 60) n = 60;
+            inp.value = String(n);
+            dssSetPushes(r, n);
+            const has = k => { const v = effectiveContractValue(r, k); return v !== null && v !== undefined && v !== ''; };
+            if (has('deicer') && has('fdi2_4')) applyDssSeasonalAutocalc(r, detail, 'deicer');
+            if (has('vendorDeicer') && has('vendorFdi2_4')) applyDssSeasonalAutocalc(r, detail, 'vendorDeicer');
+          });
+        });
         detail.querySelectorAll('input.cp-basemonthly-input').forEach(inp => {
           inp.addEventListener('click', e => e.stopPropagation());
           inp.addEventListener('mousedown', e => e.stopPropagation());
@@ -3747,7 +3819,7 @@ footer{
             let newSeasonal = '';
             if (raw !== ''){
               const n = Number(raw);
-              if (!Number.isNaN(n)) newSeasonal = Math.round(n * 4 * 100) / 100;
+              if (!Number.isNaN(n)) newSeasonal = Math.round(n * (Number(inp.dataset.div) || 4) * 100) / 100;
             }
             realInput.value = newSeasonal === '' ? '' : String(newSeasonal);
             stageContractChange(r, mirrorField, realInput, realInput.value);
