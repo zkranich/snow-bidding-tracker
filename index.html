@@ -242,6 +242,9 @@ button{ font-family:inherit; }
 .map-unplaced-note{ font-size:11.5px; color:var(--ink-faint); margin:4px 0 8px; }
 /* Google map layout (map + store sidebar, like the Parkinson portal) */
 .map-modal.map-modal-wide{ max-width:1400px; width:96vw; max-height:94vh; }
+.map-filters{ display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center; padding:8px 20px 4px; font-size:11px; color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.04em; }
+.map-filters select{ font-family:inherit; font-size:12.5px; padding:5px 8px; border:1px solid var(--border); border-radius:6px; background:var(--surface-alt); color:var(--ink); text-transform:none; letter-spacing:0; margin-left:4px; }
+.map-filter-count{ margin-left:auto; font-family:"IBM Plex Mono", ui-monospace, monospace; text-transform:none; letter-spacing:0; }
 .gmap-shell{ display:flex; height:72vh; min-height:480px; border:1px solid var(--border-soft); border-radius:10px; overflow:hidden; background:var(--surface); }
 .gmap-box{ flex:1; min-width:0; }
 .gmap-side{ width:320px; flex:none; border-left:1px solid var(--border-soft); overflow-y:auto; display:flex; flex-direction:column; background:var(--surface); }
@@ -424,10 +427,10 @@ select.status-select:disabled{ opacity:.55; cursor:not-allowed; }
 .vendor-estimate-none, .owner-contract-none{ font-size:12px; color:var(--ink-faint); margin-bottom:6px; }
 .vendor-estimate-upload-btn, .owner-contract-upload-btn{
   display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
-  color:var(--ink); background:var(--surface-alt); border:1px solid var(--border); border-radius:6px;
+  color:#14683a; background:#d9dedb; border:1px solid #c3cbc7; border-radius:6px;
   padding:6px 10px; cursor:pointer; white-space:nowrap;
 }
-.vendor-estimate-upload-btn:hover, .owner-contract-upload-btn:hover{ background:var(--border-soft); }
+.vendor-estimate-upload-btn:hover, .owner-contract-upload-btn:hover{ background:#cdd3cf; }
 .vendor-estimate-upload-btn.uploading, .owner-contract-upload-btn.uploading{ opacity:.6; cursor:wait; }
 .vendor-estimate-hint, .owner-contract-hint{ font-size:11px; color:var(--ink-faint); margin-top:4px; }
 .sync-banner{
@@ -480,6 +483,11 @@ input.row-select, input#select-all{ cursor:pointer; width:14px; height:14px; }
 .cp-input.cp-pending{ border-color:var(--warn,#b45309); background:#fff8ec; }
 .cp-input:disabled{ background:transparent; border-color:transparent; color:var(--ink-faint); cursor:not-allowed; }
 .cp-input-wrap:has(.cp-input:disabled) .cp-currency{ color:var(--ink-faint); }
+.iv-list{ display:flex; flex-direction:column; gap:6px; }
+.iv-row{ display:grid; grid-template-columns:minmax(140px,1.2fr) minmax(160px,1.4fr) minmax(110px,1fr); gap:8px; max-width:640px; }
+.iv-input{ font:inherit; font-size:13px; border:1px solid var(--border-soft); border-radius:4px; padding:4px 7px; background:#fff; color:#000; min-width:0; }
+.iv-input:focus{ outline:2px solid var(--warn,#b45309); outline-offset:1px; }
+.iv-input:disabled{ background:transparent; border-color:transparent; color:var(--ink-faint); }
 .v27-input{
   font:inherit; font-weight:600; font-size:13px; border:1px solid var(--border-soft); border-radius:4px;
   padding:4px 8px; width:220px; max-width:100%; background:#fff; color:#000;
@@ -517,6 +525,42 @@ footer{
 .main-tab:hover{ color:var(--ink); }
 .main-tab.active{ color:var(--accent-ink); border-bottom-color:var(--accent); }
 .proj-wrap{ max-width:1280px; margin:16px auto 0; }
+.vc-wrap{ max-width:1280px; margin:16px auto 0; }
+.vc-bar{ display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; background:var(--surface); border:1px solid var(--border-soft); border-radius:10px; box-shadow:var(--shadow); padding:10px 14px; }
+.vc-bar select,.vc-bar input[type=search]{ font-family:inherit; font-size:13px; padding:7px 9px; border:1px solid var(--border); border-radius:6px; background:var(--surface-alt); color:var(--ink); }
+.vc-bar input[type=search]{ min-width:220px; }
+.vc-count{ margin-left:auto; font-size:12px; color:var(--ink-muted); }
+.vc-board{ display:grid; grid-template-columns:repeat(7, minmax(160px, 1fr)); gap:10px; margin-top:12px; overflow-x:auto; padding-bottom:10px; align-items:start; }
+.vc-col{ background:var(--surface-alt); border:1px solid var(--border-soft); border-radius:10px; min-width:160px; display:flex; flex-direction:column; max-height:75vh; }
+.vc-col-head{ display:flex; align-items:center; justify-content:space-between; gap:6px; padding:9px 11px; font-size:11.5px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; color:var(--ink-muted); border-bottom:1px solid var(--border-soft); }
+.vc-col-head .vc-n{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:12px; padding:1px 8px; border-radius:999px; }
+.vc-col-body{ padding:8px; display:flex; flex-direction:column; gap:8px; overflow-y:auto; }
+.vc-empty{ font-size:12px; color:var(--ink-faint); text-align:center; padding:14px 4px; }
+.vc-card{ background:var(--surface); border:1px solid var(--border-soft); border-radius:8px; padding:9px 10px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:4px; font-size:12.5px; }
+.vc-card-top{ display:flex; justify-content:space-between; gap:8px; align-items:baseline; }
+.vc-store{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-weight:600; font-size:13px; }
+.vc-cust{ font-size:11px; color:var(--ink-muted); text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.vc-addr{ font-size:11.5px; color:var(--ink-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.vc-line{ display:flex; gap:6px; align-items:baseline; }
+.vc-k{ color:var(--ink-faint); min-width:44px; font-size:11px; text-transform:uppercase; letter-spacing:0.03em; }
+.vc-warn{ color:var(--warn); font-weight:600; }
+.vc-actions{ display:flex; flex-direction:column; gap:6px; margin-top:4px; }
+.vc-actions select{ width:100%; min-width:0; font-family:inherit; font-size:12px; padding:5px 6px; border:1px solid var(--border); border-radius:6px; background:var(--surface-alt); color:var(--ink); }
+.vc-actions button{ font-family:inherit; font-size:12px; padding:5px 9px; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--accent-ink); cursor:pointer; white-space:nowrap; }
+.vc-actions button:hover{ background:var(--accent-soft); }
+.vc-actions button:disabled{ opacity:.5; cursor:default; }
+.vc-card{ cursor:pointer; }
+.vc-card:hover{ border-color:var(--accent-ink); }
+.vc-modal-back{ position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:1000; display:flex; align-items:flex-start; justify-content:center; padding:4vh 12px; overflow-y:auto; }
+.vc-modal-back[hidden]{ display:none; }
+.vc-modal{ width:min(1000px,100%); border-radius:12px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.4); background:#e9ebea; color:#1c2422; --ink:#1c2422; --ink-muted:#5b6663; --ink-faint:#8b948f; --border:#dbe1dd; --border-soft:#dbe1dd; --accent-ink:#0f4d4a; --warn:#b6551a; font-size:12.5px; }
+.vc-modal-head{ display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; padding:12px 20px; background:#dfe3e1; border-bottom:1px solid #cdd4d0; }
+.vc-modal-title{ font-weight:700; font-size:14px; }
+.vc-modal-sub{ color:#5b6663; font-size:12px; flex:1 1 200px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.vc-modal-head select{ font-family:inherit; font-size:12px; padding:5px 7px; border:1px solid #c3cbc7; border-radius:6px; background:#fff; color:#1c2422; }
+.vc-modal-close{ font-family:inherit; font-size:13px; padding:5px 12px; border:1px solid #c3cbc7; border-radius:6px; background:#fff; color:#1c2422; cursor:pointer; }
+.vc-modal-detail{ padding:14px 20px 18px; }
+.vc-note{ font-size:11.5px; color:var(--ink-faint); margin:8px 2px 0; line-height:1.55; }
 .proj-assume{
   background:var(--surface); border:1px solid var(--border-soft); border-radius:10px; box-shadow:var(--shadow);
   padding:12px 14px; display:flex; flex-wrap:wrap; gap:12px 18px; align-items:flex-end;
@@ -593,6 +637,7 @@ footer{
 
 <div class="main-tabs" id="main-tabs">
   <button class="main-tab active" id="tab-bidding" type="button" data-view="bidding">Bidding</button>
+  <button class="main-tab" id="tab-vendor" type="button" data-view="vendor">Vendor Contracting</button>
   <button class="main-tab" id="tab-projections" type="button" data-view="projections">Projections</button>
 </div>
 
@@ -637,14 +682,25 @@ footer{
   <div class="map-modal">
     <div class="map-modal-head">
       <div>
-        <h2>Contract Accepted &mdash; site map</h2>
+        <h2 id="map-title">Site map</h2>
         <div class="map-sub">Every location currently Customer Status: Contract Accepted, colored by Vendor Status. This session doesn't have a connected mapping/geocoding service, so pins are grouped by region (schematic placement, not exact address) &mdash; click a store's "Open in Maps" link for the real address in Google Maps.</div>
       </div>
       <button class="map-close-btn" id="map-modal-close" aria-label="Close">&times;</button>
     </div>
+    <div class="map-filters">
+      <label>Show <select id="map-scope">
+        <option value="accepted">Contract Accepted</option>
+        <option value="verbal">Verbally + Contract Accepted</option>
+        <option value="contract">Accepted + Contract Sent</option>
+        <option value="all">All sites (not lost)</option>
+      </select></label>
+      <label>PM <select id="map-pm"><option value="">All PMs</option></select></label>
+      <label>Vendor status <select id="map-vstatus"><option value="">All</option></select></label>
+      <span class="map-filter-count" id="map-filter-count"></span>
+    </div>
     <div class="map-legend">
       <span><i class="map-dot" style="background:var(--map-red)"></i> Need New Vendor</span>
-      <span><i class="map-dot" style="background:var(--map-yellow)"></i> Quoting&#8211;Waiting for Bids / Sent Contract</span>
+      <span><i class="map-dot" style="background:var(--map-yellow)"></i> Quoting&#8211;Waiting for Bids / Send Vendor Contract / Sent Contract</span>
       <span><i class="map-dot" style="background:var(--map-green)"></i> Signed Contract / Compliance Received</span>
       <span><i class="map-dot" style="background:var(--map-none)"></i> No vendor status yet</span>
     </div>
@@ -680,6 +736,7 @@ footer{
 <div class="toolbar">
   <input type="search" id="search" placeholder="Search store #, customer, address, vendor&hellip;">
   <select id="filter-region"><option value="">All regions</option></select>
+  <select id="filter-pm"><option value="">All PMs</option></select>
   <select id="filter-customer"><option value="">All Customers</option></select>
   <select id="filter-customer-status">
     <option value="">All Customer Statuses</option>
@@ -695,6 +752,7 @@ footer{
     <option value="__NONE__">(no status yet)</option>
     <option value="Need New Vendor">Need New Vendor</option>
     <option value="Quoting/Waiting for Bids">Quoting/Waiting for Bids</option>
+    <option value="Send Vendor Contract">Send Vendor Contract</option>
     <option value="Sent Contract">Sent Contract</option>
     <option value="Signed Contract">Signed Contract</option>
     <option value="Compliance Received">Compliance Received</option>
@@ -702,7 +760,7 @@ footer{
   <button class="chip-toggle" id="toggle-flagged">&#9888; Flagged only</button>
   <button class="chip-toggle" id="toggle-novendor">No vendor on file</button>
   <button class="chip-toggle" id="toggle-lost">Lost only</button>
-  <button class="chip-toggle" id="open-map-btn">&#128506; Contract Accepted map</button>
+  <button class="chip-toggle" id="open-map-btn">&#128506; Site map</button>
   <span class="result-count" id="result-count"></span>
 </div>
 
@@ -723,6 +781,7 @@ footer{
     <option value="__CLEAR__">(clear)</option>
     <option value="Need New Vendor">Need New Vendor</option>
     <option value="Quoting/Waiting for Bids">Quoting/Waiting for Bids</option>
+    <option value="Send Vendor Contract">Send Vendor Contract</option>
     <option value="Sent Contract">Sent Contract</option>
     <option value="Signed Contract">Signed Contract</option>
     <option value="Compliance Received">Compliance Received</option>
@@ -763,6 +822,7 @@ footer{
   <span style="margin-right:4px"><b>Vendor:</b></span>
   <span><span class="status-pill" data-legend="Need New Vendor"><span class="dot"></span></span>Need New Vendor &rarr;</span>
   <span><span class="status-pill" data-legend="Quoting/Waiting for Bids"><span class="dot"></span></span>Quoting/Waiting for Bids &rarr;</span>
+  <span><span class="status-pill" data-legend="Send Vendor Contract"><span class="dot"></span></span>Send Vendor Contract &rarr;</span>
   <span><span class="status-pill" data-legend="Sent Contract"><span class="dot"></span></span>Sent Contract &rarr;</span>
   <span><span class="status-pill" data-legend="Signed Contract"><span class="dot"></span></span>Signed Contract &rarr;</span>
   <span><span class="status-pill" data-legend="Compliance Received"><span class="dot"></span></span>Compliance Received</span>
@@ -773,6 +833,38 @@ footer{
   Pulled from the &ldquo;26-27 Snow Bidding Sheet&rdquo; Smartsheet and cleaned client-side (deduped, region names normalized, flagged rows marked). Changing a site&rsquo;s Customer Status, Vendor Status, or Lost flag here stages the change &mdash; it doesn&rsquo;t write to Smartsheet by itself. Uploading a vendor estimate in a row's detail panel stages it the same way. Ask Claude to sync when you&rsquo;re ready and it&rsquo;ll push staged changes into the sheet's columns and attach staged estimates to their rows. Click any row to expand full address, vendor, and flag detail.
 </footer>
 </div><!-- /view-bidding -->
+
+<div id="vc-modal-back" class="vc-modal-back" hidden>
+  <div class="vc-modal" role="dialog" aria-modal="true" aria-label="Site detail">
+    <div class="vc-modal-head">
+      <span class="vc-modal-title" id="vc-modal-title"></span>
+      <span class="vc-modal-sub" id="vc-modal-sub"></span>
+      <select id="vc-modal-status" title="Vendor status"></select>
+      <button type="button" class="vc-modal-close" id="vc-modal-close">Close</button>
+    </div>
+    <div class="vc-modal-detail" id="vc-modal-detail" data-idx=""></div>
+  </div>
+</div>
+<div id="view-vendor" hidden>
+  <div class="vc-wrap">
+    <div class="vc-bar">
+      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Stores
+        <select id="vc-scope">
+          <option value="accepted">Customer accepted (Verbal + Contract)</option>
+          <option value="contract">Accepted + Contract Sent</option>
+          <option value="all">All sites (not lost)</option>
+        </select>
+      </label>
+      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">PM
+        <select id="vc-pm"><option value="">All PMs</option></select>
+      </label>
+      <input type="search" id="vc-search" placeholder="Search store, customer, vendor, address">
+      <span class="vc-count" id="vc-count"></span>
+    </div>
+    <div class="vc-board" id="vc-board"></div>
+    <div class="vc-note">Each card is a store moving through vendor contracting. Change the status on a card and it moves columns and saves to Smartsheet like it does on the Bidding tab. &ldquo;Vendor contract&rdquo; generates that store&rsquo;s vendor subcontract from the vendor costs and term on file. Lost stores are hidden.</div>
+  </div>
+</div><!-- /view-vendor -->
 
 <div id="view-projections" hidden>
   <div class="proj-wrap">
@@ -906,7 +998,7 @@ footer{
   const custStatusSel = document.getElementById('filter-customer-status');
   const vendStatusSel = document.getElementById('filter-vendor-status');
   const CUSTOMER_STATUS_ORDER = ["Sent Bid","Revised Bid","Contract Sent","Verbally Accepted","Contract Accepted"];
-  const VENDOR_STATUS_ORDER = ["Need New Vendor","Quoting/Waiting for Bids","Sent Contract","Signed Contract","Compliance Received"];
+  const VENDOR_STATUS_ORDER = ["Need New Vendor","Quoting/Waiting for Bids","Send Vendor Contract","Sent Contract","Signed Contract","Compliance Received"];
   // Inline colors for both status tracks (see the CSS comment above
   // select.status-select) — deliberately keyed by the exact value string,
   // including the one with a slash ("Quoting/Waiting for Bids").
@@ -918,6 +1010,7 @@ footer{
     "Contract Accepted": { bg:'var(--good-soft)', fg:'var(--good)' },
     "Need New Vendor": { bg:'var(--warn-soft)', fg:'var(--warn)' },
     "Quoting/Waiting for Bids": { bg:'var(--accent-soft)', fg:'var(--accent-ink)' },
+    "Send Vendor Contract": { bg:'var(--warn-soft)', fg:'var(--warn)' },
     "Sent Contract": { bg:'var(--accent)', fg:'#fff' },
     "Signed Contract": { bg:'var(--good-soft)', fg:'var(--good)' },
     "Compliance Received": { bg:'var(--good)', fg:'#fff' },
@@ -936,7 +1029,7 @@ footer{
   // Option text (counts) is filled in by updateStatusFilterCounts(), called
   // from render() — kept live rather than set once from the static snapshot.
 
-  let state = { search:'', region:'', customer:'', customerStatus:'', vendorStatus:'', lostOnly:false, flaggedOnly:false, noVendorOnly:false, sortKey:'store', sortDir:1, openRow:null };
+  let state = { search:'', pm:'', region:'', customer:'', customerStatus:'', vendorStatus:'', lostOnly:false, flaggedOnly:false, noVendorOnly:false, sortKey:'store', sortDir:1, openRow:null };
 
   // ---------- Live Smartsheet sync (Cloudflare Worker) ----------
   // Fill these in after deploying the Worker (see WORKER_SETUP.md). Until
@@ -985,6 +1078,8 @@ footer{
       else if (e.field === 'lost') r.lost = !!e.value;
       else if (e.field === 'region'){ if (e.value) r.region = String(e.value); }
       else if (e.field === 'vendor2627') r.vendor2627 = e.value ? String(e.value) : '';
+      else if (e.field === 'pm') r.pm = pmFromCell(e.value, '');
+      else if (Object.prototype.hasOwnProperty.call(INTERESTED_COLUMNS, e.field)){ if (!r.interested) r.interested = {}; r.interested[e.field] = e.value ? String(e.value) : ''; }
       else if (Object.prototype.hasOwnProperty.call(LIVE_CONTRACT_COLUMNS, e.field)){
         if (!r.contractParams) r.contractParams = {};
         r.contractParams[e.field] = (e.value === '' || e.value === undefined) ? null : e.value;
@@ -1081,6 +1176,23 @@ footer{
   "contractStart": 5828404848660356,
   "contractEnd": 3576605034975108
 };
+  // PM assignment: the sheet's existing "PM" contact-list column. Writes send the PM's email.
+  const PM_COL = 3410584874028932;
+  const PM_LIST = [
+    { name:'Zak Kranich', email:'zkranich@farmerdevelopment.com' },
+    { name:'Bobby Kearney', email:'bkearney@farmerdevelopment.com' },
+    { name:'Connor Thomas', email:'cthomas@farmerdevelopment.com' },
+    { name:'Jacob Dafoe', email:'jdafoe@farmerdevelopment.com' },
+  ];
+  function pmFromCell(v, dv){
+    const a = String(v == null ? '' : v).trim(), b = String(dv == null ? '' : dv).trim();
+    if (!a && !b) return '';
+    const m = PM_LIST.find(p => p.email.toLowerCase() === a.toLowerCase() || p.name.toLowerCase() === a.toLowerCase() || p.name.toLowerCase() === b.toLowerCase());
+    return m ? m.name : (b || a);
+  }
+  function pmShort(name){ return name ? String(name).split(' ')[0] : ''; }
+  // Vendors interested in a site: 3 x (name, email, phone), each its own Smartsheet column.
+  const INTERESTED_COLUMNS = {"iv1Name": 716833319325572, "iv1Email": 5220432946696068, "iv1Phone": 2968633133010820, "iv2Name": 7472232760381316, "iv2Email": 1842733226168196, "iv2Phone": 6346332853538692, "iv3Name": 4094533039853444, "iv3Email": 8598132667223940, "iv3Phone": 435358342614916};
   const LIVE_COL = { customerStatus: 7113215152263044, vendorStatus: 1483715618049924, lost: 5987315245420420, region: 260677394796420, vendor2627: 7903831494791044 };
   async function loadLiveFromSmartsheet(){
     if (!SMARTSHEET_WORKER_URL) return;
@@ -1093,7 +1205,7 @@ footer{
       const byRow = new Map();
       sheet.rows.forEach(sr => {
         const cells = {};
-        (sr.cells || []).forEach(c => { cells[c.columnId] = c.value; });
+        (sr.cells || []).forEach(c => { cells[c.columnId] = c.value; cells['dv' + c.columnId] = c.displayValue; });
         byRow.set(String(sr.id), cells);
       });
       let matched = 0;
@@ -1113,6 +1225,9 @@ footer{
           r.contractParams[key] = v;
         }
         r.vendor2627 = c[LIVE_COL.vendor2627] ? String(c[LIVE_COL.vendor2627]) : '';
+        r.pm = pmFromCell(c[PM_COL], c['dv' + PM_COL]);
+        if (!r.interested) r.interested = {};
+        for (const [k, colId] of Object.entries(INTERESTED_COLUMNS)){ const v = c[colId]; r.interested[k] = (v === undefined || v === null) ? '' : String(v); }
         r.customerStatus = c[LIVE_COL.customerStatus] || null;
         r.vendorStatus = c[LIVE_COL.vendorStatus] || null;
         r.lost = !!c[LIVE_COL.lost];
@@ -2135,7 +2250,7 @@ footer{
         updateSyncBanner();
         // No render() here either — the estimate list lives inside whichever
         // row's detail panel is currently open, same reasoning as above.
-        const openDetail = document.querySelector('.detail-row');
+        const openDetail = document.querySelector('.detail-row, .vc-modal-detail');
         if (openDetail){
           const idx = Number(openDetail.dataset.idx);
           const r = rows[idx];
@@ -2158,7 +2273,7 @@ footer{
         // No render() here either — the owner-contract list lives inside
         // whichever row's detail panel is currently open, same reasoning as
         // the vendor-estimate subscription above.
-        const openDetail = document.querySelector('.detail-row');
+        const openDetail = document.querySelector('.detail-row, .vc-modal-detail');
         if (openDetail){
           const idx = Number(openDetail.dataset.idx);
           const r = rows[idx];
@@ -2402,7 +2517,7 @@ footer{
 
   function vendorPinColor(vs){
     if (vs === 'Need New Vendor') return 'var(--map-red)';
-    if (vs === 'Quoting/Waiting for Bids' || vs === 'Sent Contract') return 'var(--map-yellow)';
+    if (vs === 'Quoting/Waiting for Bids' || vs === 'Send Vendor Contract' || vs === 'Sent Contract') return 'var(--map-yellow)';
     if (vs === 'Signed Contract' || vs === 'Compliance Received') return 'var(--map-green)';
     return 'var(--map-none)';
   }
@@ -2425,11 +2540,26 @@ footer{
     </div>`;
   }
 
+  let mapScope = 'accepted', mapPm = '', mapVstatus = '';
+  function mapInScope(r){
+    if (effectiveLost(r)) return false;
+    const cs = effectiveCustomerStatus(r);
+    if (mapScope === 'accepted' && cs !== 'Contract Accepted') return false;
+    if (mapScope === 'verbal' && cs !== 'Contract Accepted' && cs !== 'Verbally Accepted') return false;
+    if (mapScope === 'contract' && cs !== 'Contract Accepted' && cs !== 'Verbally Accepted' && cs !== 'Contract Sent') return false;
+    if (mapPm && (mapPm === '__NONE__' ? !!r.pm : r.pm !== mapPm)) return false;
+    if (mapVstatus){ const vs = effectiveVendorStatus(r) || ''; if (mapVstatus === '__NONE__' ? !!vs : vs !== mapVstatus) return false; }
+    return true;
+  }
+
   function renderMap(){
     const svgWrap = document.getElementById('map-svg-wrap');
     const emptyState = document.getElementById('map-empty-state');
     const listWrap = document.getElementById('map-list-wrap');
-    const qualifying = rows.filter(r => effectiveCustomerStatus(r) === 'Contract Accepted');
+    const qualifying = rows.filter(mapInScope);
+    const titleEl = document.getElementById('map-title');
+    if (titleEl) titleEl.textContent = ({ accepted:'Contract Accepted', verbal:'Verbally + Contract Accepted', contract:'Accepted + Contract Sent', all:'All sites' })[mapScope] + ' \u2014 site map';
+    const fc = document.getElementById('map-filter-count'); if (fc) fc.textContent = qualifying.length + ' site' + (qualifying.length === 1 ? '' : 's');
 
     const proj = projectRegions();
     const contextProj = projectContextCities();
@@ -2496,7 +2626,7 @@ footer{
 
     if (!qualifying.length){
       emptyState.hidden = false;
-      emptyState.textContent = "No rows are Customer Status: Contract Accepted right now — the map below still works for reference (zoom/pan to explore regions), it just has no colored pins yet.";
+      emptyState.textContent = "No sites match these filters right now — the map below still works for reference (zoom/pan to explore regions), it just has no colored pins yet.";
     } else {
       emptyState.hidden = true;
     }
@@ -2524,11 +2654,14 @@ footer{
   // Contract Accepted map becomes a real Google Map with one pin per store.
   // Left blank (as in the Claude-hosted copy, whose security policy blocks
   // Google's scripts), the schematic region map above keeps working instead.
-  const GOOGLE_MAPS_API_KEY = (window.SNOW_CONFIG && window.SNOW_CONFIG.googleMapsKey) || '';
+  // Key order: config.js, then a key saved in this browser, then the built-in default (the same
+  // browser key the Parkinson portal uses — restrict it to your sites under Google Cloud > Credentials).
+  const DEFAULT_GOOGLE_MAPS_KEY = 'AIzaSyBiW0zuaB27AFxKKBn69cnn8lPnC-B6CJA';
+  const GOOGLE_MAPS_API_KEY = (window.SNOW_CONFIG && window.SNOW_CONFIG.googleMapsKey) || (function(){ try { return localStorage.getItem('fdiGoogleMapsKey') || ''; } catch(e){ return ''; } })() || DEFAULT_GOOGLE_MAPS_KEY;
   const GMAP_PIN_HEX = { red:'#c0392b', yellow:'#c99a1e', green:'#3c7a4c', none:'#8b948f' };
   function vendorPinHex(vs){
     if (vs === 'Need New Vendor') return GMAP_PIN_HEX.red;
-    if (vs === 'Quoting/Waiting for Bids' || vs === 'Sent Contract') return GMAP_PIN_HEX.yellow;
+    if (vs === 'Quoting/Waiting for Bids' || vs === 'Send Vendor Contract' || vs === 'Sent Contract') return GMAP_PIN_HEX.yellow;
     if (vs === 'Signed Contract' || vs === 'Compliance Received') return GMAP_PIN_HEX.green;
     return GMAP_PIN_HEX.none;
   }
@@ -2594,13 +2727,13 @@ footer{
       const sorted = qualifying.slice().sort((a,b) => String(a.store||'').localeCompare(String(b.store||'')));
       side.innerHTML = '<div class="gmap-side-hdr">Job Locations<span id="gmap-side-count"></span></div>' + sorted.map((r, k) => {
         const vsx = effectiveVendorStatus(r);
-        return `<div class="gmap-item nopin" data-k="${k}"><div class="gmap-item-store"><i class="map-dot" style="background:${vendorPinColor(vsx)}"></i>${escapeHtml(r.store || '')}</div><div class="gmap-item-name">${escapeHtml(r.customer || '')}</div><div class="gmap-item-vs">${escapeHtml(vsx || 'no vendor status yet')}</div><div class="gmap-item-addr">${escapeHtml(r.address || 'no address on file')}</div></div>`;
+        return `<div class="gmap-item nopin" data-k="${k}"><div class="gmap-item-store"><i class="map-dot" style="background:${vendorPinColor(vsx)}"></i>${escapeHtml(r.store || '')}</div><div class="gmap-item-name">${escapeHtml(r.customer || '')}</div><div class="gmap-item-vs">${escapeHtml(vsx || 'no vendor status yet')}${r.pm ? ' &middot; PM ' + escapeHtml(pmShort(r.pm)) : ''}</div><div class="gmap-item-addr">${escapeHtml(r.address || 'no address on file')}</div></div>`;
       }).join('');
       shell.appendChild(box); shell.appendChild(side); svgWrap.appendChild(shell);
       const focusByK = {};
       side.addEventListener('click', ev => { const it = ev.target.closest('.gmap-item'); if (it && focusByK[it.dataset.k]) focusByK[it.dataset.k](); });
       if (zoomControls) zoomControls.hidden = true;
-      if (sub) sub.textContent = 'Every location currently Customer Status: Contract Accepted, pinned at its street address and colored by Vendor Status. Click a pin for details.';
+      if (sub) sub.textContent = 'Each site pinned at its street address and colored by Vendor Status. Click a pin (or a site in the list) for details; use the filters above to change which sites show.';
       const map = new maps.Map(box, { center: { lat: 42.45, lng: -83.35 }, zoom: 9, mapTypeControl: false, streetViewControl: false, fullscreenControl: true,
         styles: [{ featureType: 'poi', stylers: [{ visibility: 'off' }] }, { featureType: 'transit', stylers: [{ visibility: 'off' }] }] });
       const info = new maps.InfoWindow();
@@ -2630,7 +2763,7 @@ footer{
         });
         marker.addListener('click', () => {
           const link = gmapLink(r.address || '');
-          info.setContent(`<div style="font:13px system-ui,sans-serif;color:#1c2422;max-width:240px;"><b>${escapeHtml(r.store || '')}</b> &middot; ${escapeHtml(r.customer || '')}<br>${escapeHtml(r.address || '')}<br><span style="color:#5b6663">${escapeHtml(vs || 'no vendor status yet')}</span>${link ? `<br><a href="${link}" target="_blank" rel="noopener">Open in Google Maps &rarr;</a>` : ''}</div>`);
+          info.setContent(`<div style="font:13px system-ui,sans-serif;color:#1c2422;max-width:240px;"><b>${escapeHtml(r.store || '')}</b> &middot; ${escapeHtml(r.customer || '')}<br>${escapeHtml(r.address || '')}<br><span style="color:#5b6663">${escapeHtml(vs || 'no vendor status yet')}</span><div style="margin-top:6px;font-size:12px;line-height:1.5;">Customer: ${escapeHtml(effectiveCustomerStatus(r) || '\u2014')}<br>PM: ${escapeHtml(r.pm || 'unassigned')}<br>26/27 Vendor: ${escapeHtml(effectiveVendor2627(r) || 'none yet')}</div>${link ? `<br><a href="${link}" target="_blank" rel="noopener">Open in Google Maps &rarr;</a>` : ''}</div>`);
           info.open({ map, anchor: marker });
           side.querySelectorAll('.gmap-item.active').forEach(el => el.classList.remove('active'));
           const row = side.querySelector(`.gmap-item[data-k="${i}"]`);
@@ -2666,6 +2799,14 @@ footer{
     const openBtn = document.getElementById('open-map-btn');
     const closeBtn = document.getElementById('map-modal-close');
     if (!overlay || !openBtn) return;
+    const sc = document.getElementById('map-scope'), pf = document.getElementById('map-pm'), vf = document.getElementById('map-vstatus');
+    PM_LIST.forEach(p => pf.insertAdjacentHTML('beforeend', `<option value="${p.name}">${p.name}</option>`));
+    pf.insertAdjacentHTML('beforeend', '<option value="__NONE__">(unassigned)</option>');
+    VENDOR_STATUS_ORDER.forEach(v => vf.insertAdjacentHTML('beforeend', `<option value="${v}">${v}</option>`));
+    vf.insertAdjacentHTML('beforeend', '<option value="__NONE__">(no vendor status)</option>');
+    sc.addEventListener('change', () => { mapScope = sc.value; renderMap(); });
+    pf.addEventListener('change', () => { mapPm = pf.value; renderMap(); });
+    vf.addEventListener('change', () => { mapVstatus = vf.value; renderMap(); });
     function openModal(){ renderMap(); overlay.hidden = false; }
     function closeModal(){ overlay.hidden = true; }
     openBtn.addEventListener('click', openModal);
@@ -2790,6 +2931,29 @@ footer{
     </span>`;
   }
 
+  function pmSelectHtml(r){
+    const canEdit = r.rowId != null;
+    const cur = r.pm || '';
+    let opts = '<option value="">&mdash; unassigned &mdash;</option>' + PM_LIST.map(p => `<option value="${escapeHtml(p.name)}"${p.name === cur ? ' selected' : ''}>${escapeHtml(p.name)}</option>`).join('');
+    if (cur && !PM_LIST.some(p => p.name === cur)) opts += `<option value="${escapeHtml(cur)}" selected>${escapeHtml(cur)}</option>`;
+    return `<select class="pm-select" data-rowid="${canEdit?r.rowId:''}"${canEdit?'':' disabled'}>${opts}</select>`;
+  }
+
+  function interestedVendorsHtml(r){
+    const canEdit = r.rowId != null;
+    const dis = canEdit ? '' : ' disabled';
+    const g = (n, f) => escapeHtml(((r.interested || {})['iv' + n + f]) || '');
+    let rowsHtml = '';
+    for (let n = 1; n <= 3; n++){
+      rowsHtml += `<div class="iv-row">
+        <input type="text" class="iv-input" data-rowid="${canEdit?r.rowId:''}" data-field="iv${n}Name" placeholder="Vendor ${n} name" value="${g(n,'Name')}"${dis}>
+        <input type="email" class="iv-input" data-rowid="${canEdit?r.rowId:''}" data-field="iv${n}Email" placeholder="Email" value="${g(n,'Email')}"${dis}>
+        <input type="tel" class="iv-input" data-rowid="${canEdit?r.rowId:''}" data-field="iv${n}Phone" placeholder="Phone" value="${g(n,'Phone')}"${dis}>
+      </div>`;
+    }
+    return `<div class="contract-params"><div class="k">Vendors Interested</div><div class="v iv-list">${rowsHtml}</div></div>`;
+  }
+
   function vendor2627InputHtml(r){
     const canEdit = r.rowId != null;
     const val = effectiveVendor2627(r);
@@ -2841,12 +3005,30 @@ footer{
     marginVal.className = 'cp-margin-val ' + m.cls;
   }
 
-  // Devon Self Storage seasonal contracts are priced on 15 pushes across the
-  // season: Seasonal = (2"-4" Push Rate + Deicer) x 15. Editing either input
+  // Devon Self Storage seasonal contracts are priced on a number of pushes (default 15,
+  // adjustable via the Pushes box): Seasonal = (2"-4" Push Rate + Deicer) x Pushes. Editing either input
   // always recalculates and overwrites Seasonal (and, through the existing
   // write-through, its Base Monthly mirror) for the matching FDI/Vendor side
   // — once both inputs on that side have a numeric value. Scope is DSS-
   // prefixed stores only, per Zak.
+  // Number of pushes the Devon seasonal price is built on. Default 15; adjustable per
+  // store from the "Pushes" box. Remembered in this browser; if it's not stored (e.g. on
+  // another device) it's inferred from the saved Seasonal when that divides evenly by
+  // (2"-4" push + deicer), so the box still shows the number the price was built on.
+  const DSS_DEFAULT_PUSHES = 15;
+  const DSS_PUSHES_KEY = 'fdiDssPushesV1';
+  function dssPushOverrides(){ try { return JSON.parse(localStorage.getItem(DSS_PUSHES_KEY) || '{}') || {}; } catch(e){ return {}; } }
+  function dssSetPushes(r, n){ try { const o = dssPushOverrides(); o[String(r.rowId)] = n; localStorage.setItem(DSS_PUSHES_KEY, JSON.stringify(o)); } catch(e){} }
+  function dssPushCount(r){
+    const o = dssPushOverrides()[String(r.rowId)];
+    if (Number(o) >= 1) return Number(o);
+    for (const [sk, pk, dk] of [['seasonal','fdi2_4','deicer'], ['vendorSeasonal','vendorFdi2_4','vendorDeicer']]){
+      const se = Number(effectiveContractValue(r, sk)), pu = Number(effectiveContractValue(r, pk)), de = Number(effectiveContractValue(r, dk));
+      const per = pu + de;
+      if (se > 0 && per > 0){ const n = se / per; if (n >= 1 && n <= 60 && Math.abs(n - Math.round(n)) < 0.02) return Math.round(n); }
+    }
+    return DSS_DEFAULT_PUSHES;
+  }
   const DSS_AUTOCALC_SEASONAL_FIELD = { deicer: 'seasonal', fdi2_4: 'seasonal', vendorDeicer: 'vendorSeasonal', vendorFdi2_4: 'vendorSeasonal' };
   function applyDssSeasonalAutocalc(r, detail, changedField){
     if (storePrefixType(r.store) !== 'DSS') return;
@@ -2858,7 +3040,9 @@ footer{
     if (Number.isNaN(deicerVal) || Number.isNaN(pushVal)) return; // need both to compute
     const seasonalInput = detail.querySelector(`input.cp-input[data-field="${seasonalField}"]`);
     if (!seasonalInput || !seasonalInput.dataset.rowid) return;
-    const newSeasonal = Math.round((deicerVal + pushVal) * 15 * 100) / 100;
+    const pushesInput = detail.querySelector('input.cp-pushes-input');
+    const nPushes = pushesInput ? (Number(pushesInput.value) || dssPushCount(r)) : dssPushCount(r);
+    const newSeasonal = Math.round((deicerVal + pushVal) * nPushes * 100) / 100;
     seasonalInput.value = String(newSeasonal);
     stageContractChange(r, seasonalField, seasonalInput, seasonalInput.value);
     const seasonalItem = seasonalInput.closest('.cp-item');
@@ -3096,14 +3280,14 @@ footer{
       const salt = ev('vendorDeicer');
       let derivedPush = false;
       if (!hasVal(push) && isDss && hasVal(salt) && Number(salt) > 1){
-        push = Math.round((total / 15 - Number(salt)) * 100) / 100; derivedPush = true;
+        push = Math.round((total / dssPushCount(r) - Number(salt)) * 100) / 100; derivedPush = true;
       }
-      if (isDss){ f.num_pushes = '15'; f.num_salt = '15'; }
+      if (isDss){ f.num_pushes = String(dssPushCount(r)); f.num_salt = String(dssPushCount(r)); }
       const bits = [];
       if (hasVal(push)) bits.push(`2"-4" trigger: $${money2(push)} per push`);
       if (hasVal(salt) && Number(salt) > 1) bits.push(`Salt: $${money2(salt)} per application`);
       if (bits.length) f.notes = bits.join('. ') + '.';
-      if (derivedPush) warn.push('2"-4" push rate was backed out of Seasonal ÷ 15 − salt (no vendor push rate on file).');
+      if (derivedPush) warn.push('2"-4" push rate was backed out of Seasonal ÷ ' + dssPushCount(r) + ' − salt (no vendor push rate on file).');
       if (!hasVal(push)) warn.push('No 2"-4" push rate found — Notes has no trigger line.');
       if (!(hasVal(salt) && Number(salt) > 1)) warn.push('No vendor salt cost on file — Notes has no salt line.');
       warn.push('Monthly amounts = Seasonal ÷ 5 (Nov–Mar).');
@@ -3473,6 +3657,15 @@ footer{
     </div>`;
   }
 
+  function dssPushesItemHtml(r){
+    const canEdit = r.rowId != null;
+    return `<div class="cp-item">
+      <div class="cp-name">Pushes (seasonal basis)</div>
+      <div class="cp-line"><input type="number" min="1" max="60" step="1" inputmode="numeric" class="cp-input cp-pushes-input" value="${dssPushCount(r)}" ${canEdit ? '' : 'disabled'} title="Seasonal = (2&quot;-4&quot; push rate + deicer) &times; pushes" style="width:70px;"></div>
+      <div class="cp-line"><span class="cp-line-label" style="min-width:0;font-size:11px;">Seasonal = (push + deicer) &times; pushes</span></div>
+    </div>`;
+  }
+
   function contractParamsHtml(r){
     const type = storePrefixType(r.store);
     const rowsHtml = contractFieldsForRow(r).map(([k,vk,label]) => {
@@ -3488,7 +3681,7 @@ footer{
       // Devon Self Storage pays monthly, so alongside Seasonal (the season
       // total) show a reverse-linked Base Monthly = Seasonal / 4, placed
       // right before Seasonal.
-      const extra = ((type === 'DSS' || type === 'PS') && k === 'seasonal') ? baseMonthlyItemHtml(r) : '';
+      const extra = (type === 'DSS' && k === 'seasonal' ? dssPushesItemHtml(r) : '') + ((type === 'DSS' || type === 'PS') && k === 'seasonal' ? baseMonthlyItemHtml(r) : '');
       return extra + item;
     }).join('');
     return `<div class="contract-params"><div class="k">Contract parameters</div><div class="v"><div class="cp-grid">${rowsHtml}</div></div></div>`;
@@ -3506,6 +3699,9 @@ footer{
   function matches(r){
     if (state.flaggedOnly && !Object.values(r.flags).some(Boolean)) return false;
     if (state.noVendorOnly && r.vendor) return false;
+    if (state.pm){
+      if (state.pm === '__NONE__' ? !!r.pm : r.pm !== state.pm) return false;
+    }
     if (state.region){
       if (state.region === '__NONE__' ? effectiveRegion(r) : effectiveRegion(r) !== state.region) return false;
     }
@@ -3561,9 +3757,213 @@ footer{
     });
   }
 
+  // Shared detail panel (Bidding row expand + Vendor Contracting popup)
+  function fillDetail(detail, idx, asRow){
+    const r = rows[idx];
+    const pendCust = r.rowId!=null ? pendingCustomerStatusMap.get(String(r.rowId)) : null;
+    const pendVend = r.rowId!=null ? pendingVendorStatusMap.get(String(r.rowId)) : null;
+    const pendLost = r.rowId!=null ? pendingLostMap.get(String(r.rowId)) : null;
+    const innerHtml = `<div class="detail-grid">
+      <div style="grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        ${contractKind(r.store)?`<button type="button" class="contract-btn" data-idx="${idx}" data-side="owner" title="Generate a filled ${csKind(r.store)?(csKind(r.store)==='owned'?'Owned':'Managed'):'Devon Self Storage'} snowplowing contract PDF for ${escapeHtml(r.store)}">Create Owner Contract</button>`:''}
+        <button type="button" class="contract-btn" data-idx="${idx}" data-side="vendor" title="Fill the FDI subcontract that matches this store's contract parameters">Create Vendor Subcontract</button>
+        <select class="contract-kind-select is-placeholder" data-idx="${idx}" title="Vendor contract type — leave on the grey label to use the auto-picked template">
+          <option value="" selected>Vendor Contract Type</option>
+          ${Object.entries(SUBCONTRACT_TEMPLATES).map(([k,v])=>`<option value="${k}" data-auto="${k===subcontractKindForRow(r)?'1':''}">${v.label}${k===subcontractKindForRow(r)?' (auto)':''}</option>`).join('')}
+        </select>
+      </div>
+      <div><div class="k">Region</div><div class="v">${regionSelectHtml(r)}</div></div>
+      <div><div class="k">PM</div><div class="v">${pmSelectHtml(r)}</div></div>
+      <div><div class="k">26/27 Vendor</div><div class="v">${vendor2627InputHtml(r)}</div></div>
+      <div><div class="k">25/26 Vendor</div><div class="v">${escapeHtml(r.vendor)||'&mdash;'}</div></div>
+      <div><div class="k">Contract Start</div><div class="v">${contractDateInputHtml(r, 'contractStart')}</div></div>
+      <div><div class="k">Contract End</div><div class="v">${contractDateInputHtml(r, 'contractEnd')}</div></div>
+      ${r.regionRaw?`<div><div class="k">Region as entered</div><div class="v">${escapeHtml(r.regionRaw)}</div></div>`:''}
+      ${r.sfIssue?`<div><div class="k">SF as entered</div><div class="v">${escapeHtml(r.sf)}</div></div>`:''}
+      ${contractParamsHtml(r)}
+      <div class="contract-params"><div class="k">Vendor Estimates</div><div class="v">
+        <div class="vendor-estimate-list" data-rowid="${r.rowId ?? ''}">${vendorEstimateListHtml(r)}</div>
+        ${r.rowId!=null?`<label class="vendor-estimate-upload-btn">&#128206; Upload vendor estimate<input type="file" class="vendor-estimate-input" accept="application/pdf,image/*" data-rowid="${r.rowId}" hidden></label>
+        <div class="vendor-estimate-hint">PDF or photo of the estimate. Stages here and attaches to this Smartsheet row next time you sync.</div>`
+        :`<div class="vendor-estimate-hint">No Smartsheet row id on file &mdash; can't attach.</div>`}
+      </div></div>
+      ${interestedVendorsHtml(r)}
+    <div class="contract-params"><div class="k">Owner Contracts</div><div class="v">
+        <div class="owner-contract-list" data-rowid="${r.rowId ?? ''}">${ownerContractListHtml(r)}</div>
+        ${r.rowId!=null?`<label class="owner-contract-upload-btn">&#128206; Upload owner contract<input type="file" class="owner-contract-input" accept="application/pdf,image/*" data-rowid="${r.rowId}" hidden></label>
+        <div class="owner-contract-hint">The executed/signed contract (PDF or scan) &mdash; a returned countersigned copy, an addendum, etc. Stages here and attaches to this Smartsheet row next time you sync.</div>`
+        :`<div class="owner-contract-hint">No Smartsheet row id on file &mdash; can't attach.</div>`}
+      </div></div>
+      ${pendCust?`<div><div class="k">Staged customer status</div><div class="v" style="color:var(--warn)">${pendCust.oldValue||'&mdash;'} &rarr; ${pendCust.newValue||'&mdash;'}, not yet synced to Smartsheet</div></div>`:''}
+      ${pendVend?`<div><div class="k">Staged vendor status</div><div class="v" style="color:var(--warn)">${pendVend.oldValue||'&mdash;'} &rarr; ${pendVend.newValue||'&mdash;'}, not yet synced to Smartsheet</div></div>`:''}
+      ${pendLost?`<div><div class="k">Staged lost flag</div><div class="v" style="color:var(--warn)">${pendLost.oldValue?'Lost':'Not lost'} &rarr; ${pendLost.newValue?'Lost':'Not lost'}, not yet synced to Smartsheet</div></div>`:''}
+    </div>`;
+    detail.innerHTML = asRow ? `<td colspan="8">${innerHtml}</td>` : innerHtml;
+    detail.querySelectorAll('select.contract-kind-select').forEach(s => {
+      ['click','mousedown'].forEach(ev => s.addEventListener(ev, e => e.stopPropagation()));
+      s.addEventListener('change', () => s.classList.toggle('is-placeholder', s.value === ''));
+    });
+    detail.querySelectorAll('button.contract-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        e.preventDefault();
+        const sel = detail.querySelector('select.contract-kind-select');
+        createContractForRow(r, btn, btn.dataset.side, sel && sel.value ? sel.value : undefined);
+      });
+    });
+    detail.querySelectorAll('input.cp-date-input').forEach(inp => {
+      inp.addEventListener('click', e => e.stopPropagation());
+      inp.addEventListener('mousedown', e => e.stopPropagation());
+      inp.addEventListener('change', e => {
+        e.stopPropagation();
+        if (!inp.dataset.rowid) return;
+        stageContractDateChange(r, inp.dataset.field, inp, inp.value);
+      });
+    });
+    detail.querySelectorAll('select.region-select').forEach(sel => {
+      sel.addEventListener('click', e => e.stopPropagation());
+      sel.addEventListener('mousedown', e => e.stopPropagation());
+      sel.addEventListener('change', e => {
+        e.stopPropagation();
+        if (!sel.dataset.rowid) return;
+        stageRegionChange(r, sel, sel.value);
+      });
+    });
+    detail.querySelectorAll('input.cp-input').forEach(inp => {
+      inp.addEventListener('click', e => e.stopPropagation());
+      inp.addEventListener('mousedown', e => e.stopPropagation());
+      inp.addEventListener('change', e => {
+        e.stopPropagation();
+        if (!inp.dataset.rowid) return;
+        stageContractChange(r, inp.dataset.field, inp, inp.value);
+        // Keep the Base Monthly mirror (if this row has one) in sync
+        // whenever the real seasonal/vendorSeasonal value changes.
+        if (inp.dataset.field === 'seasonal' || inp.dataset.field === 'vendorSeasonal'){
+          const mirror = detail.querySelector(`input.cp-basemonthly-input[data-mirror-field="${inp.dataset.field}"]`);
+          if (mirror){
+            const q = quarterOf(inp.value, mirror.dataset.div);
+            mirror.value = q === '' ? '' : String(q);
+            const item = mirror.closest('.cp-item');
+            if (item) refreshMarginForItem(item);
+          }
+        }
+        // Devon Self Storage: Deicer / 2"-4" Push Rate changes always
+        // recompute Seasonal as (push24 + deicer) x 15.
+        applyDssSeasonalAutocalc(r, detail, inp.dataset.field);
+      });
+    });
+    // Base Monthly inputs are a reverse-computed mirror of Seasonal —
+    // editing one writes through to the real seasonal/vendorSeasonal
+    // input (x4) and stages the change there, so syncing still only
+    // ever deals with the one real field.
+    // Devon "Pushes" box: changing it recalculates Seasonal (FDI and Vendor) as
+    // (2"-4" push + deicer) x pushes and stages/syncs the new Seasonal values.
+    detail.querySelectorAll('input.cp-pushes-input').forEach(inp => {
+      inp.addEventListener('click', e => e.stopPropagation());
+      inp.addEventListener('mousedown', e => e.stopPropagation());
+      inp.addEventListener('change', e => {
+        e.stopPropagation();
+        let n = Math.round(Number(inp.value));
+        if (!Number.isFinite(n) || n < 1) n = DSS_DEFAULT_PUSHES;
+        if (n > 60) n = 60;
+        inp.value = String(n);
+        dssSetPushes(r, n);
+        const has = k => { const v = effectiveContractValue(r, k); return v !== null && v !== undefined && v !== ''; };
+        if (has('deicer') && has('fdi2_4')) applyDssSeasonalAutocalc(r, detail, 'deicer');
+        if (has('vendorDeicer') && has('vendorFdi2_4')) applyDssSeasonalAutocalc(r, detail, 'vendorDeicer');
+      });
+    });
+    detail.querySelectorAll('input.cp-basemonthly-input').forEach(inp => {
+      inp.addEventListener('click', e => e.stopPropagation());
+      inp.addEventListener('mousedown', e => e.stopPropagation());
+      inp.addEventListener('change', e => {
+        e.stopPropagation();
+        const mirrorField = inp.dataset.mirrorField;
+        const realInput = detail.querySelector(`input.cp-input[data-field="${mirrorField}"]`);
+        if (!realInput || !realInput.dataset.rowid) return;
+        const raw = inp.value.trim();
+        let newSeasonal = '';
+        if (raw !== ''){
+          const n = Number(raw);
+          if (!Number.isNaN(n)) newSeasonal = Math.round(n * (Number(inp.dataset.div) || 4) * 100) / 100;
+        }
+        realInput.value = newSeasonal === '' ? '' : String(newSeasonal);
+        stageContractChange(r, mirrorField, realInput, realInput.value);
+        const seasonalItem = realInput.closest('.cp-item');
+        if (seasonalItem) refreshMarginForItem(seasonalItem);
+      });
+    });
+    detail.querySelectorAll('.cp-item').forEach(item => {
+      item.querySelectorAll('input.cp-input').forEach(inp => {
+        inp.addEventListener('input', () => refreshMarginForItem(item));
+      });
+    });
+    detail.querySelectorAll('select.pm-select').forEach(sel => {
+      ['click','mousedown'].forEach(ev => sel.addEventListener(ev, e => e.stopPropagation()));
+      sel.addEventListener('change', e => {
+        e.stopPropagation();
+        if (!sel.dataset.rowid) return;
+        r.pm = sel.value;
+        const pm = PM_LIST.find(p => p.name === sel.value);
+        syncFieldToSmartsheet(r.rowId, 'pm', pm ? pm.email : '');
+        const vv = document.getElementById('view-vendor');
+        if (vv && !vv.hidden) renderVendorContracting();
+      });
+    });
+    detail.querySelectorAll('input.iv-input').forEach(inp => {
+      ['click','mousedown'].forEach(ev => inp.addEventListener(ev, e => e.stopPropagation()));
+      inp.addEventListener('change', e => {
+        e.stopPropagation();
+        if (!inp.dataset.rowid) return;
+        const v = inp.value.trim();
+        if (!r.interested) r.interested = {};
+        r.interested[inp.dataset.field] = v;
+        syncFieldToSmartsheet(r.rowId, inp.dataset.field, v);
+      });
+    });
+    detail.querySelectorAll('input.v27-input').forEach(inp => {
+      inp.addEventListener('click', e => e.stopPropagation());
+      inp.addEventListener('mousedown', e => e.stopPropagation());
+      inp.addEventListener('change', e => {
+        e.stopPropagation();
+        if (!inp.dataset.rowid) return;
+        stageVendorChange(r, inp, inp.value);
+      });
+    });
+    const estimateList = detail.querySelector('.vendor-estimate-list');
+    if (estimateList) wireEstimateRemoveButtons(estimateList, r);
+    detail.querySelectorAll('.vendor-estimate-upload-btn').forEach(lbl => {
+      lbl.addEventListener('click', e => e.stopPropagation());
+      lbl.addEventListener('mousedown', e => e.stopPropagation());
+    });
+    detail.querySelectorAll('input.vendor-estimate-input').forEach(inp => {
+      inp.addEventListener('click', e => e.stopPropagation());
+      inp.addEventListener('change', e => {
+        e.stopPropagation();
+        if (!inp.dataset.rowid) return;
+        handleEstimateUpload(r, inp);
+      });
+    });
+    const ownerContractList = detail.querySelector('.owner-contract-list');
+    if (ownerContractList) wireOwnerContractRemoveButtons(ownerContractList, r);
+    detail.querySelectorAll('.owner-contract-upload-btn').forEach(lbl => {
+      lbl.addEventListener('click', e => e.stopPropagation());
+      lbl.addEventListener('mousedown', e => e.stopPropagation());
+    });
+    detail.querySelectorAll('input.owner-contract-input').forEach(inp => {
+      inp.addEventListener('click', e => e.stopPropagation());
+      inp.addEventListener('change', e => {
+        e.stopPropagation();
+        if (!inp.dataset.rowid) return;
+        handleOwnerContractUpload(r, inp);
+      });
+    });
+  }
+
   function render(){
     renderKpis();
     { const pv = document.getElementById('view-projections'); if (pv && !pv.hidden) renderProjections(); }
+    { const vv = document.getElementById('view-vendor'); if (vv && !vv.hidden) renderVendorContracting(); }
     updateStatusFilterCounts();
     const filtered = sortRows(rows.filter(matches));
     document.getElementById('result-count').textContent = `${filtered.length} of ${rows.length} sites`;
@@ -3663,171 +4063,20 @@ footer{
         }
         if (wasOpenForThis) return;
         tr.classList.add('active');
-        const r = rows[idx];
-        const pendCust = r.rowId!=null ? pendingCustomerStatusMap.get(String(r.rowId)) : null;
-        const pendVend = r.rowId!=null ? pendingVendorStatusMap.get(String(r.rowId)) : null;
-        const pendLost = r.rowId!=null ? pendingLostMap.get(String(r.rowId)) : null;
         const detail = document.createElement('tr');
         detail.className = 'detail-row';
         detail.dataset.idx = String(idx);
-        detail.innerHTML = `<td colspan="8"><div class="detail-grid">
-          <div style="grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-            ${contractKind(r.store)?`<button type="button" class="contract-btn" data-idx="${idx}" data-side="owner" title="Generate a filled ${csKind(r.store)?(csKind(r.store)==='owned'?'Owned':'Managed'):'Devon Self Storage'} snowplowing contract PDF for ${escapeHtml(r.store)}">Create Owner Contract</button>`:''}
-            <button type="button" class="contract-btn" data-idx="${idx}" data-side="vendor" title="Fill the FDI subcontract that matches this store's contract parameters">Create Vendor Subcontract</button>
-            <select class="contract-kind-select is-placeholder" data-idx="${idx}" title="Vendor contract type — leave on the grey label to use the auto-picked template">
-              <option value="" selected>Vendor Contract Type</option>
-              ${Object.entries(SUBCONTRACT_TEMPLATES).map(([k,v])=>`<option value="${k}" data-auto="${k===subcontractKindForRow(r)?'1':''}">${v.label}${k===subcontractKindForRow(r)?' (auto)':''}</option>`).join('')}
-            </select>
-          </div>
-          <div><div class="k">Region</div><div class="v">${regionSelectHtml(r)}</div></div>
-          <div><div class="k">26/27 Vendor</div><div class="v">${vendor2627InputHtml(r)}</div></div>
-          <div><div class="k">25/26 Vendor</div><div class="v">${escapeHtml(r.vendor)||'&mdash;'}</div></div>
-          <div><div class="k">Contract Start</div><div class="v">${contractDateInputHtml(r, 'contractStart')}</div></div>
-          <div><div class="k">Contract End</div><div class="v">${contractDateInputHtml(r, 'contractEnd')}</div></div>
-          ${r.regionRaw?`<div><div class="k">Region as entered</div><div class="v">${escapeHtml(r.regionRaw)}</div></div>`:''}
-          ${r.sfIssue?`<div><div class="k">SF as entered</div><div class="v">${escapeHtml(r.sf)}</div></div>`:''}
-          ${contractParamsHtml(r)}
-          <div class="contract-params"><div class="k">Vendor Estimates</div><div class="v">
-            <div class="vendor-estimate-list" data-rowid="${r.rowId ?? ''}">${vendorEstimateListHtml(r)}</div>
-            ${r.rowId!=null?`<label class="vendor-estimate-upload-btn">&#128206; Upload vendor estimate<input type="file" class="vendor-estimate-input" accept="application/pdf,image/*" data-rowid="${r.rowId}" hidden></label>
-            <div class="vendor-estimate-hint">PDF or photo of the estimate. Stages here and attaches to this Smartsheet row next time you sync.</div>`
-            :`<div class="vendor-estimate-hint">No Smartsheet row id on file &mdash; can't attach.</div>`}
-          </div></div>
-          <div class="contract-params"><div class="k">Owner Contracts</div><div class="v">
-            <div class="owner-contract-list" data-rowid="${r.rowId ?? ''}">${ownerContractListHtml(r)}</div>
-            ${r.rowId!=null?`<label class="owner-contract-upload-btn">&#128206; Upload owner contract<input type="file" class="owner-contract-input" accept="application/pdf,image/*" data-rowid="${r.rowId}" hidden></label>
-            <div class="owner-contract-hint">The executed/signed contract (PDF or scan) &mdash; a returned countersigned copy, an addendum, etc. Stages here and attaches to this Smartsheet row next time you sync.</div>`
-            :`<div class="owner-contract-hint">No Smartsheet row id on file &mdash; can't attach.</div>`}
-          </div></div>
-          ${pendCust?`<div><div class="k">Staged customer status</div><div class="v" style="color:var(--warn)">${pendCust.oldValue||'&mdash;'} &rarr; ${pendCust.newValue||'&mdash;'}, not yet synced to Smartsheet</div></div>`:''}
-          ${pendVend?`<div><div class="k">Staged vendor status</div><div class="v" style="color:var(--warn)">${pendVend.oldValue||'&mdash;'} &rarr; ${pendVend.newValue||'&mdash;'}, not yet synced to Smartsheet</div></div>`:''}
-          ${pendLost?`<div><div class="k">Staged lost flag</div><div class="v" style="color:var(--warn)">${pendLost.oldValue?'Lost':'Not lost'} &rarr; ${pendLost.newValue?'Lost':'Not lost'}, not yet synced to Smartsheet</div></div>`:''}
-        </div></td>`;
+        fillDetail(detail, idx, true);
         tr.after(detail);
-        detail.querySelectorAll('select.contract-kind-select').forEach(s => {
-          ['click','mousedown'].forEach(ev => s.addEventListener(ev, e => e.stopPropagation()));
-          s.addEventListener('change', () => s.classList.toggle('is-placeholder', s.value === ''));
-        });
-        detail.querySelectorAll('button.contract-btn').forEach(btn => {
-          btn.addEventListener('click', e => {
-            e.stopPropagation();
-            e.preventDefault();
-            const sel = detail.querySelector('select.contract-kind-select');
-            createContractForRow(r, btn, btn.dataset.side, sel && sel.value ? sel.value : undefined);
-          });
-        });
-        detail.querySelectorAll('input.cp-date-input').forEach(inp => {
-          inp.addEventListener('click', e => e.stopPropagation());
-          inp.addEventListener('mousedown', e => e.stopPropagation());
-          inp.addEventListener('change', e => {
-            e.stopPropagation();
-            if (!inp.dataset.rowid) return;
-            stageContractDateChange(r, inp.dataset.field, inp, inp.value);
-          });
-        });
-        detail.querySelectorAll('select.region-select').forEach(sel => {
-          sel.addEventListener('click', e => e.stopPropagation());
-          sel.addEventListener('mousedown', e => e.stopPropagation());
-          sel.addEventListener('change', e => {
-            e.stopPropagation();
-            if (!sel.dataset.rowid) return;
-            stageRegionChange(r, sel, sel.value);
-          });
-        });
-        detail.querySelectorAll('input.cp-input').forEach(inp => {
-          inp.addEventListener('click', e => e.stopPropagation());
-          inp.addEventListener('mousedown', e => e.stopPropagation());
-          inp.addEventListener('change', e => {
-            e.stopPropagation();
-            if (!inp.dataset.rowid) return;
-            stageContractChange(r, inp.dataset.field, inp, inp.value);
-            // Keep the Base Monthly mirror (if this row has one) in sync
-            // whenever the real seasonal/vendorSeasonal value changes.
-            if (inp.dataset.field === 'seasonal' || inp.dataset.field === 'vendorSeasonal'){
-              const mirror = detail.querySelector(`input.cp-basemonthly-input[data-mirror-field="${inp.dataset.field}"]`);
-              if (mirror){
-                const q = quarterOf(inp.value, mirror.dataset.div);
-                mirror.value = q === '' ? '' : String(q);
-                const item = mirror.closest('.cp-item');
-                if (item) refreshMarginForItem(item);
-              }
-            }
-            // Devon Self Storage: Deicer / 2"-4" Push Rate changes always
-            // recompute Seasonal as (push24 + deicer) x 15.
-            applyDssSeasonalAutocalc(r, detail, inp.dataset.field);
-          });
-        });
-        // Base Monthly inputs are a reverse-computed mirror of Seasonal —
-        // editing one writes through to the real seasonal/vendorSeasonal
-        // input (x4) and stages the change there, so syncing still only
-        // ever deals with the one real field.
-        detail.querySelectorAll('input.cp-basemonthly-input').forEach(inp => {
-          inp.addEventListener('click', e => e.stopPropagation());
-          inp.addEventListener('mousedown', e => e.stopPropagation());
-          inp.addEventListener('change', e => {
-            e.stopPropagation();
-            const mirrorField = inp.dataset.mirrorField;
-            const realInput = detail.querySelector(`input.cp-input[data-field="${mirrorField}"]`);
-            if (!realInput || !realInput.dataset.rowid) return;
-            const raw = inp.value.trim();
-            let newSeasonal = '';
-            if (raw !== ''){
-              const n = Number(raw);
-              if (!Number.isNaN(n)) newSeasonal = Math.round(n * (Number(inp.dataset.div) || 4) * 100) / 100;
-            }
-            realInput.value = newSeasonal === '' ? '' : String(newSeasonal);
-            stageContractChange(r, mirrorField, realInput, realInput.value);
-            const seasonalItem = realInput.closest('.cp-item');
-            if (seasonalItem) refreshMarginForItem(seasonalItem);
-          });
-        });
-        detail.querySelectorAll('.cp-item').forEach(item => {
-          item.querySelectorAll('input.cp-input').forEach(inp => {
-            inp.addEventListener('input', () => refreshMarginForItem(item));
-          });
-        });
-        detail.querySelectorAll('input.v27-input').forEach(inp => {
-          inp.addEventListener('click', e => e.stopPropagation());
-          inp.addEventListener('mousedown', e => e.stopPropagation());
-          inp.addEventListener('change', e => {
-            e.stopPropagation();
-            if (!inp.dataset.rowid) return;
-            stageVendorChange(r, inp, inp.value);
-          });
-        });
-        const estimateList = detail.querySelector('.vendor-estimate-list');
-        if (estimateList) wireEstimateRemoveButtons(estimateList, r);
-        detail.querySelectorAll('.vendor-estimate-upload-btn').forEach(lbl => {
-          lbl.addEventListener('click', e => e.stopPropagation());
-          lbl.addEventListener('mousedown', e => e.stopPropagation());
-        });
-        detail.querySelectorAll('input.vendor-estimate-input').forEach(inp => {
-          inp.addEventListener('click', e => e.stopPropagation());
-          inp.addEventListener('change', e => {
-            e.stopPropagation();
-            if (!inp.dataset.rowid) return;
-            handleEstimateUpload(r, inp);
-          });
-        });
-        const ownerContractList = detail.querySelector('.owner-contract-list');
-        if (ownerContractList) wireOwnerContractRemoveButtons(ownerContractList, r);
-        detail.querySelectorAll('.owner-contract-upload-btn').forEach(lbl => {
-          lbl.addEventListener('click', e => e.stopPropagation());
-          lbl.addEventListener('mousedown', e => e.stopPropagation());
-        });
-        detail.querySelectorAll('input.owner-contract-input').forEach(inp => {
-          inp.addEventListener('click', e => e.stopPropagation());
-          inp.addEventListener('change', e => {
-            e.stopPropagation();
-            if (!inp.dataset.rowid) return;
-            handleOwnerContractUpload(r, inp);
-          });
-        });
       });
     });
   }
 
   document.getElementById('search').addEventListener('input', e => { state.search = e.target.value; render(); });
+  const pmFilterSel = document.getElementById('filter-pm');
+  PM_LIST.forEach(p => pmFilterSel.insertAdjacentHTML('beforeend', `<option value="${p.name}">${p.name}</option>`));
+  pmFilterSel.insertAdjacentHTML('beforeend', '<option value="__NONE__">(unassigned)</option>');
+  pmFilterSel.addEventListener('change', e => { state.pm = e.target.value; render(); });
   regionSel.addEventListener('change', e => { state.region = e.target.value; render(); });
   customerSel.addEventListener('change', e => { state.customer = e.target.value; render(); });
   custStatusSel.addEventListener('change', e => { state.customerStatus = e.target.value; render(); });
@@ -4082,6 +4331,134 @@ footer{
     projAssume.marchSeasonal = document.getElementById('pa-marseasonal').checked;
     projSave(); renderProjections();
   }
+
+  // ---------- Vendor Contracting tab (vendor-status pipeline) ----------
+  const VC_COLS = [null].concat(VENDOR_STATUS_ORDER);
+  const VC_COST_KEYS = [
+    ['vendorSeasonal','Seasonal'], ['vendorFdi3_6','3-6"'], ['vendorFdi2_4','2-4"'], ['vendorFdi2_399','2-3.99"'],
+    ['vendorPfuetze2_4','2-4"'], ['vendorSroa3_49','3-4.9"'], ['vendorDeicer','Deicer'],
+  ];
+  let vcScope = 'accepted', vcQuery = '';
+  try { const s0 = localStorage.getItem('fdiVcScope'); if (s0) vcScope = s0; } catch(e){}
+  let vcPm = '';
+  function vcInScope(r){
+    if (effectiveLost(r)) return false;
+    if (vcPm){ if (vcPm === '__NONE__' ? !!r.pm : r.pm !== vcPm) return false; }
+    const cs = effectiveCustomerStatus(r);
+    if (vcScope === 'all') return true;
+    if (vcScope === 'contract') return cs === 'Verbally Accepted' || cs === 'Contract Accepted' || cs === 'Contract Sent';
+    return cs === 'Verbally Accepted' || cs === 'Contract Accepted';
+  }
+  function vcCostSummary(r){
+    const bits = [];
+    for (const [k, label] of VC_COST_KEYS){
+      const v = effectiveContractValue(r, k);
+      if (v !== null && v !== undefined && v !== '' && Number(v) > 0){
+        bits.push(`${label} $${Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 })}`);
+        if (bits.length === 3) break;
+      }
+    }
+    return bits;
+  }
+  function renderVendorContracting(){
+    const board = document.getElementById('vc-board'); if (!board) return;
+    const q = vcQuery.trim().toLowerCase();
+    const buckets = new Map(VC_COLS.map(c => [c, []]));
+    let total = 0;
+    rows.forEach((r, i) => {
+      if (!vcInScope(r)) return;
+      if (q){
+        const hay = `${r.store} ${r.customer} ${r.address} ${r.pm || ''} ${effectiveVendor2627(r) || ''} ${r.vendor || ''}`.toLowerCase();
+        if (!hay.includes(q)) return;
+      }
+      const vs = effectiveVendorStatus(r);
+      const key = VENDOR_STATUS_ORDER.includes(vs) ? vs : null;
+      buckets.get(key).push(i); total++;
+    });
+    document.getElementById('vc-count').textContent = `${total} store${total === 1 ? '' : 's'}`;
+    board.innerHTML = VC_COLS.map(c => {
+      const idxs = buckets.get(c).sort((a, b) => String(rows[a].store).localeCompare(String(rows[b].store), undefined, { numeric: true }));
+      const col = c ? statusColor(c) : NONE_COLOR;
+      const cards = idxs.map(i => {
+        const r = rows[i];
+        const vendor = effectiveVendor2627(r);
+        const cost = vcCostSummary(r);
+        const cs = effectiveCustomerStatus(r);
+        const cc = statusColor(cs);
+        return `<div class="vc-card" data-idx="${i}">
+          <div class="vc-card-top"><span class="vc-store">${escapeHtml(r.store || '')}</span><span class="vc-cust">${escapeHtml(r.customer || '')}</span></div>
+          <div class="vc-addr" title="${escapeHtml(r.address || '')}">${escapeHtml(r.address || '')}</div>
+          <div class="vc-line"><span class="vc-k">PM</span>${r.pm ? escapeHtml(r.pm) : '<span class="vc-warn">unassigned</span>'}</div>
+          <div class="vc-line"><span class="vc-k">Vendor</span>${vendor ? escapeHtml(vendor) : '<span class="vc-warn">none yet</span>'}</div>
+          <div class="vc-line"><span class="vc-k">Cost</span>${cost.length ? escapeHtml(cost.join(' · ')) : '<span class="vc-warn">no vendor cost</span>'}</div>
+          <div class="vc-line"><span class="vc-k">Cust.</span><span style="font-size:11px;padding:1px 7px;border-radius:999px;background:${cc.bg};color:${cc.fg};">${escapeHtml(cs || '—')}</span></div>
+          <div class="vc-actions">
+            <select class="vc-status" data-idx="${i}" title="Vendor status">
+              <option value="">— no status —</option>
+              ${VENDOR_STATUS_ORDER.map(v => `<option value="${escapeHtml(v)}"${v === c ? ' selected' : ''}>${escapeHtml(v)}</option>`).join('')}
+            </select>
+            <button type="button" class="vc-gen" data-idx="${i}">Vendor contract</button>
+          </div>
+        </div>`;
+      }).join('');
+      return `<div class="vc-col">
+        <div class="vc-col-head"><span>${escapeHtml(c || 'No vendor status')}</span><span class="vc-n" style="background:${col.bg};color:${col.fg};">${idxs.length}</span></div>
+        <div class="vc-col-body">${cards || '<div class="vc-empty">Nothing here</div>'}</div>
+      </div>`;
+    }).join('');
+    board.querySelectorAll('select.vc-status').forEach(sel => {
+      sel.addEventListener('change', () => { stageStatusChange('vendorStatus', rows[Number(sel.dataset.idx)], sel.value || null); });
+    });
+    board.querySelectorAll('button.vc-gen').forEach(btn => {
+      btn.addEventListener('click', e => { e.stopPropagation(); createSubcontractForRow(rows[Number(btn.dataset.idx)], btn); });
+    });
+    board.querySelectorAll('select.vc-status').forEach(sel => ['click','mousedown'].forEach(ev => sel.addEventListener(ev, e => e.stopPropagation())));
+    board.querySelectorAll('.vc-card').forEach(card => {
+      card.addEventListener('click', () => vcOpenModal(Number(card.dataset.idx)));
+    });
+  }
+  // ---- Vendor Contracting: click a card to open the same site detail as the Bidding tab ----
+  let vcOpenIdx = null;
+  function vcCloseModal(){
+    const back = document.getElementById('vc-modal-back'); if (!back) return;
+    back.hidden = true; vcOpenIdx = null;
+    const d = document.getElementById('vc-modal-detail'); d.innerHTML = ''; d.dataset.idx = '';
+    renderVendorContracting();
+  }
+  function vcOpenModal(idx){
+    const r = rows[idx]; if (!r) return;
+    vcOpenIdx = idx;
+    document.getElementById('vc-modal-title').textContent = `${r.store || ''} · ${r.customer || ''}`;
+    document.getElementById('vc-modal-sub').textContent = r.address || '';
+    const st = document.getElementById('vc-modal-status');
+    const cur = effectiveVendorStatus(r) || '';
+    st.innerHTML = '<option value="">— no vendor status —</option>' + VENDOR_STATUS_ORDER.map(v => `<option value="${escapeHtml(v)}"${v === cur ? ' selected' : ''}>${escapeHtml(v)}</option>`).join('');
+    const d = document.getElementById('vc-modal-detail');
+    d.dataset.idx = String(idx);
+    fillDetail(d, idx, false);
+    document.getElementById('vc-modal-back').hidden = false;
+  }
+  (function initVcModal(){
+    const back = document.getElementById('vc-modal-back'); if (!back) return;
+    document.getElementById('vc-modal-close').addEventListener('click', vcCloseModal);
+    back.addEventListener('click', e => { if (e.target === back) vcCloseModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !back.hidden) vcCloseModal(); });
+    document.getElementById('vc-modal-status').addEventListener('change', e => {
+      if (vcOpenIdx == null) return;
+      stageStatusChange('vendorStatus', rows[vcOpenIdx], e.target.value || null);
+    });
+  })();
+  (function initVendorTab(){
+    const sc = document.getElementById('vc-scope'), se = document.getElementById('vc-search');
+    sc.value = vcScope;
+    sc.addEventListener('change', () => { vcScope = sc.value; try { localStorage.setItem('fdiVcScope', vcScope); } catch(e){} renderVendorContracting(); });
+    se.addEventListener('input', () => { vcQuery = se.value; renderVendorContracting(); });
+    const pf = document.getElementById('vc-pm');
+    PM_LIST.forEach(p => pf.insertAdjacentHTML('beforeend', `<option value="${p.name}">${p.name}</option>`));
+    pf.insertAdjacentHTML('beforeend', '<option value="__NONE__">(unassigned)</option>');
+    pf.addEventListener('change', () => { vcPm = pf.value; renderVendorContracting(); });
+  })();
+
   (function initProjectionsTab(){
     projSyncInputs();
     document.querySelectorAll('#proj-assume input').forEach(el => el.addEventListener('input', projReadInputs));
@@ -4089,12 +4466,16 @@ footer{
     function showView(v){
       document.getElementById('view-bidding').hidden = v !== 'bidding';
       document.getElementById('view-projections').hidden = v !== 'projections';
+      document.getElementById('view-vendor').hidden = v !== 'vendor';
+      document.getElementById('tab-vendor').classList.toggle('active', v === 'vendor');
+      if (v === 'vendor') renderVendorContracting();
       document.getElementById('tab-bidding').classList.toggle('active', v === 'bidding');
       document.getElementById('tab-projections').classList.toggle('active', v === 'projections');
       if (v === 'projections') renderProjections();
     }
     document.getElementById('tab-bidding').addEventListener('click', () => showView('bidding'));
     document.getElementById('tab-projections').addEventListener('click', () => showView('projections'));
+    document.getElementById('tab-vendor').addEventListener('click', () => showView('vendor'));
   })();
 
   applyOutbox();
