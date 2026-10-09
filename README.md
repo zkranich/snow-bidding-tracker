@@ -45,3 +45,24 @@ Every edit is saved in this browser first (so a refresh never loses it), then se
 ## CubeSmart managed contract (2026 form)
 
 `templates/managed.pdf` is the 2026 CubeSmart "Snowplowing Contract - Managed" (4 pages: contract, terms + signature, Exhibit A, Insurance Schedule). The source PDF had no form fields, so fields were added at each blank. Autofill fills service provider, term, tier fees (3-6" through 16-18"), per-inch, de-icer, and lists the store and address on Exhibit A. CubeSmart owned (store numbers starting with 0) still uses `templates/owned.pdf`.
+
+## Vendor Contracting tab
+
+Next to Bidding and Projections. A pipeline board of stores by vendor status (No status, Need New Vendor, Quoting/Waiting for Bids, Sent Contract, Signed Contract, Compliance Received). Each card shows the store, customer, address, 26/27 vendor, vendor cost, and customer status, with a status dropdown (saves to Smartsheet like the Bidding tab) and a "Vendor contract" button that generates that store's vendor subcontract. The Stores filter defaults to customer-accepted stores (Verbally Accepted + Contract Accepted).
+
+
+Clicking a card on the Vendor Contracting tab opens the same site detail as the Bidding tab (contract parameters, region, vendor, dates, estimates, owner contracts, contract buttons) in a popup. Close with the Close button, Esc, or by clicking outside.
+
+Vendors Interested: each site's detail panel has 3 rows (name, email, phone) under Vendor Estimates. They sync to 9 new Smartsheet columns (Interested Vendor 1/2/3 + Email/Phone). worker.js was updated to allow these fields, so re-deploy the Worker (paste the new worker.js into Cloudflare and Deploy) or these will not save to Smartsheet.
+
+PM assignment: each site's detail panel has a PM dropdown (Zak, Bobby, Connor, Jacob) that writes to the sheet's existing PM column (sent as the PM's email). There's an "All PMs" filter on the Bidding and Vendor Contracting tabs, and Vendor Contracting cards show the PM. Re-deploy worker.js so the pm field is allowed.
+
+Site map: the button is now "Site map". It has built-in Google Maps key fallback (config.js, then a key saved in the browser, then the default Parkinson-portal key), so the real Google Map shows even without config.js. Filters: customer-status scope, PM, vendor status. Pin popups show customer status, PM and 26/27 vendor. Add https://zkranich.github.io/* to the key's allowed websites in Google Cloud > Credentials, with Maps JavaScript API and Geocoding API enabled.
+
+Map pin colors: skull = Lost; green = Signed Contract / Compliance Received; yellow = Send Vendor Contract / Sent Contract; red = customer Verbally/Contract Accepted and vendor Need New Vendor / Quoting-Waiting for Bids; grey = everything else (e.g. accepted, no vendor status yet). The map's "Show" filter has "All sites (including lost)" and "Lost sites only".
+
+## Vendor Compliance tab
+
+A new tab listing every 26/27 Vendor from the Bidding sheet (lost sites excluded), one card per vendor, matched by name to the Smartsheet "Vendor Tracking List". Each card has Address, Contact, Phone, Email, General Liability and Worker's Comp expiration dates (with expired / expiring-in-30-days chips), Contract/MSA and W9 on-file checkboxes, and Upload Contract / Upload COI / Upload W9 buttons. Edits save to the Vendor Tracking List; uploaded files attach to that vendor's row (named "Contract - ...", "COI - ...", "W9 - ...") and show as links on the card. Uploading a Contract or W9 also ticks the matching checkbox. Vendors not yet on the list show an "Add to the Vendor Tracking List" button. Filters: all / not compliant / expiring in 30 days / not on the list.
+
+Requires the latest worker.js (new endpoints /vendors, /vendor-update, /vendor-add, /vendor-attachments, /vendor-file, /vendor-attach). Re-deploy the Worker (paste worker.js into Cloudflare and Deploy), and make sure the Connect bar has the Worker URL and dashboard key.

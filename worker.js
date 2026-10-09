@@ -12,6 +12,20 @@
 //                        DASHBOARD_KEY constant in index.html
 
 const SHEET_ID = '1101172935970692'; // 26-27 Snow Bidding Sheet
+const VENDOR_SHEET_ID = '7261538764515204'; // "Vendor Tracking List" (1000 FM & CapX > Vendor Lists)
+
+// Vendor Compliance tab: field name -> Vendor Tracking List column ID.
+const VENDOR_FIELD_COLUMN_IDS = {
+  vendor: 8462708432496516,   // Vendor (primary)
+  phone: 299934107887492,     // Phone Numbers
+  email: 4803533735257988,    // Email (contact list — send an email address)
+  contact: 2551733921572740,  // Contact Name/s
+  address: 7055333548943236,  // Address
+  msa: 3440339479908228,      // Master Service Agreement/Subcontract (checkbox)
+  w9: 1231675723147140,       // W9 (checkbox)
+  glExpiry: 1807119502600068, // General Liability Expiry (date)
+  wcExpiry: 2970665422376836, // Worker's Comp Expiry (date)
+};
 
 // Field name (as sent by the dashboard) -> Smartsheet column ID.
 // Every field the dashboard can edit and save to Smartsheet.
@@ -69,6 +83,17 @@ const FIELD_COLUMN_IDS = {
   vendorSeasonal: 1367910251270020,
   contractStart: 5828404848660356,
   contractEnd: 3576605034975108,
+  pm: 3410584874028932,             // PM (contact list — dashboard sends the PM's email)
+  // Vendors interested in the site (name / email / phone x3)
+  iv1Name: 716833319325572,
+  iv1Email: 5220432946696068,
+  iv1Phone: 2968633133010820,
+  iv2Name: 7472232760381316,
+  iv2Email: 1842733226168196,
+  iv2Phone: 6346332853538692,
+  iv3Name: 4094533039853444,
+  iv3Email: 8598132667223940,
+  iv3Phone: 435358342614916,
 };
 
 function corsHeaders(origin) {
@@ -144,6 +169,88 @@ export default {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(payload),
+        });
+        const data = await resp.json();
+        return json(data, resp.ok && data.resultCode === 0 ? 200 : 502, headers);
+      }
+
+      // ---- Vendor Compliance (Vendor Tracking List sheet) ----
+      const ssHeaders = { Authorization: `Bearer ${env.SMARTSHEET_TOKEN}` };
+
+      // GET /vendors — the whole Vendor Tracking List
+      if (url.pathname === '/vendors' && request.method === 'GET') {
+        const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${VENDOR_SHEET_ID}`, { headers: ssHeaders });
+        const data = await resp.json();
+        return json(data, resp.ok ? 200 : 502, headers);
+      }
+
+      // POST /vendor-update { rowId, field, value }
+      if (url.pathname === '/vendor-update' && request.method === 'POST') {
+        let body;
+        try { body = await request.json(); } catch (e) { return json({ error: 'body must be JSON' }, 400, headers); }
+        const { rowId, field, value } = body || {};
+        const columnId = VENDOR_FIELD_COLUMN_IDS[field];
+        if (!rowId || !columnId) return json({ error: `rowId and a known vendor field are required (got field=${field})` }, 400, headers);
+        const cellValue = value === null || value === undefined ? '' : value;
+        const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${VENDOR_SHEET_ID}/rows`, {
+          method: 'PUT',
+          headers: { ...ssHeaders, 'Content-Type': 'application/json' },
+          body: JSON.stringify([{ id: rowId, cells: [{ columnId, value: cellValue }] }]),
+        });
+        const data = await resp.json();
+        return json(data, resp.ok && data.resultCode === 0 ? 200 : 502, headers);
+      }
+
+      // POST /vendor-add { vendor } — adds a new row (name only) at the bottom of the Vendor Tracking List
+      if (url.pathname === '/vendor-add' && request.method === 'POST') {
+        let body;
+        try { body = await request.json(); } catch (e) { return json({ error: 'body must be JSON' }, 400, headers); }
+        const name = String((body && body.vendor) || '').trim();
+        if (!name) return json({ error: 'vendor name required' }, 400, headers);
+        const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${VENDOR_SHEET_ID}/rows`, {
+          method: 'POST',
+          headers: { ...ssHeaders, 'Content-Type': 'application/json' },
+          body: JSON.stringify([{ toBottom: true, cells: [{ columnId: VENDOR_FIELD_COLUMN_IDS.vendor, value: name }] }]),
+        });
+        const data = await resp.json();
+        return json(data, resp.ok && data.resultCode === 0 ? 200 : 502, headers);
+      }
+
+      // GET /vendor-attachments?rowId= — files attached to that vendor's row
+      if (url.pathname === '/vendor-attachments' && request.method === 'GET') {
+        const rowId = url.searchParams.get('rowId');
+        if (!rowId) return json({ error: 'rowId required' }, 400, headers);
+        const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${VENDOR_SHEET_ID}/rows/${encodeURIComponent(rowId)}/attachments?includeAll=true`, { headers: ssHeaders });
+        const data = await resp.json();
+        return json(data, resp.ok ? 200 : 502, headers);
+      }
+
+      // GET /vendor-file?attId= — a short-lived download link for one attachment ({ url, name })
+      if (url.pathname === '/vendor-file' && request.method === 'GET') {
+        const attId = url.searchParams.get('attId');
+        if (!attId) return json({ error: 'attId required' }, 400, headers);
+        const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${VENDOR_SHEET_ID}/attachments/${encodeURIComponent(attId)}`, { headers: ssHeaders });
+        const data = await resp.json();
+        return json(data, resp.ok ? 200 : 502, headers);
+      }
+
+      // POST /vendor-attach?rowId=&name= — raw file body, attached to that vendor's row
+      if (url.pathname === '/vendor-attach' && request.method === 'POST') {
+        const rowId = url.searchParams.get('rowId');
+        const name = (url.searchParams.get('name') || 'upload').replace(/[\r\n"]/g, '_');
+        if (!rowId) return json({ error: 'rowId required' }, 400, headers);
+        const buf = await request.arrayBuffer();
+        if (!buf.byteLength) return json({ error: 'empty file' }, 400, headers);
+        if (buf.byteLength > 25 * 1024 * 1024) return json({ error: 'file too large (25 MB max)' }, 413, headers);
+        const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${VENDOR_SHEET_ID}/rows/${encodeURIComponent(rowId)}/attachments`, {
+          method: 'POST',
+          headers: {
+            ...ssHeaders,
+            'Content-Type': request.headers.get('Content-Type') || 'application/octet-stream',
+            'Content-Disposition': `attachment; filename="${name}"`,
+            'Content-Length': String(buf.byteLength),
+          },
+          body: buf,
         });
         const data = await resp.json();
         return json(data, resp.ok && data.resultCode === 0 ? 200 : 502, headers);
