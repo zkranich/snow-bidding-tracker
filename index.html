@@ -204,6 +204,7 @@ button{ font-family:inherit; }
 }
 .map-close-btn:hover{ color:var(--ink); }
 .map-legend{ display:flex; flex-wrap:wrap; gap:14px; font-size:12px; margin:10px 0 14px; color:var(--ink-muted); }
+.map-skull{ font-size:14px; line-height:1; color:#2b2f2d; display:inline-block; width:14px; text-align:center; }
 .map-legend span{ display:inline-flex; align-items:center; gap:6px; }
 .map-dot{ width:10px; height:10px; border-radius:50%; display:inline-block; flex:none; }
 .map-svg-box{ background:var(--surface-alt); border:1px solid var(--border-soft); border-radius:10px; padding:8px; overflow:hidden; }
@@ -692,17 +693,19 @@ footer{
         <option value="accepted">Contract Accepted</option>
         <option value="verbal">Verbally + Contract Accepted</option>
         <option value="contract">Accepted + Contract Sent</option>
-        <option value="all">All sites (not lost)</option>
+        <option value="all">All sites (including lost)</option>
+        <option value="lost">Lost sites only</option>
       </select></label>
       <label>PM <select id="map-pm"><option value="">All PMs</option></select></label>
       <label>Vendor status <select id="map-vstatus"><option value="">All</option></select></label>
       <span class="map-filter-count" id="map-filter-count"></span>
     </div>
     <div class="map-legend">
-      <span><i class="map-dot" style="background:var(--map-red)"></i> Need New Vendor</span>
-      <span><i class="map-dot" style="background:var(--map-yellow)"></i> Quoting&#8211;Waiting for Bids / Send Vendor Contract / Sent Contract</span>
+      <span><i class="map-dot" style="background:var(--map-none)"></i> Accepted &mdash; no vendor action yet</span>
+      <span><i class="map-dot" style="background:var(--map-red)"></i> Accepted + Need New Vendor / Quoting&#8211;Waiting for Bids</span>
+      <span><i class="map-dot" style="background:var(--map-yellow)"></i> Send Vendor Contract / Sent Contract</span>
       <span><i class="map-dot" style="background:var(--map-green)"></i> Signed Contract / Compliance Received</span>
-      <span><i class="map-dot" style="background:var(--map-none)"></i> No vendor status yet</span>
+      <span><span class="map-skull">&#9760;</span> Lost</span>
     </div>
     <div class="map-zoom-controls">
       <button class="map-zoom-btn" id="map-zoom-in" type="button" aria-label="Zoom in">+</button>
@@ -2515,11 +2518,25 @@ footer{
     };
   }
 
-  function vendorPinColor(vs){
-    if (vs === 'Need New Vendor') return 'var(--map-red)';
-    if (vs === 'Quoting/Waiting for Bids' || vs === 'Send Vendor Contract' || vs === 'Sent Contract') return 'var(--map-yellow)';
-    if (vs === 'Signed Contract' || vs === 'Compliance Received') return 'var(--map-green)';
-    return 'var(--map-none)';
+  // Pin color rules (one pin per site):
+  //   skull  = Lost
+  //   green  = Signed Contract / Compliance Received
+  //   yellow = Send Vendor Contract / Sent Contract
+  //   red    = customer Verbally Accepted / Contract Accepted AND vendor Need New Vendor / Quoting-Waiting for Bids
+  //   grey   = everything else (e.g. accepted but no vendor status yet)
+  function pinKey(r){
+    if (effectiveLost(r)) return 'lost';
+    const cs = effectiveCustomerStatus(r), vs = effectiveVendorStatus(r) || '';
+    if (vs === 'Signed Contract' || vs === 'Compliance Received') return 'green';
+    if (vs === 'Send Vendor Contract' || vs === 'Sent Contract') return 'yellow';
+    if ((cs === 'Verbally Accepted' || cs === 'Contract Accepted') && (vs === 'Need New Vendor' || vs === 'Quoting/Waiting for Bids')) return 'red';
+    return 'grey';
+  }
+  function pinCss(r){
+    return ({ lost:'#2b2f2d', green:'var(--map-green)', yellow:'var(--map-yellow)', red:'var(--map-red)', grey:'var(--map-none)' })[pinKey(r)];
+  }
+  function pinDotHtml(r){
+    return pinKey(r) === 'lost' ? '<span class="map-skull" title="Lost">&#9760;</span>' : `<i class="map-dot" style="background:${pinCss(r)}"></i>`;
   }
 
   function gmapLink(address){
@@ -2529,10 +2546,9 @@ footer{
 
   function mapStoreRowHtml(r){
     const vs = effectiveVendorStatus(r);
-    const color = vendorPinColor(vs);
     const link = gmapLink(r.address || '');
     return `<div class="map-store-row">
-      <span class="map-dot" style="background:${color}"></span>
+      ${pinDotHtml(r)}
       <span class="m-store">${escapeHtml(r.store || '')}</span>
       <span class="m-cust">${escapeHtml(r.customer || '')}</span>
       <span class="m-vstatus">${escapeHtml(vs || 'no vendor status yet')}</span>
@@ -2542,11 +2558,13 @@ footer{
 
   let mapScope = 'accepted', mapPm = '', mapVstatus = '';
   function mapInScope(r){
-    if (effectiveLost(r)) return false;
-    const cs = effectiveCustomerStatus(r);
-    if (mapScope === 'accepted' && cs !== 'Contract Accepted') return false;
-    if (mapScope === 'verbal' && cs !== 'Contract Accepted' && cs !== 'Verbally Accepted') return false;
-    if (mapScope === 'contract' && cs !== 'Contract Accepted' && cs !== 'Verbally Accepted' && cs !== 'Contract Sent') return false;
+    const cs = effectiveCustomerStatus(r), lost = effectiveLost(r);
+    if (mapScope === 'lost'){ if (!lost) return false; }
+    else if (mapScope !== 'all'){
+      if (mapScope === 'accepted' && cs !== 'Contract Accepted') return false;
+      if (mapScope === 'verbal' && cs !== 'Contract Accepted' && cs !== 'Verbally Accepted') return false;
+      if (mapScope === 'contract' && cs !== 'Contract Accepted' && cs !== 'Verbally Accepted' && cs !== 'Contract Sent') return false;
+    }
     if (mapPm && (mapPm === '__NONE__' ? !!r.pm : r.pm !== mapPm)) return false;
     if (mapVstatus){ const vs = effectiveVendorStatus(r) || ''; if (mapVstatus === '__NONE__' ? !!vs : vs !== mapVstatus) return false; }
     return true;
@@ -2558,7 +2576,7 @@ footer{
     const listWrap = document.getElementById('map-list-wrap');
     const qualifying = rows.filter(mapInScope);
     const titleEl = document.getElementById('map-title');
-    if (titleEl) titleEl.textContent = ({ accepted:'Contract Accepted', verbal:'Verbally + Contract Accepted', contract:'Accepted + Contract Sent', all:'All sites' })[mapScope] + ' \u2014 site map';
+    if (titleEl) titleEl.textContent = ({ accepted:'Contract Accepted', verbal:'Verbally + Contract Accepted', contract:'Accepted + Contract Sent', all:'All sites', lost:'Lost sites' })[mapScope] + ' \u2014 site map';
     const fc = document.getElementById('map-filter-count'); if (fc) fc.textContent = qualifying.length + ' site' + (qualifying.length === 1 ? '' : 's');
 
     const proj = projectRegions();
@@ -2603,7 +2621,7 @@ footer{
         const px = center.x + clusterR * Math.cos(angle);
         const py = center.y + clusterR * Math.sin(angle);
         const vs = effectiveVendorStatus(r);
-        const color = vendorPinColor(vs);
+        const color = pinCss(r);
         const link = gmapLink(r.address || '');
         const label = `${r.store || ''} — ${r.customer || ''} (${vs || 'no vendor status yet'})`;
         const pin = `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="8" data-base-r="8" fill="${color}" stroke="var(--surface)" stroke-width="1.6" data-base-sw="1.6"><title>${escapeHtml(label)}</title></circle>`;
@@ -2658,13 +2676,9 @@ footer{
   // browser key the Parkinson portal uses — restrict it to your sites under Google Cloud > Credentials).
   const DEFAULT_GOOGLE_MAPS_KEY = 'AIzaSyBiW0zuaB27AFxKKBn69cnn8lPnC-B6CJA';
   const GOOGLE_MAPS_API_KEY = (window.SNOW_CONFIG && window.SNOW_CONFIG.googleMapsKey) || (function(){ try { return localStorage.getItem('fdiGoogleMapsKey') || ''; } catch(e){ return ''; } })() || DEFAULT_GOOGLE_MAPS_KEY;
-  const GMAP_PIN_HEX = { red:'#c0392b', yellow:'#c99a1e', green:'#3c7a4c', none:'#8b948f' };
-  function vendorPinHex(vs){
-    if (vs === 'Need New Vendor') return GMAP_PIN_HEX.red;
-    if (vs === 'Quoting/Waiting for Bids' || vs === 'Send Vendor Contract' || vs === 'Sent Contract') return GMAP_PIN_HEX.yellow;
-    if (vs === 'Signed Contract' || vs === 'Compliance Received') return GMAP_PIN_HEX.green;
-    return GMAP_PIN_HEX.none;
-  }
+  const GMAP_PIN_HEX = { red:'#c0392b', yellow:'#e0b100', green:'#3c7a4c', grey:'#8b948f', lost:'#1c1c1c' };
+  function pinHex(r){ return GMAP_PIN_HEX[pinKey(r)] || GMAP_PIN_HEX.grey; }
+  const SKULL_SVG = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30"><path d="M15 2C8 2 3.5 6.6 3.5 12.6c0 3.7 1.9 6.1 4.2 7.6V25c0 1 .8 1.8 1.8 1.8h11c1 0 1.8-.8 1.8-1.8v-4.8c2.3-1.5 4.2-3.9 4.2-7.6C26.5 6.6 22 2 15 2z" fill="#fff" stroke="#1c1c1c" stroke-width="1.8"/><circle cx="10.5" cy="13" r="3.2" fill="#1c1c1c"/><circle cx="19.5" cy="13" r="3.2" fill="#1c1c1c"/><path d="M15 16.5l-2 3.6h4z" fill="#1c1c1c"/><path d="M11.5 22.5v4M15 22.5v4M18.5 22.5v4" stroke="#1c1c1c" stroke-width="1.4"/></svg>');
   let gmapsPromise = null;
   function loadGoogleMaps(){
     if (window.google && window.google.maps && window.google.maps.Map) return Promise.resolve(window.google.maps);
@@ -2727,7 +2741,7 @@ footer{
       const sorted = qualifying.slice().sort((a,b) => String(a.store||'').localeCompare(String(b.store||'')));
       side.innerHTML = '<div class="gmap-side-hdr">Job Locations<span id="gmap-side-count"></span></div>' + sorted.map((r, k) => {
         const vsx = effectiveVendorStatus(r);
-        return `<div class="gmap-item nopin" data-k="${k}"><div class="gmap-item-store"><i class="map-dot" style="background:${vendorPinColor(vsx)}"></i>${escapeHtml(r.store || '')}</div><div class="gmap-item-name">${escapeHtml(r.customer || '')}</div><div class="gmap-item-vs">${escapeHtml(vsx || 'no vendor status yet')}${r.pm ? ' &middot; PM ' + escapeHtml(pmShort(r.pm)) : ''}</div><div class="gmap-item-addr">${escapeHtml(r.address || 'no address on file')}</div></div>`;
+        return `<div class="gmap-item nopin" data-k="${k}"><div class="gmap-item-store">${pinDotHtml(r)}${escapeHtml(r.store || '')}</div><div class="gmap-item-name">${escapeHtml(r.customer || '')}</div><div class="gmap-item-vs">${escapeHtml(vsx || 'no vendor status yet')}${r.pm ? ' &middot; PM ' + escapeHtml(pmShort(r.pm)) : ''}</div><div class="gmap-item-addr">${escapeHtml(r.address || 'no address on file')}</div></div>`;
       }).join('');
       shell.appendChild(box); shell.appendChild(side); svgWrap.appendChild(shell);
       const focusByK = {};
@@ -2752,13 +2766,16 @@ footer{
         if (!pt){ missed.push(r); continue; }
         const vs = effectiveVendorStatus(r);
         // Classic teardrop pin with the store number printed on it (same look as the Parkinson portal map).
+        const isLost = pinKey(r) === 'lost';
         const marker = new maps.Marker({
-          position: pt, map, title: `${r.store || ''} — ${r.customer || ''}`,
-          icon: {
-            path: 'M0,0 C-2,-14 -11,-19 -11,-30 A11,11 0 1,1 11,-30 C11,-19 2,-14 0,0 Z',
-            fillColor: vendorPinHex(vs), fillOpacity: 1, strokeColor: 'rgba(0,0,0,0.45)', strokeWeight: 1, scale: 1,
-            labelOrigin: new maps.Point(0, -30),
-          },
+          position: pt, map, title: `${r.store || ''} — ${r.customer || ''}${isLost ? ' (LOST)' : ''}`,
+          icon: isLost
+            ? { url: SKULL_SVG, scaledSize: new maps.Size(30, 30), anchor: new maps.Point(15, 15), labelOrigin: new maps.Point(15, 38) }
+            : {
+                path: 'M0,0 C-2,-14 -11,-19 -11,-30 A11,11 0 1,1 11,-30 C11,-19 2,-14 0,0 Z',
+                fillColor: pinHex(r), fillOpacity: 1, strokeColor: 'rgba(0,0,0,0.45)', strokeWeight: 1, scale: 1,
+                labelOrigin: new maps.Point(0, -30),
+              },
           label: { text: String(r.store || ''), color: '#111111', fontSize: '10px', fontWeight: '700', fontFamily: '"IBM Plex Mono", ui-monospace, monospace' },
         });
         marker.addListener('click', () => {
