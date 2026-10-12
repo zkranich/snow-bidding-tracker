@@ -94,7 +94,7 @@ Under each vendor in **Vendors Interested** there's now a tracking line:
 
 ## Compliance warning
 
-*Draft email* and *Select vendor* check the vendor against the Vendor Tracking List first. If they're missing the contract/W9, have expired or blank General Liability / Worker's Comp, or aren't on the list at all, you get a confirm box listing what's wrong and can cancel.
+*Select vendor* checks the vendor against the Vendor Tracking List first (*Draft email* does not — bid requests go to vendors who aren't onboarded yet). If they're missing the contract/W9, have expired or blank General Liability / Worker's Comp, or aren't on the list at all, you get a confirm box listing what's wrong and can cancel.
 
 ## Gmail drafts with attachments
 

@@ -3446,13 +3446,10 @@ td.map-cell{ width:60px; text-align:center; }
     const email = val('Email'), vname = val('Name');
     if (email.indexOf('@') < 0){ say('Add this vendor’s email first.', true); return; }
     const win = window.open('', '_blank');   // opened now (inside the click) so the popup isn't blocked
-    const orig = btn.innerHTML; btn.disabled = true; btn.textContent = 'Checking…';
+    const orig = btn.innerHTML; btn.disabled = true; btn.textContent = 'Building…';
     const notes = [];
     try {
-      // 1) compliance warning before a contract goes out
-      const chk = await ivCheckCompliance(vname);
-      const warn = ivComplianceMsg(vname || email, chk, 'Draft the email and contract');
-      if (warn && !window.confirm(warn)){ if (win) win.close(); say('Cancelled — nothing drafted. (' + (vname || email) + ' isn’t fully compliant yet.)', true); return; }
+      // (No compliance check here: bidding emails go to vendors who aren't onboarded yet. The check runs when you Select a vendor.)
       btn.textContent = 'Building…';
       // 2) build the files
       const c = await blankSubcontractBlob(r);
