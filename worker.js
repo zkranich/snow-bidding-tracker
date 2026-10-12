@@ -141,7 +141,7 @@ export default {
       // dashboard calls this on load to overlay saved values onto its
       // baked-in snapshot.
       if (url.pathname === '/rows' && request.method === 'GET') {
-        const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${SHEET_ID}`, {
+        const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${SHEET_ID}?include=attachments`, {
           headers: { Authorization: `Bearer ${env.SMARTSHEET_TOKEN}` },
         });
         const data = await resp.json();
@@ -176,6 +176,62 @@ export default {
 
       // ---- Vendor Compliance (Vendor Tracking List sheet) ----
       const ssHeaders = { Authorization: `Bearer ${env.SMARTSHEET_TOKEN}` };
+
+      // ---- Site attachments on the Bidding sheet (overhead map) ----
+      // GET /attachments?rowId= — files attached to that site's row
+      if (url.pathname === '/attachments' && request.method === 'GET') {
+        const rowId = url.searchParams.get('rowId');
+        if (!rowId) return json({ error: 'rowId required' }, 400, headers);
+        const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${SHEET_ID}/rows/${encodeURIComponent(rowId)}/attachments?includeAll=true`, { headers: ssHeaders });
+        const data = await resp.json();
+        return json(data, resp.ok ? 200 : 502, headers);
+      }
+
+      // GET /file?attId= — a short-lived download link for one attachment ({ url, name })
+      if (url.pathname === '/file' && request.method === 'GET') {
+        const attId = url.searchParams.get('attId');
+        if (!attId) return json({ error: 'attId required' }, 400, headers);
+        const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${SHEET_ID}/attachments/${encodeURIComponent(attId)}`, { headers: ssHeaders });
+        const data = await resp.json();
+        return json(data, resp.ok ? 200 : 502, headers);
+      }
+
+      // GET /file-content?attId= — streams the attachment itself (so the page can show / download it)
+      if (url.pathname === '/file-content' && request.method === 'GET') {
+        const attId = url.searchParams.get('attId');
+        if (!attId) return json({ error: 'attId required' }, 400, headers);
+        const meta = await fetch(`https://api.smartsheet.com/2.0/sheets/${SHEET_ID}/attachments/${encodeURIComponent(attId)}`, { headers: ssHeaders });
+        const info = await meta.json();
+        if (!meta.ok || !info.url) return json({ error: 'attachment not found' }, 404, headers);
+        const file = await fetch(info.url); // short-lived pre-signed link; no auth header
+        if (!file.ok) return json({ error: 'could not fetch file' }, 502, headers);
+        return new Response(file.body, {
+          status: 200,
+          headers: { ...headers, 'Content-Type': info.mimeType || file.headers.get('Content-Type') || 'application/octet-stream', 'Cache-Control': 'private, max-age=300' },
+        });
+      }
+
+      // POST /attach?rowId=&name= — raw file body, attached to that site's row
+      if (url.pathname === '/attach' && request.method === 'POST') {
+        const rowId = url.searchParams.get('rowId');
+        const name = (url.searchParams.get('name') || 'upload').replace(/[\r\n"]/g, '_');
+        if (!rowId) return json({ error: 'rowId required' }, 400, headers);
+        const buf = await request.arrayBuffer();
+        if (!buf.byteLength) return json({ error: 'empty file' }, 400, headers);
+        if (buf.byteLength > 25 * 1024 * 1024) return json({ error: 'file too large (25 MB max)' }, 413, headers);
+        const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${SHEET_ID}/rows/${encodeURIComponent(rowId)}/attachments`, {
+          method: 'POST',
+          headers: {
+            ...ssHeaders,
+            'Content-Type': request.headers.get('Content-Type') || 'application/octet-stream',
+            'Content-Disposition': `attachment; filename="${name}"`,
+            'Content-Length': String(buf.byteLength),
+          },
+          body: buf,
+        });
+        const data = await resp.json();
+        return json(data, resp.ok && data.resultCode === 0 ? 200 : 502, headers);
+      }
 
       // GET /vendors — the whole Vendor Tracking List
       if (url.pathname === '/vendors' && request.method === 'GET') {

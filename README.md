@@ -65,4 +65,20 @@ Map pin colors: skull = Lost; green = Signed Contract / Compliance Received; yel
 
 A new tab listing every 26/27 Vendor from the Bidding sheet (lost sites excluded), one card per vendor, matched by name to the Smartsheet "Vendor Tracking List". Each card has Address, Contact, Phone, Email, General Liability and Worker's Comp expiration dates (with expired / expiring-in-30-days chips), Contract/MSA and W9 on-file checkboxes, and Upload Contract / Upload COI / Upload W9 buttons. Edits save to the Vendor Tracking List; uploaded files attach to that vendor's row (named "Contract - ...", "COI - ...", "W9 - ...") and show as links on the card. Uploading a Contract or W9 also ticks the matching checkbox. Vendors not yet on the list show an "Add to the Vendor Tracking List" button. Filters: all / not compliant / expiring in 30 days / not on the list.
 
+Each vendor card is tinted green when compliant (contract, W9, GL and WC all good) and red when not (vendors not yet on the list are red too).
+
 Requires the latest worker.js (new endpoints /vendors, /vendor-update, /vendor-add, /vendor-attachments, /vendor-file, /vendor-attach). Re-deploy the Worker (paste worker.js into Cloudflare and Deploy), and make sure the Connect bar has the Worker URL and dashboard key.
+
+## Overhead Map upload
+
+Each site's detail panel (Bidding row and the Vendor Contracting popup) has an "Overhead Map" section under Vendors Interested. Upload an aerial photo or PDF; it attaches to that site's row in the 26-27 Snow Bidding Sheet in Smartsheet (named "Overhead Map - <file>"). Images show as thumbnails; click a thumbnail or file name to open a full-size viewer with Download and Open in new tab buttons (Esc or Close to exit). PDFs open in the same viewer. Needs the latest worker.js (new endpoints /attachments, /file, /file-content, /attach) and the Connect bar filled in.
+
+## Draft email to an interested vendor
+
+Each Vendors Interested row has a "Draft email" button after the phone (enabled once that row has an email). It downloads the blank vendor subcontract (the right template for the store: CubeSmart / Seasonal / Per Push) and the site's overhead map(s), then opens a pre-filled Gmail compose window addressed to the vendor. The body lists the property, the term, and the contract parameters (the vendor-side rates; unpriced tiers show $_______). FDI pricing and margin are never included. A web page can't attach files to Gmail, so drag the two downloaded files into the draft before sending. Nothing is sent automatically.
+
+## Map column on Bidding + per-vendor estimate uploads
+
+Bidding table: a new "Map" column shows a thumbnail of the site's overhead map (a faint map icon when none is uploaded). Click it to open the full-size viewer (Download / Open in new tab) without expanding the row. Thumbnails come from the Smartsheet row's attachments, so the Worker's /rows now requests ?include=attachments: re-deploy worker.js.
+
+Vendor estimates: the old single "Vendor Estimates" upload was replaced by an "Upload estimate" button at the end of each Vendors Interested row (vendor 1/2/3). Files attach to the site's Smartsheet row named "Estimate 1/2/3 - <file>" and show as links under that vendor's row; click to view/download.

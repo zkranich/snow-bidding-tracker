@@ -361,7 +361,7 @@ tbody tr.active:hover{ background:var(--row-active); }
 tbody td{ padding:9px 12px; vertical-align:top; font-size:13px; }
 td.store{ font-family:"IBM Plex Mono"; font-weight:600; white-space:nowrap; }
 td.sf{ font-family:"IBM Plex Mono"; text-align:right; white-space:nowrap; }
-td.address{ max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+td.address{ max-width:185px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 td.customer, td.vendor{ max-width:170px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .flag-dot{
   display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--warn);
@@ -485,7 +485,19 @@ input.row-select, input#select-all{ cursor:pointer; width:14px; height:14px; }
 .cp-input:disabled{ background:transparent; border-color:transparent; color:var(--ink-faint); cursor:not-allowed; }
 .cp-input-wrap:has(.cp-input:disabled) .cp-currency{ color:var(--ink-faint); }
 .iv-list{ display:flex; flex-direction:column; gap:6px; }
-.iv-row{ display:grid; grid-template-columns:minmax(140px,1.2fr) minmax(160px,1.4fr) minmax(110px,1fr); gap:8px; max-width:640px; }
+.iv-row{ display:grid; grid-template-columns:minmax(140px,1.2fr) minmax(160px,1.4fr) minmax(110px,1fr) auto auto; gap:8px; max-width:900px; align-items:center; }
+.iv-mail{ font:inherit; font-size:12px; font-weight:600; color:#14683a; background:#d9dedb; border:1px solid #c3cbc7; border-radius:6px; padding:5px 10px; cursor:pointer; white-space:nowrap; }
+.iv-mail:hover:not(:disabled){ background:#cdd3cf; }
+.iv-mail:disabled{ opacity:.45; cursor:not-allowed; }
+.iv-est-up{ font:inherit; font-size:12px; font-weight:600; color:#14683a; background:#d9dedb; border:1px solid #c3cbc7; border-radius:6px; padding:5px 10px; cursor:pointer; white-space:nowrap; display:inline-flex; align-items:center; gap:4px; }
+.iv-est-up:hover:not(:disabled){ background:#cdd3cf; }
+.iv-est-up:disabled{ opacity:.45; cursor:not-allowed; }
+.iv-est-up.busy{ opacity:.6; cursor:wait; }
+.iv-est-files{ display:flex; flex-wrap:wrap; gap:4px 12px; font-size:12px; margin:-2px 0 4px 2px; }
+.iv-est-files:empty{ display:none; }
+.iv-est-files a{ color:var(--accent-ink); cursor:pointer; text-decoration:underline; }
+.iv-mail-msg{ font-size:11.5px; color:var(--ink-faint); margin-top:4px; }
+.iv-mail-msg.bad{ color:var(--map-red); }
 .iv-input{ font:inherit; font-size:13px; border:1px solid var(--border-soft); border-radius:4px; padding:4px 7px; background:#fff; color:#000; min-width:0; }
 .iv-input:focus{ outline:2px solid var(--warn,#b45309); outline-offset:1px; }
 .iv-input:disabled{ background:transparent; border-color:transparent; color:var(--ink-faint); }
@@ -563,6 +575,33 @@ footer{
 .vc-modal-detail{ padding:14px 20px 18px; }
 .vt-list{ display:grid; grid-template-columns:repeat(auto-fill,minmax(420px,1fr)); gap:12px; margin-top:12px; }
 .vt-card{ background:var(--surface); border:1px solid var(--border-soft); border-radius:10px; box-shadow:var(--shadow); padding:12px 14px; display:flex; flex-direction:column; gap:10px; }
+.vt-card.vt-ok{ background:rgba(46,160,90,.17); border:1px solid rgba(46,160,90,.65); border-left:6px solid #2ea05a; }
+.vt-card.vt-bad{ background:rgba(214,60,50,.15); border:1px solid rgba(214,60,50,.65); border-left:6px solid #d63c32; }
+.oh-up{ display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#14683a; background:#d9dedb; border:1px solid #c3cbc7; border-radius:6px; padding:5px 10px; cursor:pointer; }
+.oh-up:hover{ background:#cdd3cf; }
+.oh-up.busy{ opacity:.6; cursor:wait; }
+.oh-files{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:8px; }
+.oh-file{ display:flex; flex-direction:column; gap:4px; max-width:180px; font-size:12px; }
+.oh-file a{ color:var(--accent-ink); cursor:pointer; text-decoration:underline; word-break:break-all; }
+.oh-thumb{ width:180px; max-height:130px; object-fit:cover; border:1px solid var(--border-soft); border-radius:6px; background:var(--surface-alt); cursor:pointer; }
+.oh-none, .oh-msg, .oh-hint{ font-size:11.5px; color:var(--ink-faint); }
+.oh-msg.bad{ color:var(--map-red); }
+.oh-lb{ position:fixed; inset:0; background:rgba(0,0,0,.86); z-index:3000; display:flex; flex-direction:column; align-items:center; padding:14px; gap:10px; }
+.oh-lb[hidden]{ display:none; }
+.oh-lb-bar{ display:flex; gap:10px; align-items:center; width:100%; max-width:1200px; color:#fff; font-size:13px; }
+.oh-lb-name{ flex:1; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.oh-lb-btn{ font:inherit; font-size:13px; font-weight:600; color:#14683a; background:#e3e8e5; border:1px solid #c3cbc7; border-radius:6px; padding:6px 14px; cursor:pointer; text-decoration:none; }
+.oh-lb-btn:hover{ background:#d3d9d5; }
+.oh-lb-body{ flex:1; width:100%; max-width:1200px; min-height:0; display:flex; align-items:center; justify-content:center; }
+.oh-lb-body img{ max-width:100%; max-height:100%; object-fit:contain; border-radius:4px; background:#fff; }
+.oh-lb-body iframe{ width:100%; height:100%; border:0; background:#fff; border-radius:4px; }
+.oh-lb-msg{ color:#fff; font-size:14px; }
+td.map-cell, thead th:last-child{ padding-left:6px; padding-right:6px; }
+td.map-cell{ width:60px; text-align:center; }
+.map-ph{ font-size:16px; opacity:.28; cursor:default; }
+.row-thumb{ width:54px; height:38px; object-fit:cover; border:1px solid var(--border-soft); border-radius:5px; background:var(--surface-alt); cursor:zoom-in; display:block; margin:0 auto; }
+.row-thumb-pdf{ display:inline-block; font-size:11px; font-weight:700; color:#14683a; background:#d9dedb; border:1px solid #c3cbc7; border-radius:5px; padding:6px 8px; cursor:pointer; }
+.row-thumb-n{ font-size:10px; color:var(--ink-faint); }
 .vt-head{ display:flex; flex-wrap:wrap; gap:6px 10px; align-items:baseline; }
 .vt-name{ font-size:15px; font-weight:700; }
 .vt-sites{ font-size:11.5px; color:var(--ink-faint); flex-basis:100%; }
@@ -839,6 +878,7 @@ footer{
         <th data-key="vendor2627">26/27 Vendor</th>
         <th data-key="customerStatusRank">Customer Status</th>
         <th data-key="vendorStatusRank">Vendor Status</th>
+        <th title="Overhead map">Map</th>
       </tr>
     </thead>
     <tbody id="tbody"></tbody>
@@ -1263,6 +1303,8 @@ footer{
         const cells = {};
         (sr.cells || []).forEach(c => { cells[c.columnId] = c.value; cells['dv' + c.columnId] = c.displayValue; });
         byRow.set(String(sr.id), cells);
+        if (Array.isArray(sr.attachments)) estFiles.set(String(sr.id), estList(sr.attachments));
+        if (Array.isArray(sr.attachments)) ohFiles.set(String(sr.id), sr.attachments.filter(a => ohIsMap(a.name)).map(a => ({ id: a.id, name: a.name, mime: a.mimeType || '' })));
       });
       let matched = 0;
       rows.forEach(r => {
@@ -3009,19 +3051,307 @@ footer{
     return `<select class="pm-select" data-rowid="${canEdit?r.rowId:''}"${canEdit?'':' disabled'}>${opts}</select>`;
   }
 
+  // ---------- Overhead map (attached to the site's Bidding-sheet row via the Worker) ----------
+  const ohFiles = new Map();   // rowId -> [{id,name,mime}]
+  const ohMsg = new Map();     // rowId -> {text,bad}
+  const OH_PREFIX = 'Overhead Map - ';
+  const estFiles = new Map();  // rowId -> [{id,name,mime,slot}]
+  const estSlot = n => { const m = /^estimate\s*([123])\s*[-\u2013]/i.exec(String(n || '')); return m ? Number(m[1]) : 0; };
+  const estList = arr => (arr || []).filter(a => estSlot(a.name)).map(a => ({ id: a.id, name: a.name, mime: a.mimeType || '', slot: estSlot(a.name) }));
+  const ohIsMap = n => /^overhead map\s*[-–]/i.test(String(n || ''));
+  const ohBase = () => SMARTSHEET_WORKER_URL.replace(/\/$/, '');
+  const ohHdr = extra => Object.assign({ 'X-Dashboard-Key': DASHBOARD_KEY }, extra || {});
+  // Overhead-map thumbnail in each Bidding table row (filled from the live sheet's
+  // attachment list, or from the detail panel once a map is uploaded there).
+  function ohFillCells(onlyRow){
+    document.querySelectorAll('#tbody td.map-cell').forEach(td => {
+      const rid = td.dataset.ohrow; if (!rid) return;
+      if (onlyRow != null && String(onlyRow) !== rid) return;
+      const list = ohFiles.get(rid) || [];
+      if (!list.length){ td.innerHTML = '<span class="map-ph" title="No overhead map yet — expand the row to upload one">&#128506;</span>'; return; }
+      const f = list[0], isImg = /^image\//i.test(f.mime || '') || /\.(png|jpe?g|gif|webp)$/i.test(f.name);
+      td.innerHTML = (isImg ? `<img class="row-thumb" alt="Overhead map" title="Click to view / download" data-ohatt="${escapeHtml(String(f.id))}">` : `<span class="row-thumb-pdf" title="Click to view / download" data-ohatt="${escapeHtml(String(f.id))}">PDF</span>`)
+        + (list.length > 1 ? `<div class="row-thumb-n">+${list.length - 1} more</div>` : '');
+      const img = td.querySelector('img.row-thumb');
+      if (img){
+        const load = async () => { try { const b = await ohBlob(f.id); if (b) img.src = b.url; } catch(e){} };
+        if (typeof IntersectionObserver !== 'undefined'){
+          const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)){ io.disconnect(); load(); } });
+          io.observe(img);
+        } else load();
+      }
+    });
+  }
+  document.addEventListener('click', e => {
+    const t = e.target.closest && e.target.closest('td.map-cell [data-ohatt]');
+    if (t){ e.stopPropagation(); ohOpen(t.dataset.ohatt); }
+  }, true);
+  function overheadMapHtml(r){
+    let body;
+    if (r.rowId == null) body = '<div class="oh-hint">No Smartsheet row id on file &mdash; can&rsquo;t attach.</div>';
+    else if (!SMARTSHEET_WORKER_URL) body = '<div class="oh-hint">Connect to Smartsheet (red bar at the top: Worker URL + dashboard key) to upload the overhead map.</div>';
+    else body = `<div class="oh-files" data-rowid="${r.rowId}"></div>
+        <label class="oh-up">&#128206; Upload overhead map<input type="file" class="oh-input" data-rowid="${r.rowId}" accept="image/*,application/pdf" hidden></label>
+        <span class="oh-msg" data-rowid="${r.rowId}"></span>
+        <div class="oh-hint">Aerial / overhead photo or PDF of the site (plow routes, pile areas). Attaches to this site&rsquo;s row in Smartsheet. Upload again to add another.</div>`;
+    return `<div class="contract-params"><div class="k">Overhead Map</div><div class="v">${body}</div></div>`;
+  }
+  function ohRender(detail, rowId){
+    const box = detail.querySelector(`.oh-files[data-rowid="${rowId}"]`);
+    const msg = detail.querySelector(`.oh-msg[data-rowid="${rowId}"]`);
+    if (msg){ const m = ohMsg.get(String(rowId)); msg.textContent = m ? m.text : ''; msg.classList.toggle('bad', !!(m && m.bad)); }
+    if (!box) return;
+    const list = (ohFiles.get(String(rowId)) || []);
+    if (!list.length){ box.innerHTML = '<div class="oh-none">No overhead map uploaded yet.</div>'; return; }
+    box.innerHTML = list.map(f => `<div class="oh-file">${/^image\//i.test(f.mime || '') ? `<img class="oh-thumb" alt="" data-ohatt="${escapeHtml(String(f.id))}">` : ''}<a data-ohatt="${escapeHtml(String(f.id))}" title="Open">${escapeHtml(f.name.replace(/^overhead map\s*[-–]\s*/i, ''))}</a></div>`).join('');
+    box.querySelectorAll('img.oh-thumb').forEach(async img => {
+      try { const b = await ohBlob(img.dataset.ohatt); if (b) img.src = b.url; } catch(e){}
+    });
+  }
+  async function ohLoad(detail, rowId){
+    try {
+      const resp = await fetch(ohBase() + '/attachments?rowId=' + encodeURIComponent(rowId), { headers: ohHdr() });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status + (resp.status === 404 ? ' (deploy the latest worker.js)' : ''));
+      const d = await resp.json();
+      ohFiles.set(String(rowId), (d.data || []).filter(a => ohIsMap(a.name)).map(a => ({ id: a.id, name: a.name, mime: a.mimeType || '' })));
+      estFiles.set(String(rowId), estList(d.data));
+    } catch(e){
+      ohMsg.set(String(rowId), { text: 'Could not load the overhead map list (' + ((e && e.message) || e) + ')', bad: true });
+    }
+    ohRender(detail, rowId);
+    ivEstRender(detail, rowId);
+    ohFillCells(rowId);
+  }
+  const ohBlobs = new Map();   // attId -> Promise<{url,type}>
+  function ohBlob(attId){
+    attId = String(attId);
+    if (!ohBlobs.has(attId)){
+      ohBlobs.set(attId, fetch(ohBase() + '/file-content?attId=' + encodeURIComponent(attId), { headers: ohHdr() })
+        .then(resp => { if (!resp.ok) throw new Error('HTTP ' + resp.status + (resp.status === 404 ? ' (deploy the latest worker.js)' : '')); return resp.blob(); })
+        .then(b => ({ url: URL.createObjectURL(b), type: b.type || '' }))
+        .catch(e => { ohBlobs.delete(attId); throw e; }));
+    }
+    return ohBlobs.get(attId);
+  }
+  let ohLb = null;
+  function ohLightbox(){
+    if (ohLb) return ohLb;
+    const d = document.createElement('div'); d.className = 'oh-lb'; d.hidden = true;
+    d.innerHTML = '<div class="oh-lb-bar"><span class="oh-lb-name"></span><a class="oh-lb-btn oh-lb-dl" download>Download</a><a class="oh-lb-btn oh-lb-tab" target="_blank" rel="noopener">Open in new tab</a><button type="button" class="oh-lb-btn oh-lb-x">Close</button></div><div class="oh-lb-body"></div>';
+    document.body.appendChild(d);
+    const close = () => { d.hidden = true; d.querySelector('.oh-lb-body').innerHTML = ''; };
+    d.querySelector('.oh-lb-x').addEventListener('click', e => { e.stopPropagation(); close(); });
+    d.addEventListener('click', e => { e.stopPropagation(); if (e.target === d || e.target.classList.contains('oh-lb-body')) close(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !d.hidden){ e.stopImmediatePropagation(); close(); } }, true);
+    ohLb = { el: d, close };
+    return ohLb;
+  }
+  async function ohOpen(attId){
+    const f = [...Object.values(Object.fromEntries(ohFiles)).flat(), ...Object.values(Object.fromEntries(estFiles)).flat()].find(x => String(x.id) === String(attId)) || { name: 'Overhead map', mime: '' };
+    const nm = f.name.replace(/^(overhead map|estimate\s*[123])\s*[-–]\s*/i, '');
+    const lb = ohLightbox(), d = lb.el, body = d.querySelector('.oh-lb-body');
+    d.querySelector('.oh-lb-name').textContent = nm;
+    body.innerHTML = '<div class="oh-lb-msg">Loading…</div>'; d.hidden = false;
+    const dl = d.querySelector('.oh-lb-dl'), tab = d.querySelector('.oh-lb-tab');
+    dl.removeAttribute('href'); tab.removeAttribute('href');
+    try {
+      const b = await ohBlob(attId);
+      const type = b.type || f.mime || '';
+      dl.href = b.url; dl.download = nm; tab.href = b.url;
+      if (/^image\//i.test(type)) body.innerHTML = `<img alt="${escapeHtml(nm)}" src="${b.url}">`;
+      else if (/pdf/i.test(type)) body.innerHTML = `<iframe title="${escapeHtml(nm)}" src="${b.url}"></iframe>`;
+      else body.innerHTML = '<div class="oh-lb-msg">No preview for this file type — use Download.</div>';
+    } catch(e){
+      body.innerHTML = '<div class="oh-lb-msg">Could not load the file (' + escapeHtml(String((e && e.message) || e)) + ')</div>';
+    }
+  }
+  function ivEstRender(detail, rowId){
+    detail.querySelectorAll('.iv-est-files').forEach(box => {
+      const n = Number(box.dataset.n);
+      const list = (estFiles.get(String(rowId)) || []).filter(f => f.slot === n);
+      box.innerHTML = list.map(f => `<a data-ohatt="${escapeHtml(String(f.id))}" title="Click to view / download">&#128196; ${escapeHtml(f.name.replace(/^estimate\s*[123]\s*[-–]\s*/i, ''))}</a>`).join('');
+    });
+  }
+  function wireIvEstimates(detail, r){
+    if (r.rowId == null || !SMARTSHEET_WORKER_URL) return;
+    const rowId = r.rowId;
+    ivEstRender(detail, rowId);
+    detail.querySelectorAll('.iv-est-files').forEach(box => box.addEventListener('click', e => {
+      e.stopPropagation(); const a = e.target.closest('[data-ohatt]'); if (a) ohOpen(a.dataset.ohatt);
+    }));
+    detail.querySelectorAll('label.iv-est-up').forEach(lbl => {
+      ['click','mousedown'].forEach(ev => lbl.addEventListener(ev, e => e.stopPropagation()));
+      const inp = lbl.querySelector('input.iv-est-input'); if (!inp) return;
+      inp.addEventListener('click', e => e.stopPropagation());
+      inp.addEventListener('change', async e => {
+        e.stopPropagation();
+        const file = inp.files && inp.files[0]; if (!file) return;
+        const n = inp.dataset.n; inp.value = '';
+        const msg = detail.querySelector('.iv-mail-msg');
+        const say = (t, bad) => { if (msg){ msg.textContent = t; msg.classList.toggle('bad', !!bad); } };
+        lbl.classList.add('busy'); say('Uploading ' + file.name + '…', false);
+        try {
+          const resp = await fetch(ohBase() + '/attach?rowId=' + encodeURIComponent(rowId) + '&name=' + encodeURIComponent('Estimate ' + n + ' - ' + file.name), {
+            method: 'POST', headers: ohHdr({ 'Content-Type': file.type || 'application/octet-stream' }), body: file });
+          if (!resp.ok) throw new Error('HTTP ' + resp.status + (resp.status === 404 ? ' (deploy the latest worker.js)' : ''));
+          await ohLoad(detail, rowId);
+          say('Estimate attached to Smartsheet', false);
+        } catch(err){ say('Estimate upload failed (' + ((err && err.message) || err) + ')', true); }
+        finally { lbl.classList.remove('busy'); }
+      });
+    });
+  }
+  function wireOverhead(detail, r){
+    if (r.rowId == null || !SMARTSHEET_WORKER_URL) return;
+    const rowId = r.rowId;
+    ohRender(detail, rowId);
+    ohLoad(detail, rowId);
+    const lbl = detail.querySelector('.oh-up'); const inp = detail.querySelector('input.oh-input');
+    if (lbl) ['click','mousedown'].forEach(ev => lbl.addEventListener(ev, e => e.stopPropagation()));
+    detail.querySelectorAll('.oh-files').forEach(b => b.addEventListener('click', e => {
+      e.stopPropagation(); const a = e.target.closest('[data-ohatt]'); if (a) ohOpen(a.dataset.ohatt);
+    }));
+    if (inp){
+      inp.addEventListener('click', e => e.stopPropagation());
+      inp.addEventListener('change', async e => {
+        e.stopPropagation();
+        const file = inp.files && inp.files[0]; if (!file) return;
+        inp.value = '';
+        lbl.classList.add('busy');
+        ohMsg.set(String(rowId), { text: 'Uploading ' + file.name + '…', bad: false }); ohRender(detail, rowId);
+        try {
+          const resp = await fetch(ohBase() + '/attach?rowId=' + encodeURIComponent(rowId) + '&name=' + encodeURIComponent(OH_PREFIX + file.name), {
+            method: 'POST', headers: ohHdr({ 'Content-Type': file.type || 'application/octet-stream' }), body: file });
+          if (!resp.ok) throw new Error('HTTP ' + resp.status + (resp.status === 404 ? ' (deploy the latest worker.js)' : ''));
+          ohMsg.set(String(rowId), { text: 'Attached to Smartsheet', bad: false });
+          await ohLoad(detail, rowId);
+        } catch(err){
+          ohMsg.set(String(rowId), { text: 'Upload failed (' + ((err && err.message) || err) + ')', bad: true }); ohRender(detail, rowId);
+        } finally { lbl.classList.remove('busy'); }
+      });
+    }
+  }
+
+  // ---------- Draft email to an interested vendor ----------
+  // A web page can't attach files to a mail client, so this downloads the blank
+  // subcontract + overhead map(s) and opens a pre-filled Gmail compose window;
+  // the two downloaded files are then dragged into the draft.
+  async function blankSubcontractBlob(r){
+    const PDFLib = window.PDFLib; if (!PDFLib) throw new Error('PDF library failed to load');
+    const kind = subcontractKindForRow(r), tmpl = SUBCONTRACT_TEMPLATES[kind];
+    const pdfDoc = await PDFLib.PDFDocument.load(await fetchTemplateBytes(tmpl.file));
+    const form = pdfDoc.getForm();
+    SUBCONTRACT_AMENDMENT_FIELDS.forEach(n => { try { form.removeField(form.getField(n)); } catch(e){} });
+    if (pdfDoc.getPageCount() > 4) pdfDoc.removePage(pdfDoc.getPageCount() - 1);
+    const bytes = await pdfDoc.save();
+    const safeStore = (r.store || 'store').replace(/[^A-Za-z0-9_\- ]/g, '').trim();
+    return { blob: new Blob([bytes], { type: 'application/pdf' }), name: `${safeStore} - ${tmpl.filenameSuffix} (blank).pdf` };
+  }
+  function vendorParamLines(r){
+    return contractFieldsForRow(r).map(([k, vk, label]) => {
+      const v = effectiveContractValue(r, vk);
+      const lab = String(label).replace(/^FDI\s+/i, '');
+      return `${lab}: ${hasVal(v) ? '$' + money2(v) : '$_______'}`;
+    });
+  }
+  function ivEmailBody(r, vendorName){
+    const term = contractTermForRow(r);
+    const lines = vendorParamLines(r);
+    const anyPriced = contractFieldsForRow(r).some(([k, vk]) => hasVal(effectiveContractValue(r, vk)));
+    const prop = r.store || '';
+    return [
+      `Hi ${String(vendorName || '').trim() || 'there'},`,
+      '',
+      'Thanks for your interest in snow removal for the 2026-27 season at this property:',
+      '',
+      `Property: ${prop}${r.address ? ' - ' + r.address : ''}`,
+      `Term: ${term.beginFull} to ${term.endFull}`,
+      '',
+      'Contract parameters:',
+      ...lines.map(l => '  ' + l),
+      '',
+      anyPriced ? 'Attached are the blank subcontract and an overhead map of the property. Please review, complete, sign and send it back.'
+                : 'Attached are the blank subcontract and an overhead map of the property. Please fill in your pricing for the lines above, sign, and send it back.',
+      '',
+      'Let me know if you have any questions.',
+      '',
+      'Thanks,',
+      'Zak Kranich',
+      'Farmer Development'
+    ].join('\n');
+  }
+  function ivDownload(blob, name){
+    const url = (typeof blob === 'string') ? blob : URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    if (typeof blob !== 'string') setTimeout(() => URL.revokeObjectURL(url), 8000);
+  }
+  async function ivDraftEmail(detail, r, n, btn){
+    const msg = detail.querySelector('.iv-mail-msg');
+    const say = (t, bad) => { if (msg){ msg.textContent = t; msg.classList.toggle('bad', !!bad); } };
+    const val = f => { const el = detail.querySelector(`input[data-field="iv${n}${f}"]`); return el ? el.value.trim() : ''; };
+    const email = val('Email'), vname = val('Name');
+    if (email.indexOf('@') < 0){ say('Add this vendor’s email first.', true); return; }
+    const win = window.open('', '_blank');   // opened now (inside the click) so the popup isn't blocked
+    const orig = btn.innerHTML; btn.disabled = true; btn.textContent = 'Building…';
+    const notes = [];
+    try {
+      const c = await blankSubcontractBlob(r);
+      ivDownload(c.blob, c.name);
+      let maps = [];
+      if (SMARTSHEET_WORKER_URL && r.rowId != null){
+        if (!ohFiles.has(String(r.rowId))) await ohLoad(detail, r.rowId);
+        maps = (ohFiles.get(String(r.rowId)) || []).slice(0, 3);
+      }
+      let got = 0;
+      for (const f of maps){
+        try { const b = await ohBlob(f.id); await new Promise(res => setTimeout(res, 500)); ivDownload(b.url, f.name.replace(/^overhead map\s*[-–]\s*/i, '')); got++; } catch(e){}
+      }
+      if (!got) notes.push('No overhead map is uploaded for this site yet — upload one above and send again, or attach it by hand.');
+      const prop = r.store || '';
+      const su = `FDI Snow Removal 2026-27 - ${prop}${r.address ? ' - ' + r.address : ''} - Subcontract`;
+      const body = ivEmailBody(r, vname);
+      const link = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(email) + '&su=' + encodeURIComponent(su) + '&body=' + encodeURIComponent(body);
+      if (win) win.location = link; else window.open(link, '_blank');
+      say('Gmail draft opened. Drag these into it: ' + c.name + (got ? ' and the overhead map' + (got > 1 ? 's' : '') : '') + ' (just downloaded). ' + notes.join(' '), !got);
+    } catch(e){
+      if (win) win.close();
+      say('Could not build the email (' + ((e && e.message) || e) + ')', true);
+    } finally { btn.disabled = false; btn.innerHTML = orig; }
+  }
+  function wireIvMail(detail, r){
+    const btns = detail.querySelectorAll('button.iv-mail'); if (!btns.length) return;
+    btns.forEach(btn => {
+      ['click','mousedown'].forEach(ev => btn.addEventListener(ev, e => e.stopPropagation()));
+      const n = btn.dataset.n;
+      const em = detail.querySelector(`input[data-field="iv${n}Email"]`);
+      const sync = () => { if (r.rowId == null) return; const ok = em && em.value.indexOf('@') > 0; btn.disabled = !ok; btn.title = ok ? 'Draft an email to this vendor with the blank subcontract, the overhead map and the contract parameters' : 'Add this vendor’s email first'; };
+      sync();
+      if (em){ em.addEventListener('input', sync); em.addEventListener('change', sync); }
+      btn.addEventListener('click', e => { e.preventDefault(); ivDraftEmail(detail, r, n, btn); });
+    });
+  }
+
   function interestedVendorsHtml(r){
     const canEdit = r.rowId != null;
     const dis = canEdit ? '' : ' disabled';
     const g = (n, f) => escapeHtml(((r.interested || {})['iv' + n + f]) || '');
     let rowsHtml = '';
     for (let n = 1; n <= 3; n++){
+      const canUp = canEdit && !!SMARTSHEET_WORKER_URL;
+      const upBtn = canUp
+        ? `<label class="iv-est-up" title="Upload this vendor's estimate (PDF or photo) \u2014 attaches to the site's row in Smartsheet">&#128206; Upload estimate<input type="file" class="iv-est-input" data-n="${n}" accept="application/pdf,image/*" hidden></label>`
+        : `<button type="button" class="iv-est-up" disabled title="${canEdit ? 'Connect to Smartsheet first (red bar at the top)' : 'No Smartsheet row id on file'}">&#128206; Upload estimate</button>`;
       rowsHtml += `<div class="iv-row">
         <input type="text" class="iv-input" data-rowid="${canEdit?r.rowId:''}" data-field="iv${n}Name" placeholder="Vendor ${n} name" value="${g(n,'Name')}"${dis}>
         <input type="email" class="iv-input" data-rowid="${canEdit?r.rowId:''}" data-field="iv${n}Email" placeholder="Email" value="${g(n,'Email')}"${dis}>
         <input type="tel" class="iv-input" data-rowid="${canEdit?r.rowId:''}" data-field="iv${n}Phone" placeholder="Phone" value="${g(n,'Phone')}"${dis}>
-      </div>`;
+        <button type="button" class="iv-mail" data-n="${n}" title="Draft an email to this vendor with the blank subcontract, the overhead map and the contract parameters"${dis}>&#9993; Draft email</button>
+        ${upBtn}
+      </div>
+      <div class="iv-est-files" data-n="${n}"></div>`;
     }
-    return `<div class="contract-params"><div class="k">Vendors Interested</div><div class="v iv-list">${rowsHtml}</div></div>`;
+    return `<div class="contract-params"><div class="k">Vendors Interested</div><div class="v iv-list">${rowsHtml}<div class="iv-mail-msg"></div></div></div>`;
   }
 
   function vendor2627InputHtml(r){
@@ -3851,13 +4181,8 @@ footer{
       ${r.regionRaw?`<div><div class="k">Region as entered</div><div class="v">${escapeHtml(r.regionRaw)}</div></div>`:''}
       ${r.sfIssue?`<div><div class="k">SF as entered</div><div class="v">${escapeHtml(r.sf)}</div></div>`:''}
       ${contractParamsHtml(r)}
-      <div class="contract-params"><div class="k">Vendor Estimates</div><div class="v">
-        <div class="vendor-estimate-list" data-rowid="${r.rowId ?? ''}">${vendorEstimateListHtml(r)}</div>
-        ${r.rowId!=null?`<label class="vendor-estimate-upload-btn">&#128206; Upload vendor estimate<input type="file" class="vendor-estimate-input" accept="application/pdf,image/*" data-rowid="${r.rowId}" hidden></label>
-        <div class="vendor-estimate-hint">PDF or photo of the estimate. Stages here and attaches to this Smartsheet row next time you sync.</div>`
-        :`<div class="vendor-estimate-hint">No Smartsheet row id on file &mdash; can't attach.</div>`}
-      </div></div>
       ${interestedVendorsHtml(r)}
+      ${overheadMapHtml(r)}
     <div class="contract-params"><div class="k">Owner Contracts</div><div class="v">
         <div class="owner-contract-list" data-rowid="${r.rowId ?? ''}">${ownerContractListHtml(r)}</div>
         ${r.rowId!=null?`<label class="owner-contract-upload-btn">&#128206; Upload owner contract<input type="file" class="owner-contract-input" accept="application/pdf,image/*" data-rowid="${r.rowId}" hidden></label>
@@ -3868,7 +4193,7 @@ footer{
       ${pendVend?`<div><div class="k">Staged vendor status</div><div class="v" style="color:var(--warn)">${pendVend.oldValue||'&mdash;'} &rarr; ${pendVend.newValue||'&mdash;'}, not yet synced to Smartsheet</div></div>`:''}
       ${pendLost?`<div><div class="k">Staged lost flag</div><div class="v" style="color:var(--warn)">${pendLost.oldValue?'Lost':'Not lost'} &rarr; ${pendLost.newValue?'Lost':'Not lost'}, not yet synced to Smartsheet</div></div>`:''}
     </div>`;
-    detail.innerHTML = asRow ? `<td colspan="8">${innerHtml}</td>` : innerHtml;
+    detail.innerHTML = asRow ? `<td colspan="9">${innerHtml}</td>` : innerHtml;
     detail.querySelectorAll('select.contract-kind-select').forEach(s => {
       ['click','mousedown'].forEach(ev => s.addEventListener(ev, e => e.stopPropagation()));
       s.addEventListener('change', () => s.classList.toggle('is-placeholder', s.value === ''));
@@ -4028,6 +4353,9 @@ footer{
         handleOwnerContractUpload(r, inp);
       });
     });
+    wireOverhead(detail, r);
+    wireIvMail(detail, r);
+    wireIvEstimates(detail, r);
   }
 
   function render(){
@@ -4085,10 +4413,12 @@ footer{
           <div style="margin-top:4px">${lostControl}</div>
           ${badges?`<div style="margin-top:4px">${badges}</div>`:''}
         </td>
+        <td class="map-cell" data-ohrow="${r.rowId ?? ''}"></td>
       </tr>`;
       return mainRow;
     }).join('');
 
+    ohFillCells();
     tbody.querySelectorAll('select.status-select').forEach(sel => {
       sel.addEventListener('click', e => e.stopPropagation());
       sel.addEventListener('mousedown', e => e.stopPropagation());
@@ -4659,7 +4989,7 @@ footer{
     const head = `<div class="vt-head"><span class="vt-name">${escapeHtml(v.name)}</span>`;
     if (!v.row){
       const sv0 = vtSaveMsg.get(v.key);
-      return `<div class="vt-card" data-key="${escapeHtml(v.key)}">${head}<span class="vt-chip na">not in Vendor Tracking List</span><span class="vt-sites">${v.stores.length} site${v.stores.length === 1 ? '' : 's'}: ${escapeHtml(stores)}</span></div>
+      return `<div class="vt-card vt-bad" data-key="${escapeHtml(v.key)}">${head}<span class="vt-chip na">not in Vendor Tracking List</span><span class="vt-sites">${v.stores.length} site${v.stores.length === 1 ? '' : 's'}: ${escapeHtml(stores)}</span></div>
         <button type="button" class="vt-btn vt-add" data-key="${escapeHtml(v.key)}">Add &ldquo;${escapeHtml(v.name)}&rdquo; to the Vendor Tracking List</button>
         <div class="vt-save${sv0 && sv0.bad ? ' bad' : ''}">${sv0 ? escapeHtml(sv0.text) : ''}</div>
       </div>`;
@@ -4675,7 +5005,7 @@ footer{
     };
     const other = files.filter(f => vtKindOf(f.name) === 'other');
     const sv = vtSaveMsg.get(v.key);
-    return `<div class="vt-card" data-key="${escapeHtml(v.key)}">${head}${chip}<span class="vt-sites">${v.stores.length} site${v.stores.length === 1 ? '' : 's'}: ${escapeHtml(stores)}</span></div>
+    return `<div class="vt-card ${issues.length ? 'vt-bad' : 'vt-ok'}" data-key="${escapeHtml(v.key)}">${head}${chip}<span class="vt-sites">${v.stores.length} site${v.stores.length === 1 ? '' : 's'}: ${escapeHtml(stores)}</span></div>
       <div class="vt-grid">
         ${inp('address', 'Address', 'text', 'wide')}
         ${inp('contact', 'Contact', 'text')}
