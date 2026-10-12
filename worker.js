@@ -10,6 +10,9 @@
 //   SMARTSHEET_TOKEN   - a Smartsheet API access token (see WORKER_SETUP.md)
 //   DASHBOARD_KEY      - any random string you make up; must match the
 //                        DASHBOARD_KEY constant in index.html
+// Optional (only for the "Draft email" button to create real Gmail drafts
+// with attachments — see GMAIL_SETUP.md):
+//   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN
 
 const SHEET_ID = '1101172935970692'; // 26-27 Snow Bidding Sheet
 const VENDOR_SHEET_ID = '7261538764515204'; // "Vendor Tracking List" (1000 FM & CapX > Vendor Lists)
@@ -94,6 +97,13 @@ const FIELD_COLUMN_IDS = {
   iv3Name: 4094533039853444,
   iv3Email: 8598132667223940,
   iv3Phone: 435358342614916,
+  // When each vendor was emailed (date) and the quote they sent back (number)
+  iv1Emailed: 4044247596306308,
+  iv1Quote: 8547847223676804,
+  iv2Emailed: 385072899067780,
+  iv2Quote: 4888672526438276,
+  iv3Emailed: 2636872712753028,
+  iv3Quote: 7140472340123524,
 };
 
 function corsHeaders(origin) {
@@ -110,6 +120,45 @@ function json(data, status, headers) {
     status: status || 200,
     headers: { ...headers, 'Content-Type': 'application/json' },
   });
+}
+
+// ---- MIME builder for /gmail-draft ----
+function b64Utf8(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+function wrap76(b64) { return (b64.match(/.{1,76}/g) || []).join('\r\n'); }
+function encHeader(str) { return /^[\x20-\x7e]*$/.test(str) ? str : `=?UTF-8?B?${b64Utf8(str)}?=`; }
+function buildMime({ to, subject, body, attachments }) {
+  const boundary = 'fdi_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  const lines = [];
+  if (to) lines.push(`To: ${String(to).replace(/[\r\n]/g, ' ')}`);
+  lines.push(`Subject: ${encHeader(String(subject || '').replace(/[\r\n]/g, ' '))}`);
+  lines.push('MIME-Version: 1.0');
+  lines.push(`Content-Type: multipart/mixed; boundary="${boundary}"`);
+  lines.push('');
+  lines.push(`--${boundary}`);
+  lines.push('Content-Type: text/plain; charset="UTF-8"');
+  lines.push('Content-Transfer-Encoding: base64');
+  lines.push('');
+  lines.push(wrap76(b64Utf8(String(body || ''))));
+  for (const a of (attachments || [])) {
+    const name = String(a.name || 'attachment').replace(/[\r\n"]/g, '_');
+    const mime = String(a.mime || 'application/octet-stream').replace(/[\r\n]/g, '');
+    lines.push(`--${boundary}`);
+    lines.push(`Content-Type: ${mime}; name="${encHeader(name)}"`);
+    lines.push(`Content-Disposition: attachment; filename="${encHeader(name)}"`);
+    lines.push('Content-Transfer-Encoding: base64');
+    lines.push('');
+    lines.push(wrap76(String(a.data || '')));
+  }
+  lines.push(`--${boundary}--`);
+  lines.push('');
+  const mime = lines.join('\r\n');
+  // Gmail wants base64url of the full RFC 2822 message
+  return b64Utf8(mime).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
 export default {
@@ -231,6 +280,46 @@ export default {
         });
         const data = await resp.json();
         return json(data, resp.ok && data.resultCode === 0 ? 200 : 502, headers);
+      }
+
+      // ---- Gmail drafts (optional; needs the 3 GOOGLE_* secrets, see GMAIL_SETUP.md) ----
+      // POST /gmail-draft  { to, subject, body, attachments: [{ name, mime, data(base64) }] }
+      // Creates a DRAFT in Zak's Gmail (never sends) and returns { ok, id, messageId, url }.
+      if (url.pathname === '/gmail-draft' && request.method === 'POST') {
+        if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET || !env.GOOGLE_REFRESH_TOKEN) {
+          return json({ error: 'gmail-not-configured' }, 501, headers);
+        }
+        let body;
+        try { body = await request.json(); } catch (e) { return json({ error: 'body must be JSON' }, 400, headers); }
+        const tok = await fetch('https://oauth2.googleapis.com/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            client_id: env.GOOGLE_CLIENT_ID,
+            client_secret: env.GOOGLE_CLIENT_SECRET,
+            refresh_token: env.GOOGLE_REFRESH_TOKEN,
+            grant_type: 'refresh_token',
+          }),
+        });
+        const tokData = await tok.json();
+        if (!tok.ok || !tokData.access_token) {
+          return json({ error: 'google-auth-failed', detail: tokData.error_description || tokData.error || '' }, 502, headers);
+        }
+        const raw = buildMime(body || {});
+        const resp = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/drafts', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${tokData.access_token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: { raw } }),
+        });
+        const data = await resp.json();
+        if (!resp.ok) return json({ error: 'gmail-error', detail: (data.error && data.error.message) || '' }, 502, headers);
+        const messageId = data.message && data.message.id;
+        return json({
+          ok: true,
+          id: data.id,
+          messageId,
+          url: `https://mail.google.com/mail/u/0/#drafts?compose=${messageId}`,
+        }, 200, headers);
       }
 
       // GET /vendors — the whole Vendor Tracking List

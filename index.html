@@ -498,6 +498,27 @@ input.row-select, input#select-all{ cursor:pointer; width:14px; height:14px; }
 .iv-est-files a{ color:var(--accent-ink); cursor:pointer; text-decoration:underline; }
 .iv-mail-msg{ font-size:11.5px; color:var(--ink-faint); margin-top:4px; }
 .iv-mail-msg.bad{ color:var(--map-red); }
+.iv-mail-msg a{ color:var(--accent-ink); text-decoration:underline; }
+.iv-track{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; margin:-2px 0 4px 2px; font-size:12px; }
+.iv-track:empty{ display:none; }
+.iv-q{ display:inline-flex; align-items:center; gap:5px; color:var(--ink-faint); font-size:11.5px; }
+.iv-quote,.iv-emailed{ font:inherit; font-size:12.5px; border:1px solid var(--border-soft); border-radius:4px; padding:2px 6px; background:#fff; color:#000; }
+.iv-quote{ width:92px; }
+.iv-emailed{ width:128px; }
+.iv-quote.iv-low{ border-color:#1a7f37; background:#eaf6ee; font-weight:700; }
+.iv-quote:disabled,.iv-emailed:disabled{ background:transparent; border-color:transparent; color:var(--ink-faint); }
+.iv-chip{ font-size:11.5px; font-weight:600; border-radius:999px; padding:2px 9px; white-space:nowrap; }
+.iv-chip.fu{ background:#fff1d6; color:#8a5200; border:1px solid #f0cf8a; }
+.iv-chip.wait{ background:#eef1f4; color:#4a5563; border:1px solid #d5dbe2; }
+.iv-chip.ok{ background:#e3f4e8; color:#14683a; border:1px solid #b9dfc6; }
+.iv-chip.sel{ background:#14683a; color:#fff; }
+.iv-chip.na{ background:transparent; color:var(--ink-faint); border:1px dashed var(--border-soft); font-weight:500; }
+.iv-select{ font:inherit; font-size:12px; font-weight:600; color:#fff; background:#14683a; border:1px solid #0f5330; border-radius:6px; padding:3px 10px; cursor:pointer; white-space:nowrap; }
+.iv-select:hover:not(:disabled){ background:#0f5330; }
+.iv-select:disabled{ opacity:.45; cursor:not-allowed; }
+.iv-compare{ font-size:12px; color:var(--ink-faint); margin:2px 0 2px 2px; }
+.iv-compare:empty{ display:none; }
+.iv-compare b{ color:#14683a; }
 .iv-input{ font:inherit; font-size:13px; border:1px solid var(--border-soft); border-radius:4px; padding:4px 7px; background:#fff; color:#000; min-width:0; }
 .iv-input:focus{ outline:2px solid var(--warn,#b45309); outline-offset:1px; }
 .iv-input:disabled{ background:transparent; border-color:transparent; color:var(--ink-faint); }
@@ -833,6 +854,7 @@ td.map-cell{ width:60px; text-align:center; }
   </select>
   <button class="chip-toggle" id="toggle-flagged">&#9888; Flagged only</button>
   <button class="chip-toggle" id="toggle-novendor">No vendor on file</button>
+  <button class="chip-toggle" id="toggle-followup" title="Sites where a vendor was emailed 3+ days ago and hasn't sent an estimate or quote">&#9200; Vendor follow-up <span id="followup-count"></span></button>
   <button class="chip-toggle" id="toggle-lost">Lost only</button>
   <button class="chip-toggle" id="open-map-btn">&#128506; Site map</button>
   <span class="result-count" id="result-count"></span>
@@ -1051,6 +1073,7 @@ td.map-cell{ width:60px; text-align:center; }
   // update the existing <option> elements' text in place (never replace
   // the <select>'s innerHTML) so an active filter selection isn't reset.
   function updateStatusFilterCounts(){
+    { const fc = document.getElementById('followup-count'); if (fc){ const n = rows.filter(ivNeedsFollowUp).length; fc.textContent = n ? '(' + n + ')' : ''; } }
     const { custCounts, vendCounts } = computeStatusCounts();
     custStatusSel.querySelectorAll('option[value]').forEach(opt => {
       if (!opt.value || opt.value === '__NONE__') return;
@@ -1125,7 +1148,7 @@ td.map-cell{ width:60px; text-align:center; }
   // Option text (counts) is filled in by updateStatusFilterCounts(), called
   // from render() — kept live rather than set once from the static snapshot.
 
-  let state = { search:'', pm:'', region:'', customer:'', customerStatus:'', vendorStatus:'', lostOnly:false, flaggedOnly:false, noVendorOnly:false, sortKey:'store', sortDir:1, openRow:null };
+  let state = { search:'', pm:'', region:'', customer:'', customerStatus:'', vendorStatus:'', lostOnly:false, flaggedOnly:false, noVendorOnly:false, followupOnly:false, sortKey:'store', sortDir:1, openRow:null };
 
   // ---------- Live Smartsheet sync (Cloudflare Worker) ----------
   // Fill these in after deploying the Worker (see WORKER_SETUP.md). Until
@@ -1288,7 +1311,7 @@ td.map-cell{ width:60px; text-align:center; }
   }
   function pmShort(name){ return name ? String(name).split(' ')[0] : ''; }
   // Vendors interested in a site: 3 x (name, email, phone), each its own Smartsheet column.
-  const INTERESTED_COLUMNS = {"iv1Name": 716833319325572, "iv1Email": 5220432946696068, "iv1Phone": 2968633133010820, "iv2Name": 7472232760381316, "iv2Email": 1842733226168196, "iv2Phone": 6346332853538692, "iv3Name": 4094533039853444, "iv3Email": 8598132667223940, "iv3Phone": 435358342614916};
+  const INTERESTED_COLUMNS = {"iv1Name": 716833319325572, "iv1Email": 5220432946696068, "iv1Phone": 2968633133010820, "iv2Name": 7472232760381316, "iv2Email": 1842733226168196, "iv2Phone": 6346332853538692, "iv3Name": 4094533039853444, "iv3Email": 8598132667223940, "iv3Phone": 435358342614916, "iv1Emailed": 4044247596306308, "iv1Quote": 8547847223676804, "iv2Emailed": 385072899067780, "iv2Quote": 4888672526438276, "iv3Emailed": 2636872712753028, "iv3Quote": 7140472340123524};
   const LIVE_COL = { customerStatus: 7113215152263044, vendorStatus: 1483715618049924, lost: 5987315245420420, region: 260677394796420, vendor2627: 7903831494791044 };
   async function loadLiveFromSmartsheet(){
     if (!SMARTSHEET_WORKER_URL) return;
@@ -3165,6 +3188,127 @@ td.map-cell{ width:60px; text-align:center; }
       body.innerHTML = '<div class="oh-lb-msg">Could not load the file (' + escapeHtml(String((e && e.message) || e)) + ')</div>';
     }
   }
+  // ---------- Vendor tracking per site: Emailed date, Quote, follow-up, Select ----------
+  const IV_FOLLOWUP_DAYS = 3;
+  function ivIso(d){ const p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
+  function ivDaysSince(iso){
+    if (!iso) return null;
+    const t = new Date(String(iso).slice(0, 10) + 'T00:00:00'); if (isNaN(t)) return null;
+    const n = new Date(); n.setHours(0, 0, 0, 0);
+    return Math.round((n - t) / 86400000);
+  }
+  function ivQuoteNum(v){
+    if (v === null || v === undefined || String(v).trim() === '') return null;
+    const n = Number(String(v).replace(/[$,\s]/g, ''));
+    return isNaN(n) ? null : n;
+  }
+  function ivMoney(n){ return '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 }); }
+  function ivState(r, n){
+    const iv = r.interested || {};
+    const name = String(iv['iv' + n + 'Name'] || '').trim();
+    const emailed = String(iv['iv' + n + 'Emailed'] || '').slice(0, 10);
+    const quote = ivQuoteNum(iv['iv' + n + 'Quote']);
+    const hasEst = r.rowId != null && (estFiles.get(String(r.rowId)) || []).some(f => f.slot === n);
+    const days = ivDaysSince(emailed);
+    let kind = 'none';
+    if (!name) kind = 'empty';
+    else if (quote !== null) kind = 'quoted';
+    else if (hasEst) kind = 'est';
+    else if (emailed) kind = (days !== null && days >= IV_FOLLOWUP_DAYS) ? 'followup' : 'waiting';
+    return { name, emailed, days, quote, hasEst, kind };
+  }
+  function ivNeedsFollowUp(r){
+    if (effectiveLost(r)) return false;
+    if (String(effectiveVendor2627(r) || '').trim()) return false;   // a vendor is already picked
+    for (let n = 1; n <= 3; n++) if (ivState(r, n).kind === 'followup') return true;
+    return false;
+  }
+  function ivQuotes(r){
+    return [1, 2, 3].map(n => Object.assign({ n }, ivState(r, n))).filter(x => x.name && x.quote !== null).sort((a, b) => a.quote - b.quote);
+  }
+  function ivTrackInner(r, n){
+    const s = ivState(r, n); if (!s.name) return '';
+    const dis = r.rowId != null ? '' : ' disabled';
+    const qs = ivQuotes(r);
+    const isLow = qs.length > 1 && s.quote !== null && s.quote === qs[0].quote;
+    let chip;
+    if (s.kind === 'followup') chip = `<span class="iv-chip fu" title="Emailed ${s.days} days ago, nothing back yet">Follow up &middot; emailed ${s.days}d ago, no estimate yet</span>`;
+    else if (s.kind === 'waiting') chip = '<span class="iv-chip wait">Waiting on their estimate</span>';
+    else if (s.kind === 'est') chip = '<span class="iv-chip fu">Estimate is in &mdash; enter the quote</span>';
+    else if (s.kind === 'quoted') chip = isLow ? '<span class="iv-chip ok">Lowest quote</span>' : '<span class="iv-chip ok">Quote in</span>';
+    else chip = '<span class="iv-chip na">Not emailed yet</span>';
+    const picked = vtNorm(effectiveVendor2627(r)) === vtNorm(s.name);
+    const sel = picked ? '<span class="iv-chip sel">&#10003; Selected</span>'
+      : `<button type="button" class="iv-select" data-n="${n}" title="Use this vendor: copies the name into 26/27 Vendor and moves Vendor Status to Send Vendor Contract"${dis}>Select vendor</button>`;
+    return `<label class="iv-q">Emailed<input type="date" class="iv-emailed" data-n="${n}" data-field="iv${n}Emailed" value="${escapeHtml(s.emailed)}"${dis}></label>`
+      + `<label class="iv-q">Quote $<input type="text" inputmode="decimal" class="iv-quote${isLow ? ' iv-low' : ''}" data-n="${n}" data-field="iv${n}Quote" value="${s.quote !== null ? escapeHtml(String(s.quote)) : escapeHtml(String((r.interested || {})['iv' + n + 'Quote'] || ''))}" placeholder="0.00"${dis}></label>`
+      + chip + sel;
+  }
+  function ivCompareInner(r){
+    const qs = ivQuotes(r); if (qs.length < 2) return '';
+    const low = qs[0];
+    return 'Quotes: lowest is <b>' + escapeHtml(low.name) + ' ' + ivMoney(low.quote) + '</b>' + qs.slice(1).map(q => ' &middot; ' + escapeHtml(q.name) + ' ' + ivMoney(q.quote) + ' (+' + ivMoney(q.quote - low.quote) + ')').join('');
+  }
+  function ivTrackRender(detail, r){
+    detail.querySelectorAll('.iv-track').forEach(box => { box.innerHTML = ivTrackInner(r, Number(box.dataset.n)); });
+    const cmp = detail.querySelector('.iv-compare'); if (cmp) cmp.innerHTML = ivCompareInner(r);
+  }
+  function ivSet(r, field, value){
+    if (!r.interested) r.interested = {};
+    r.interested[field] = (value === null || value === undefined) ? '' : String(value);
+    return syncFieldToSmartsheet(r.rowId, field, (value === null || value === undefined) ? '' : value);
+  }
+  function ivComplianceMsg(name, chk, what){
+    if (!chk || !chk.checked) return '';
+    if (!chk.found) return '“' + name + '” isn’t in your Vendor Tracking List, so there’s no contract, W9 or insurance on file for them.\n\n' + what + ' anyway?';
+    if (chk.issues.length) return '“' + name + '” is not compliant — missing or expired: ' + chk.issues.join(', ') + '.\n\n' + what + ' anyway?';
+    return '';
+  }
+  function ivSayGlobal(text, bad){ const m = document.querySelector('.iv-mail-msg'); if (m){ m.textContent = text; m.classList.toggle('bad', !!bad); } }
+  async function ivSelectVendor(detail, r, n, btn){
+    const s = ivState(r, n); if (!s.name || r.rowId == null) return;
+    const cur = String(effectiveVendor2627(r) || '').trim();
+    if (cur && vtNorm(cur) !== vtNorm(s.name) && !window.confirm('26/27 Vendor is currently “' + cur + '”. Replace it with “' + s.name + '”?')) return;
+    if (btn) btn.disabled = true;
+    const chk = await ivCheckCompliance(s.name);
+    const w = ivComplianceMsg(s.name, chk, 'Select them');
+    if (w && !window.confirm(w)){ if (btn) btn.disabled = false; return; }
+    const inp = detail.querySelector('input.v27-input'); if (inp) inp.value = s.name;
+    await stageVendorChange(r, inp, s.name);
+    const vs = effectiveVendorStatus(r);
+    let moved = false;
+    if (!vs || vs === 'Need New Vendor' || vs === 'Quoting/Waiting for Bids'){
+      moved = true;
+      const idx = rows.indexOf(r);
+      await stageStatusChange('vendorStatus', r, 'Send Vendor Contract');   // re-renders the table, which collapses the open site
+      const tr = document.querySelector(`#tbody tr[data-idx="${idx}"]:not(.detail-row)`);
+      if (tr) tr.click();                                                    // reopen it so the result is visible
+    }
+    const live = document.querySelector('.detail-row');
+    if (live) ivTrackRender(live, r);
+    ivSayGlobal('Selected ' + s.name + ' as the 26/27 vendor' + (moved ? ' and moved Vendor Status to Send Vendor Contract.' : '.') + ' Enter their rates under Contract parameters.', false);
+  }
+  function wireIvTrack(detail, r){
+    const list = detail.querySelector('.iv-list'); if (!list) return;
+    ['click', 'mousedown'].forEach(ev => list.addEventListener(ev, e => { if (e.target.closest('.iv-track')) e.stopPropagation(); }));
+    list.addEventListener('change', e => {
+      const inp = e.target.closest ? e.target.closest('input.iv-quote, input.iv-emailed') : null;
+      if (!inp || r.rowId == null) return;
+      e.stopPropagation();
+      const v = inp.value.trim(), f = inp.dataset.field;
+      if (inp.classList.contains('iv-quote')){ const q = ivQuoteNum(v); ivSet(r, f, q !== null ? q : v); }
+      else ivSet(r, f, v);
+      ivTrackRender(detail, r);
+      render_followup_badge();
+    });
+    list.addEventListener('click', e => {
+      const b = e.target.closest ? e.target.closest('button.iv-select') : null; if (!b) return;
+      e.preventDefault(); ivSelectVendor(detail, r, b.dataset.n, b);
+    });
+  }
+  function render_followup_badge(){
+    const fc = document.getElementById('followup-count'); if (fc){ const n = rows.filter(ivNeedsFollowUp).length; fc.textContent = n ? '(' + n + ')' : ''; }
+  }
   function ivEstRender(detail, rowId){
     detail.querySelectorAll('.iv-est-files').forEach(box => {
       const n = Number(box.dataset.n);
@@ -3195,6 +3339,7 @@ td.map-cell{ width:60px; text-align:center; }
             method: 'POST', headers: ohHdr({ 'Content-Type': file.type || 'application/octet-stream' }), body: file });
           if (!resp.ok) throw new Error('HTTP ' + resp.status + (resp.status === 404 ? ' (deploy the latest worker.js)' : ''));
           await ohLoad(detail, rowId);
+          ivTrackRender(detail, r); render_followup_badge();
           say('Estimate attached to Smartsheet', false);
         } catch(err){ say('Estimate upload failed (' + ((err && err.message) || err) + ')', true); }
         finally { lbl.classList.remove('busy'); }
@@ -3258,19 +3403,19 @@ td.map-cell{ width:60px; text-align:center; }
     const term = contractTermForRow(r);
     const lines = vendorParamLines(r);
     const anyPriced = contractFieldsForRow(r).some(([k, vk]) => hasVal(effectiveContractValue(r, vk)));
-    const prop = r.store || '';
+    const brand = ({ CS: 'CubeSmart', DSS: 'Devon Self Storage', PS: 'Public Storage', NS: 'National Storage' })[storePrefixType(r.store)] || r.store || '';
     return [
-      `Hi ${String(vendorName || '').trim() || 'there'},`,
+      'Thanks for taking my call earlier today.',
       '',
-      'Thanks for your interest in snow removal for the 2026-27 season at this property:',
+      'We are looking for a bid for the following property.',
       '',
-      `Property: ${prop}${r.address ? ' - ' + r.address : ''}`,
+      `Property: ${[brand, r.address].filter(Boolean).join(' - ')}`,
       `Term: ${term.beginFull} to ${term.endFull}`,
       '',
       'Contract parameters:',
       ...lines.map(l => '  ' + l),
       '',
-      anyPriced ? 'Attached are the blank subcontract and an overhead map of the property. Please review, complete, sign and send it back.'
+      anyPriced ? 'Attached are the blank subcontract and an overhead map of the property. Please review, complete, sign, and send it back.'
                 : 'Attached are the blank subcontract and an overhead map of the property. Please fill in your pricing for the lines above, sign, and send it back.',
       '',
       'Let me know if you have any questions.',
@@ -3286,34 +3431,73 @@ td.map-cell{ width:60px; text-align:center; }
     document.body.appendChild(a); a.click(); a.remove();
     if (typeof blob !== 'string') setTimeout(() => URL.revokeObjectURL(url), 8000);
   }
+  let ivGmailOk = null;   // null = unknown, false = the Worker has no Google secrets (use the download + compose flow)
+  function ivFileToB64(blob){
+    return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1] || ''); fr.onerror = () => rej(fr.error || new Error('read failed')); fr.readAsDataURL(blob); });
+  }
   async function ivDraftEmail(detail, r, n, btn){
     const msg = detail.querySelector('.iv-mail-msg');
-    const say = (t, bad) => { if (msg){ msg.textContent = t; msg.classList.toggle('bad', !!bad); } };
+    const say = (t, bad, link) => {
+      if (!msg) return;
+      msg.textContent = t; msg.classList.toggle('bad', !!bad);
+      if (link){ msg.appendChild(document.createTextNode(' ')); const a = document.createElement('a'); a.href = link; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Open the draft in Gmail'; msg.appendChild(a); }
+    };
     const val = f => { const el = detail.querySelector(`input[data-field="iv${n}${f}"]`); return el ? el.value.trim() : ''; };
     const email = val('Email'), vname = val('Name');
     if (email.indexOf('@') < 0){ say('Add this vendor’s email first.', true); return; }
     const win = window.open('', '_blank');   // opened now (inside the click) so the popup isn't blocked
-    const orig = btn.innerHTML; btn.disabled = true; btn.textContent = 'Building…';
+    const orig = btn.innerHTML; btn.disabled = true; btn.textContent = 'Checking…';
     const notes = [];
     try {
+      // 1) compliance warning before a contract goes out
+      const chk = await ivCheckCompliance(vname);
+      const warn = ivComplianceMsg(vname || email, chk, 'Draft the email and contract');
+      if (warn && !window.confirm(warn)){ if (win) win.close(); say('Cancelled — nothing drafted. (' + (vname || email) + ' isn’t fully compliant yet.)', true); return; }
+      btn.textContent = 'Building…';
+      // 2) build the files
       const c = await blankSubcontractBlob(r);
-      ivDownload(c.blob, c.name);
       let maps = [];
       if (SMARTSHEET_WORKER_URL && r.rowId != null){
         if (!ohFiles.has(String(r.rowId))) await ohLoad(detail, r.rowId);
         maps = (ohFiles.get(String(r.rowId)) || []).slice(0, 3);
       }
-      let got = 0;
-      for (const f of maps){
-        try { const b = await ohBlob(f.id); await new Promise(res => setTimeout(res, 500)); ivDownload(b.url, f.name.replace(/^overhead map\s*[-–]\s*/i, '')); got++; } catch(e){}
-      }
-      if (!got) notes.push('No overhead map is uploaded for this site yet — upload one above and send again, or attach it by hand.');
-      const prop = r.store || '';
-      const su = `FDI Snow Removal 2026-27 - ${prop}${r.address ? ' - ' + r.address : ''} - Subcontract`;
+      const su = 'ESTIMATE NEEDED: ' + (r.address || r.store || '');
       const body = ivEmailBody(r, vname);
-      const link = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(email) + '&su=' + encodeURIComponent(su) + '&body=' + encodeURIComponent(body);
-      if (win) win.location = link; else window.open(link, '_blank');
-      say('Gmail draft opened. Drag these into it: ' + c.name + (got ? ' and the overhead map' + (got > 1 ? 's' : '') : '') + ' (just downloaded). ' + notes.join(' '), !got);
+      // 3a) preferred: a real Gmail draft with the files attached (needs the Worker's Google secrets)
+      let draftUrl = '', attached = 0;
+      if (SMARTSHEET_WORKER_URL && ivGmailOk !== false){
+        try {
+          const atts = [{ name: c.name, mime: 'application/pdf', data: await ivFileToB64(c.blob) }];
+          for (const f of maps){
+            try {
+              const b = await ohBlob(f.id); const blob = await (await fetch(b.url)).blob();
+              atts.push({ name: f.name.replace(/^overhead map\s*[-–]\s*/i, ''), mime: blob.type || f.mime || 'application/octet-stream', data: await ivFileToB64(blob) });
+              attached++;
+            } catch(e){}
+          }
+          const resp = await fetch(ohBase() + '/gmail-draft', { method: 'POST', headers: ohHdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ to: email, subject: su, body, attachments: atts }) });
+          if (resp.status === 501){ ivGmailOk = false; }
+          else if (resp.ok){ const d = await resp.json(); if (d && d.url){ draftUrl = d.url; ivGmailOk = true; } }
+          else notes.push('Gmail draft didn’t go through (HTTP ' + resp.status + ') — used the download flow instead.');
+        } catch(e){ notes.push('Gmail draft failed (' + ((e && e.message) || e) + ') — used the download flow instead.'); }
+      }
+      if (draftUrl){
+        if (win) win.location = draftUrl; else window.open(draftUrl, '_blank');
+        say('Draft created in your Gmail with ' + (1 + attached) + ' attachment' + (attached ? 's' : '') + ' (blank subcontract' + (attached ? ' + overhead map' + (attached > 1 ? 's' : '') : '') + '). ' + (attached ? '' : 'No overhead map is uploaded for this site yet — add one above. ') + notes.join(' '), !attached, draftUrl);
+      } else {
+        // 3b) fallback: download the files and open a compose window with the text filled in
+        ivDownload(c.blob, c.name);
+        let got = 0;
+        for (const f of maps){
+          try { const b = await ohBlob(f.id); await new Promise(res => setTimeout(res, 500)); ivDownload(b.url, f.name.replace(/^overhead map\s*[-–]\s*/i, '')); got++; } catch(e){}
+        }
+        if (!got) notes.push('No overhead map is uploaded for this site yet — upload one above and send again, or attach it by hand.');
+        const link = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(email) + '&su=' + encodeURIComponent(su) + '&body=' + encodeURIComponent(body);
+        if (win) win.location = link; else window.open(link, '_blank');
+        say('Gmail draft opened. Drag these into it: ' + c.name + (got ? ' and the overhead map' + (got > 1 ? 's' : '') : '') + ' (just downloaded). ' + notes.join(' '), !got);
+      }
+      // 4) remember when this vendor was emailed
+      if (r.rowId != null){ ivSet(r, 'iv' + n + 'Emailed', ivIso(new Date())); ivTrackRender(detail, r); render_followup_badge(); }
     } catch(e){
       if (win) win.close();
       say('Could not build the email (' + ((e && e.message) || e) + ')', true);
@@ -3349,9 +3533,10 @@ td.map-cell{ width:60px; text-align:center; }
         <button type="button" class="iv-mail" data-n="${n}" title="Draft an email to this vendor with the blank subcontract, the overhead map and the contract parameters"${dis}>&#9993; Draft email</button>
         ${upBtn}
       </div>
+      <div class="iv-track" data-n="${n}">${ivTrackInner(r, n)}</div>
       <div class="iv-est-files" data-n="${n}"></div>`;
     }
-    return `<div class="contract-params"><div class="k">Vendors Interested</div><div class="v iv-list">${rowsHtml}<div class="iv-mail-msg"></div></div></div>`;
+    return `<div class="contract-params"><div class="k">Vendors Interested</div><div class="v iv-list">${rowsHtml}<div class="iv-compare">${ivCompareInner(r)}</div><div class="iv-mail-msg"></div></div></div>`;
   }
 
   function vendor2627InputHtml(r){
@@ -4099,6 +4284,7 @@ td.map-cell{ width:60px; text-align:center; }
   function matches(r){
     if (state.flaggedOnly && !Object.values(r.flags).some(Boolean)) return false;
     if (state.noVendorOnly && r.vendor) return false;
+    if (state.followupOnly && !ivNeedsFollowUp(r)) return false;
     if (state.pm){
       if (state.pm === '__NONE__' ? !!r.pm : r.pm !== state.pm) return false;
     }
@@ -4314,6 +4500,7 @@ td.map-cell{ width:60px; text-align:center; }
         if (!r.interested) r.interested = {};
         r.interested[inp.dataset.field] = v;
         syncFieldToSmartsheet(r.rowId, inp.dataset.field, v);
+        ivTrackRender(detail, r);
       });
     });
     detail.querySelectorAll('input.v27-input').forEach(inp => {
@@ -4356,6 +4543,7 @@ td.map-cell{ width:60px; text-align:center; }
     wireOverhead(detail, r);
     wireIvMail(detail, r);
     wireIvEstimates(detail, r);
+    wireIvTrack(detail, r);
   }
 
   function render(){
@@ -4487,6 +4675,9 @@ td.map-cell{ width:60px; text-align:center; }
   document.getElementById('toggle-flagged').addEventListener('click', e => {
     state.flaggedOnly = !state.flaggedOnly; e.currentTarget.classList.toggle('active', state.flaggedOnly); render();
   });
+  document.getElementById('toggle-followup').addEventListener('click', e => {
+    state.followupOnly = !state.followupOnly; e.currentTarget.classList.toggle('active', state.followupOnly); render();
+  });
   document.getElementById('toggle-novendor').addEventListener('click', e => {
     state.noVendorOnly = !state.noVendorOnly; e.currentTarget.classList.toggle('active', state.noVendorOnly); render();
   });
@@ -4515,6 +4706,7 @@ td.map-cell{ width:60px; text-align:center; }
       state.lostOnly = false; document.getElementById('toggle-lost').classList.remove('active');
       state.flaggedOnly = false; document.getElementById('toggle-flagged').classList.remove('active');
       state.noVendorOnly = false; document.getElementById('toggle-novendor').classList.remove('active');
+      state.followupOnly = false; document.getElementById('toggle-followup').classList.remove('active');
     }
     render();
   });
@@ -4871,6 +5063,44 @@ td.map-cell{ width:60px; text-align:center; }
     const o = vtOutboxLoad(); const byId = new Map(vtRows.map(r => [String(r.rowId), r]));
     Object.values(o).forEach(e => { const r = byId.get(String(e.rowId)); if (r) r[e.field] = e.value; });
   }
+  function vtParse(sheet){
+    return sheet.rows.map(sr => {
+        const c = {}; (sr.cells || []).forEach(x => { c[x.columnId] = x; });
+        const v = id => (c[id] && c[id].value !== undefined && c[id].value !== null) ? c[id].value : '';
+        let email = v(VT_COLS.email); if (email && String(email).indexOf('@') < 0) email = (c[VT_COLS.email] && c[VT_COLS.email].displayValue) || email;
+        const name = String(v(VT_COLS.vendor)).trim();
+        return { rowId: sr.id, name, norm: vtNorm(name), phone: String(v(VT_COLS.phone)), email: String(email), contact: String(v(VT_COLS.contact)), address: String(v(VT_COLS.address)),
+          msa: v(VT_COLS.msa) === true || v(VT_COLS.msa) === 'True', w9: v(VT_COLS.w9) === true || v(VT_COLS.w9) === 'True',
+          glExpiry: String(v(VT_COLS.glExpiry)).slice(0, 10), wcExpiry: String(v(VT_COLS.wcExpiry)).slice(0, 10) };
+    }).filter(r => r.name);
+  }
+  let vtAt = 0;
+  async function vtEnsureRows(){
+    if (!SMARTSHEET_WORKER_URL) return false;
+    if (vtRows && Date.now() - vtAt < 300000) return true;
+    const resp = await fetch(vtBase() + '/vendors', { headers: vtHdr() });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const sheet = await resp.json();
+    if (!sheet || !Array.isArray(sheet.rows)) throw new Error('unexpected response');
+    vtRows = vtParse(sheet); vtAt = Date.now(); vtApplyOutbox();
+    return true;
+  }
+  function vtFindRow(name){
+    const key = vtNorm(name); if (!key || !vtRows) return null;
+    let row = vtRows.find(x => x.norm === key) || null;
+    if (!row && key.length >= 4){
+      const c = vtRows.filter(x => x.norm.length >= 4 && (x.norm.startsWith(key) || key.startsWith(x.norm)));
+      if (c.length === 1) row = c[0];
+    }
+    return row;
+  }
+  async function ivCheckCompliance(name){
+    if (!SMARTSHEET_WORKER_URL || !String(name || '').trim()) return { checked: false };
+    try { await vtEnsureRows(); } catch(e){ return { checked: false }; }
+    const row = vtFindRow(name);
+    if (!row) return { checked: true, found: false, issues: [] };
+    return { checked: true, found: true, issues: vtIssues(row), row };
+  }
   async function vtLoad(){
     if (!SMARTSHEET_WORKER_URL){ vtState = 'noconn'; return; }
     vtState = 'loading'; vtError = ''; renderCompliance();
@@ -4879,15 +5109,7 @@ td.map-cell{ width:60px; text-align:center; }
       if (!resp.ok) throw new Error('HTTP ' + resp.status + (resp.status === 404 ? ' (the Worker needs the latest worker.js deployed)' : resp.status === 401 || resp.status === 403 ? ' (dashboard key rejected)' : ''));
       const sheet = await resp.json();
       if (!sheet || !Array.isArray(sheet.rows)) throw new Error('unexpected response');
-      vtRows = sheet.rows.map(sr => {
-        const c = {}; (sr.cells || []).forEach(x => { c[x.columnId] = x; });
-        const v = id => (c[id] && c[id].value !== undefined && c[id].value !== null) ? c[id].value : '';
-        let email = v(VT_COLS.email); if (email && String(email).indexOf('@') < 0) email = (c[VT_COLS.email] && c[VT_COLS.email].displayValue) || email;
-        const name = String(v(VT_COLS.vendor)).trim();
-        return { rowId: sr.id, name, norm: vtNorm(name), phone: String(v(VT_COLS.phone)), email: String(email), contact: String(v(VT_COLS.contact)), address: String(v(VT_COLS.address)),
-          msa: v(VT_COLS.msa) === true || v(VT_COLS.msa) === 'True', w9: v(VT_COLS.w9) === true || v(VT_COLS.w9) === 'True',
-          glExpiry: String(v(VT_COLS.glExpiry)).slice(0, 10), wcExpiry: String(v(VT_COLS.wcExpiry)).slice(0, 10) };
-      }).filter(r => r.name);
+      vtRows = vtParse(sheet); vtAt = Date.now();
       vtApplyOutbox();
       vtState = 'ok';
       renderCompliance();

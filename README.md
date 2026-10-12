@@ -75,10 +75,32 @@ Each site's detail panel (Bidding row and the Vendor Contracting popup) has an "
 
 ## Draft email to an interested vendor
 
-Each Vendors Interested row has a "Draft email" button after the phone (enabled once that row has an email). It downloads the blank vendor subcontract (the right template for the store: CubeSmart / Seasonal / Per Push) and the site's overhead map(s), then opens a pre-filled Gmail compose window addressed to the vendor. The body lists the property, the term, and the contract parameters (the vendor-side rates; unpriced tiers show $_______). FDI pricing and margin are never included. A web page can't attach files to Gmail, so drag the two downloaded files into the draft before sending. Nothing is sent automatically.
+Each Vendors Interested row has a "Draft email" button after the phone (enabled once that row has an email). It downloads the blank vendor subcontract (the right template for the store: CubeSmart / Seasonal / Per Push) and the site's overhead map(s), then opens a pre-filled Gmail compose window addressed to the vendor. Subject is "ESTIMATE NEEDED: <address>"; the body is Zak's standard bid-request wording ("Thanks for taking my call earlier today...") and lists the property (customer brand - address), the term, and the contract parameters (the vendor-side rates; unpriced tiers show $_______). FDI pricing and margin are never included. A web page can't attach files to Gmail, so drag the two downloaded files into the draft before sending. Nothing is sent automatically.
 
 ## Map column on Bidding + per-vendor estimate uploads
 
 Bidding table: a new "Map" column shows a thumbnail of the site's overhead map (a faint map icon when none is uploaded). Click it to open the full-size viewer (Download / Open in new tab) without expanding the row. Thumbnails come from the Smartsheet row's attachments, so the Worker's /rows now requests ?include=attachments: re-deploy worker.js.
 
 Vendor estimates: the old single "Vendor Estimates" upload was replaced by an "Upload estimate" button at the end of each Vendors Interested row (vendor 1/2/3). Files attach to the site's Smartsheet row named "Estimate 1/2/3 - <file>" and show as links under that vendor's row; click to view/download.
+
+## Vendor tracking per site (Emailed / Quote / Follow-up / Select)
+
+Under each vendor in **Vendors Interested** there's now a tracking line:
+
+- **Emailed** date — filled automatically when you click *Draft email*; you can also type/pick it by hand. Saves to the *Interested Vendor n Emailed* column on the Bidding sheet.
+- **Quote $** — type what the vendor quoted. Saves to *Interested Vendor n Quote*. With two or more quotes, the lowest is highlighted green and a "lowest is X, others +$Y" line shows under the three vendors.
+- **Follow-up chip** — amber when a vendor was emailed 3+ days ago and there's no Estimate file and no quote yet. The toolbar button **Vendor follow-up (n)** filters the Bidding list to those sites. (Sites that already have a 26/27 Vendor are skipped.)
+- **Select vendor** — copies that vendor into *26/27 Vendor* and moves *Vendor Status* to **Send Vendor Contract** (only if it was empty / Need New Vendor / Quoting). Contract-parameter rates are still entered under Contract parameters.
+
+## Compliance warning
+
+*Draft email* and *Select vendor* check the vendor against the Vendor Tracking List first. If they're missing the contract/W9, have expired or blank General Liability / Worker's Comp, or aren't on the list at all, you get a confirm box listing what's wrong and can cancel.
+
+## Gmail drafts with attachments
+
+*Draft email* now tries to create a real Gmail **draft** (never sends) with the blank subcontract and overhead map(s) already attached. That needs the one-time Google setup in `GMAIL_SETUP.md` and the three `GOOGLE_*` secrets on the Worker. Without them it falls back to the old behavior (downloads the files, opens a compose window with the text filled in).
+
+## New Worker pieces (redeploy worker.js)
+
+- six new fields in `FIELD_COLUMN_IDS` (iv1-3 Emailed / Quote)
+- `POST /gmail-draft` (returns 501 `gmail-not-configured` until the Google secrets are set)
