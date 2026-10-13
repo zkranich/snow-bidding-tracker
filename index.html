@@ -1058,7 +1058,7 @@ td.map-cell{ width:60px; text-align:center; }
       </label>
       <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">PM <select id="sc-pm"><option value="">All PMs</option></select></label>
       <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Region <select id="sc-region"><option value="">All regions</option></select></label>
-      <input type="search" id="sc-search" placeholder="Search store, address, customer, vendor">
+      <input type="search" id="sc-search" placeholder="Search store, address, customer, vendor, PM">
       <span class="vc-count" id="sc-count"></span>
     </div>
     <div class="table-wrap" style="margin-top:10px">
@@ -1115,7 +1115,7 @@ td.map-cell{ width:60px; text-align:center; }
       <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Service <select id="ct-storm"></select></label>
       <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">PM <select id="ct-pm"><option value="">All PMs</option></select></label>
       <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Region <select id="ct-region"><option value="">All regions</option></select></label>
-      <input type="search" id="ct-search" placeholder="Search store, address, vendor">
+      <input type="search" id="ct-search" placeholder="Search store, address, customer, vendor, PM">
       <button class="ct-btn primary" id="ct-new-storm" type="button">&#43; New service</button>
       <button class="ct-btn" id="ct-email-vendors" type="button">&#9993; Email vendors</button>
       <span class="vc-count" id="ct-count"></span>
@@ -6178,7 +6178,7 @@ td.map-cell{ width:60px; text-align:center; }
     const pm = document.getElementById('ct-pm').value, reg = document.getElementById('ct-region').value;
     const q = document.getElementById('ct-search').value.trim().toLowerCase();
     return rows.filter(r => ctEligible(r) && (!pm || (pm === '__NONE__' ? !r.pm : r.pm === pm)) && (!reg || effectiveRegion(r) === reg)
-      && (!q || `${r.store} ${r.address} ${r.vendor2627} ${r.customer}`.toLowerCase().includes(q)))
+      && (!q || `${r.store} ${r.address} ${r.customer} ${r.vendor2627} ${r.pm || ''} ${effectiveRegion(r)}`.toLowerCase().includes(q)))
       .sort((a, b) => String(a.store).localeCompare(String(b.store), undefined, { numeric: true }));
   }
 
@@ -6639,7 +6639,7 @@ td.map-cell{ width:60px; text-align:center; }
   function scVisible(){
     const pm = document.getElementById('sc-pm').value, reg = document.getElementById('sc-region').value, q = document.getElementById('sc-search').value.trim().toLowerCase();
     return rows.filter(r => ctEligible(r) && (!pm || (pm === '__NONE__' ? !r.pm : r.pm === pm)) && (!reg || effectiveRegion(r) === reg)
-      && (!q || `${r.store} ${r.address} ${r.customer} ${r.vendor2627}`.toLowerCase().includes(q)))
+      && (!q || `${r.store} ${r.address} ${r.customer} ${r.vendor2627} ${r.pm || ''} ${effectiveRegion(r)}`.toLowerCase().includes(q)))
       .sort((a, b) => String(a.store).localeCompare(String(b.store), undefined, { numeric: true }));
   }
   function scCompliance(r){
