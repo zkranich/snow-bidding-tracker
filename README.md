@@ -104,3 +104,17 @@ Under each vendor in **Vendors Interested** there's now a tracking line:
 
 - six new fields in `FIELD_COLUMN_IDS` (iv1-3 Emailed / Quote)
 - `POST /gmail-draft` (returns 501 `gmail-not-configured` until the Google secrets are set)
+
+## Lock contract parameters
+
+In **Contract parameters** there are two buttons: **Lock FDI prices** and **Lock vendor costs**. Lock your FDI prices when they're final, then keep working on the vendor side and lock that when you're done. Locked fields turn green-grey and can't be edited (typed, auto-calculated, or via the Base Monthly / Pushes boxes). Click a green lock to unlock (it asks first). Locks are remembered **in this browser only** (not in Smartsheet), per site.
+
+## Signing the vendor subcontract
+
+Clicking **Create Vendor Contract** now asks: *Sign this subcontract with your saved signature and today's date?* OK stamps your saved signature (My Signature button) and today's date on FDI's signature/date lines and names the file "... (signed).pdf". Cancel makes it unsigned with those left blank. If no signature is saved yet it tells you and lets you stop to save one first. The blank subcontract attached to vendor bid emails is never signed.
+
+## Vendor bid sheet (select several properties → one spreadsheet for vendors)
+
+Tick the checkboxes on any properties in the Bidding view (filter by PM first if you like), then click **Vendor bid sheet (.xlsx)** in the blue selection bar. You get one Excel file with a tab per customer type (Pfuetze, CubeSmart, Devon, Public Storage, National Storage, SROA). Each tab has a vendor block at the top (company / contact / date), then one row per property: store #, address, sq ft, and **blank yellow cells** for the vendor's price at each depth tier (the tiers match that customer's contract; Pfuetze also gets the Front Loader / Bobcat / Dump Truck / Hauling $/hr and salting columns, like your Pfuetze sheet) plus a Notes column.
+
+It never includes your FDI prices — only blank cells. Send the same file to every vendor; each one fills in the yellow cells and sends it back. It's built right in the browser, so it works without the Worker.

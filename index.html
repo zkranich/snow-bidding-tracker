@@ -484,6 +484,13 @@ input.row-select, input#select-all{ cursor:pointer; width:14px; height:14px; }
 .cp-input.cp-pending{ border-color:var(--warn,#b45309); background:#fff8ec; }
 .cp-input:disabled{ background:transparent; border-color:transparent; color:var(--ink-faint); cursor:not-allowed; }
 .cp-input-wrap:has(.cp-input:disabled) .cp-currency{ color:var(--ink-faint); }
+.cp-input.cp-locked:disabled{ background:#eaf1ec; border-color:#cfdcd3; color:#000; cursor:not-allowed; }
+.cp-input-wrap:has(.cp-input.cp-locked) .cp-currency{ color:#000; }
+.cp-lockbar{ display:inline-flex; flex-wrap:wrap; gap:8px; margin-left:14px; text-transform:none; letter-spacing:0; vertical-align:middle; }
+.cp-lock{ font:inherit; font-size:12px; font-weight:600; color:#14683a; background:#d9dedb; border:1px solid #c3cbc7; border-radius:6px; padding:3px 10px; cursor:pointer; white-space:nowrap; }
+.cp-lock:hover{ background:#cdd3cf; }
+.cp-lock.on{ background:#14683a; color:#fff; border-color:#0f5330; }
+.cp-lock.on:hover{ background:#0f5330; }
 .iv-list{ display:flex; flex-direction:column; gap:6px; }
 .iv-row{ display:grid; grid-template-columns:minmax(140px,1.2fr) minmax(160px,1.4fr) minmax(110px,1fr) auto auto; gap:8px; max-width:900px; align-items:center; }
 .iv-mail{ font:inherit; font-size:12px; font-weight:600; color:#14683a; background:#d9dedb; border:1px solid #c3cbc7; border-radius:6px; padding:5px 10px; cursor:pointer; white-space:nowrap; }
@@ -882,6 +889,7 @@ td.map-cell{ width:60px; text-align:center; }
     <option value="Signed Contract">Signed Contract</option>
     <option value="Compliance Received">Compliance Received</option>
   </select>
+  <button id="bulk-bid-sheet" title="Make a blank bid-request spreadsheet (one row per selected property) to send to vendors">&#128196; Vendor bid sheet (.xlsx)</button>
   <button id="bulk-mark-lost">Mark Lost</button>
   <button id="bulk-unmark-lost">Unmark Lost</button>
   <button id="bulk-clear">Clear selection</button>
@@ -1728,6 +1736,7 @@ td.map-cell{ width:60px; text-align:center; }
   }
 
   async function stageContractChange(r, field, inputEl, rawValue){
+    if (cpLocked(r, cpSideOf(field))) return;   // locked: ignore any edit (typed, auto-calculated or mirrored)
     const key = `${r.rowId}::${field}`;
     const doc = buildContractChangeDoc(r, field, rawValue);
     if (!doc){
@@ -3052,15 +3061,50 @@ td.map-cell{ width:60px; text-align:center; }
     return c === 'none' ? 'cost-none' : c === 'partial' ? 'cost-partial' : c === 'full' ? 'cost-full' : '';
   }
 
+  // ---------- Lock FDI prices / vendor costs (saved in this browser only) ----------
+  const CP_LOCK_KEY = 'fdiContractLocksV1';
+  let cpLockState = {};
+  try { cpLockState = JSON.parse(localStorage.getItem(CP_LOCK_KEY) || '{}') || {}; } catch(e){ cpLockState = {}; }
+  const cpSideOf = field => /^vendor/i.test(String(field)) ? 'vendor' : 'fdi';
+  function cpLocked(r, side){ if (!r || r.rowId == null) return false; const o = cpLockState[String(r.rowId)]; return !!(o && o[side]); }
+  function cpSetLock(r, side, on){
+    const k = String(r.rowId); const o = cpLockState[k] || {};
+    if (on) o[side] = true; else delete o[side];
+    if (o.fdi || o.vendor) cpLockState[k] = o; else delete cpLockState[k];
+    try { localStorage.setItem(CP_LOCK_KEY, JSON.stringify(cpLockState)); } catch(e){}
+  }
+  function cpLockBarHtml(r){
+    if (r.rowId == null) return '';
+    const b = (side, label) => { const on = cpLocked(r, side); return `<button type="button" class="cp-lock${on ? ' on' : ''}" data-side="${side}" data-label="${label}" title="${on ? 'Click to unlock and edit again' : 'Lock these so they can’t be changed by accident'}">${on ? '&#128274; ' + label + ' locked' : '&#128275; Lock ' + label}</button>`; };
+    return `<span class="cp-lockbar">${b('fdi', 'FDI prices')}${b('vendor', 'vendor costs')}</span>`;
+  }
+  function cpApplyLocks(detail, r){
+    if (r.rowId == null) return;
+    const lf = cpLocked(r, 'fdi'), lv = cpLocked(r, 'vendor');
+    detail.querySelectorAll('input.cp-input[data-role]').forEach(inp => {
+      const role = inp.dataset.role; if (role !== 'fdi' && role !== 'vendor') return;
+      const on = role === 'vendor' ? lv : lf;
+      inp.disabled = on; inp.classList.toggle('cp-locked', on);
+    });
+    detail.querySelectorAll('input.cp-pushes-input').forEach(inp => { inp.disabled = lf || lv; inp.classList.toggle('cp-locked', lf || lv); });
+    detail.querySelectorAll('button.cp-lock').forEach(btn => {
+      const on = cpLocked(r, btn.dataset.side), label = btn.dataset.label;
+      btn.classList.toggle('on', on);
+      btn.innerHTML = on ? '&#128274; ' + label + ' locked' : '&#128275; Lock ' + label;
+      btn.title = on ? 'Click to unlock and edit again' : 'Lock these so they can’t be changed by accident';
+    });
+  }
+
   function contractInputHtml(r, field, label, role){
     const canEdit = r.rowId != null;
     const val = effectiveContractValue(r, field);
     const display = (val === null || val === undefined) ? '' : val;
     const isPending = canEdit && pendingContractMap.has(`${r.rowId}::${field}`);
-    const disabledAttr = canEdit ? '' : 'disabled title="No Smartsheet row id on file — can\'t sync"';
+    const lockedNow = canEdit && cpLocked(r, cpSideOf(field));
+    const disabledAttr = canEdit ? (lockedNow ? 'disabled title="Locked \u2014 click the lock button above to edit"' : '') : 'disabled title="No Smartsheet row id on file — can\'t sync"';
     return `<span class="cp-input-wrap">
       <span class="cp-currency">$</span>
-      <input type="number" step="0.01" inputmode="decimal" class="cp-input${isPending?' cp-pending':''}"
+      <input type="number" step="0.01" inputmode="decimal" class="cp-input${isPending?' cp-pending':''}${lockedNow?' cp-locked':''}"
         data-rowid="${canEdit?r.rowId:''}" data-field="${field}" data-label="${escapeHtml(label)}" data-role="${role||''}"
         value="${display}" placeholder="&mdash;" ${disabledAttr}>
     </span>`;
@@ -3431,6 +3475,168 @@ td.map-cell{ width:60px; text-align:center; }
     document.body.appendChild(a); a.click(); a.remove();
     if (typeof blob !== 'string') setTimeout(() => URL.revokeObjectURL(url), 8000);
   }
+  // ---------- Vendor bid sheet: selected properties -> blank .xlsx vendors fill in ----------
+  // Hand-rolled .xlsx writer (stored zip, inline strings) so no library is needed.
+  const BS_CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++){ let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  function bsCrc32(u8){ let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = BS_CRC[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+  function bsZip(files){ // files: [{name, data:string}] -> Uint8Array (no compression)
+    const enc = new TextEncoder(); const parts = []; const central = []; let offset = 0;
+    const d = new Date(); const dosTime = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+    const dosDate = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+    files.forEach(f => {
+      const name = enc.encode(f.name), data = enc.encode(f.data), crc = bsCrc32(data);
+      const lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+      lh.setUint16(10, dosTime, true); lh.setUint16(12, dosDate, true); lh.setUint32(14, crc, true);
+      lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+      parts.push(new Uint8Array(lh.buffer), name, data);
+      const ch = new DataView(new ArrayBuffer(46));
+      ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true);
+      ch.setUint16(12, dosTime, true); ch.setUint16(14, dosDate, true); ch.setUint32(16, crc, true);
+      ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, name.length, true);
+      ch.setUint32(42, offset, true);
+      central.push(new Uint8Array(ch.buffer), name);
+      offset += 30 + name.length + data.length;
+    });
+    const cdSize = central.reduce((s, p) => s + p.length, 0);
+    const end = new DataView(new ArrayBuffer(22));
+    end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+    end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+    const all = parts.concat(central, [new Uint8Array(end.buffer)]);
+    const out = new Uint8Array(all.reduce((s, p) => s + p.length, 0)); let o = 0; all.forEach(p => { out.set(p, o); o += p.length; });
+    return out;
+  }
+  const bsXml = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+  function bsColName(i){ let s = ''; i++; while (i > 0){ const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; }
+  // style ids (see STYLES_XML): 0 plain, 1 title, 2 subtitle, 3 bold label, 4 yellow input, 5 header, 6 text cell, 7 SF cell, 8 $ input, 9 note, 10 yellow notes cell
+  function bsSheetXml(sh){
+    const maxCol = Math.max(...sh.rows.map(r => r.length));
+    const rowsXml = sh.rows.map((cells, ri) => {
+      const rn = ri + 1; const ht = sh.heights && sh.heights[ri] ? ` ht="${sh.heights[ri]}" customHeight="1"` : '';
+      const cx = cells.map((c, ci) => {
+        if (c == null) return '';
+        const ref = bsColName(ci) + rn;
+        const s = c.s || 0;
+        if (c.n !== undefined && c.n !== null && c.n !== '') return `<c r="${ref}" s="${s}"><v>${Number(c.n)}</v></c>`;
+        if (c.t === undefined || c.t === '') return `<c r="${ref}" s="${s}"/>`;
+        return `<c r="${ref}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${bsXml(c.t)}</t></is></c>`;
+      }).join('');
+      return `<row r="${rn}"${ht}>${cx}</row>`;
+    }).join('');
+    const cols = sh.widths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('');
+    const merges = (sh.merges || []).length ? `<mergeCells count="${sh.merges.length}">${sh.merges.map(m => `<mergeCell ref="${m}"/>`).join('')}</mergeCells>` : '';
+    const freeze = sh.freezeRow ? `<pane xSplit="${sh.freezeCols || 0}" ySplit="${sh.freezeRow}" topLeftCell="${bsColName(sh.freezeCols || 0)}${sh.freezeRow + 1}" activePane="bottomRight" state="frozen"/>` : '';
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:${bsColName(maxCol - 1)}${sh.rows.length}"/><sheetViews><sheetView workbookViewId="0" showGridLines="0">${freeze}</sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols>${cols}</cols><sheetData>${rowsXml}</sheetData>${merges}<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/><pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>`;
+  }
+  const BS_STYLES_XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    + '<numFmts count="1"><numFmt numFmtId="164" formatCode="&quot;$&quot;#,##0.00"/></numFmts>'
+    + '<fonts count="6"><font><sz val="11"/><name val="Calibri"/></font>'
+    + '<font><b/><sz val="15"/><color rgb="FF1F3864"/><name val="Calibri"/></font>'
+    + '<font><i/><sz val="10"/><color rgb="FF595959"/><name val="Calibri"/></font>'
+    + '<font><b/><sz val="11"/><name val="Calibri"/></font>'
+    + '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>'
+    + '<font><sz val="11"/><color rgb="FF1F3864"/><name val="Calibri"/></font></fonts>'
+    + '<fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'
+    + '<fill><patternFill patternType="solid"><fgColor rgb="FF1F3864"/><bgColor indexed="64"/></patternFill></fill>'
+    + '<fill><patternFill patternType="solid"><fgColor rgb="FFFFF2CC"/><bgColor indexed="64"/></patternFill></fill></fills>'
+    + '<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>'
+    + '<border><left style="thin"><color rgb="FF8C8C8C"/></left><right style="thin"><color rgb="FF8C8C8C"/></right><top style="thin"><color rgb="FF8C8C8C"/></top><bottom style="thin"><color rgb="FF8C8C8C"/></bottom><diagonal/></border></borders>'
+    + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+    + '<cellXfs count="11">'
+    + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+    + '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+    + '<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+    + '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"><alignment vertical="center"/></xf>'
+    + '<xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1"><alignment vertical="center"/></xf>'
+    + '<xf numFmtId="0" fontId="4" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'
+    + '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>'
+    + '<xf numFmtId="3" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'
+    + '<xf numFmtId="164" fontId="0" fillId="3" borderId="1" xfId="0" applyNumberFormat="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>'
+    + '<xf numFmtId="0" fontId="5" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'
+    + '<xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>'
+    + '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+
+  const BS_FAMILY_NAMES = { PFUETZE: 'Pfuetze', CS: 'CubeSmart', DSS: 'Devon Self Storage', PS: 'Public Storage', NS: 'National Storage', SROA: 'SROA' };
+  const BS_HOURLY = ['Front Loader $/hr', 'Bobcat $/hr', 'Dump Truck $/hr', 'Hauling $/hr'];
+  // price columns for one customer family (what the vendor fills in) — never FDI prices
+  function bsPriceColumns(type, sampleRow){
+    const fields = sampleRow ? contractFieldsForRow(sampleRow) : CONTRACT_FIELDS;
+    const nice = (k, label) => k === 'deicer' ? (type === 'PFUETZE' ? 'Salting (per application)' : 'Deicer / salting (per application)')
+      : k === 'saltingOfficeGate' ? 'Salting – Office/Gate'
+      : k === 'seasonal' ? 'Seasonal price (flat)'
+      : k === 'perInchRate' ? 'Per-inch rate ($/inch)'
+      : String(label).replace(/^(FDI|SROA)\s+/i, '') + ' (per push)';
+    let cols = fields.map(([k, vk, label]) => ({ key: vk, label: nice(k, label), k }));
+    if (type === 'PFUETZE'){
+      const salt = cols.filter(c => c.k === 'deicer' || c.k === 'saltingOfficeGate');
+      const pushes = cols.filter(c => !salt.includes(c));
+      cols = pushes.concat(BS_HOURLY.map(h => ({ key: null, label: h, k: 'hourly' })), salt);
+    }
+    return cols;
+  }
+  function buildBidSheetModel(selRows, opts){
+    opts = opts || {};
+    const groups = new Map();
+    selRows.forEach(r => { const type = contractTypeForRow(r) || 'OTHER'; if (!groups.has(type)) groups.set(type, []); groups.get(type).push(r); });
+    const sheets = []; const usedNames = new Set();
+    const storeKey = r => String(r.store || '').toUpperCase();
+    groups.forEach((list, type) => {
+      list.sort((a, b) => storeKey(a).localeCompare(storeKey(b), undefined, { numeric: true }));
+      const cols = type === 'OTHER'
+        ? [{ key: null, label: 'Price per push', k: 'x' }, { key: null, label: 'Salting (per application)', k: 'x' }]
+        : bsPriceColumns(type, list[0]);
+      const baseName = BS_FAMILY_NAMES[type] || 'Other';
+      let name = baseName, i = 2; while (usedNames.has(name)) name = baseName + ' ' + i++; usedNames.add(name);
+      const headers = ['Store #', 'Property address', 'Sq ft'].concat(cols.map(c => c.label), ['Notes / exclusions']);
+      const nC = headers.length;
+      const blankRow = () => new Array(nC).fill(null);
+      const rowsOut = [];
+      const r1 = blankRow(); r1[0] = { t: 'Snow Removal Bid Request – ' + (opts.season || '2026/2027') + ' Season', s: 1 }; rowsOut.push(r1);
+      const r2 = blankRow(); r2[0] = { t: 'Farmer Development  ·  ' + (opts.contact || 'Zak Kranich  ·  zkranich@farmerdevelopment.com') + '  ·  ' + baseName + ' properties', s: 2 }; rowsOut.push(r2);
+      rowsOut.push(blankRow());
+      const lab = (txt, ln) => { const r = blankRow(); r[0] = { t: txt, s: 3 }; for (let c = 1; c < Math.min(nC, 5); c++) r[c] = { t: '', s: 4 }; return r; };
+      rowsOut.push(lab('Vendor / company:')); rowsOut.push(lab('Contact · phone · email:')); rowsOut.push(lab('Date:'));
+      const note = blankRow(); note[0] = { t: 'Please fill in the yellow cells with your price for each property (enter 0 or "N/A" if you don’t service a line). Prices are per push at the snow depth shown unless the column says otherwise. Add exclusions in Notes, then save and email this file back.', s: 9 }; rowsOut.push(note);
+      rowsOut.push(blankRow());
+      const hdrIdx = rowsOut.length + 1;
+      rowsOut.push(headers.map(h => ({ t: h, s: 5 })));
+      list.forEach(r => {
+        const row = [{ t: r.store || '', s: 6 }, { t: r.address || '', s: 6 }, (r.sfNumeric != null && !Number.isNaN(Number(r.sfNumeric)) && r.sfNumeric !== '') ? { n: r.sfNumeric, s: 7 } : { t: '', s: 7 }];
+        cols.forEach(() => row.push({ t: '', s: 8 }));
+        row.push({ t: '', s: 10 });
+        rowsOut.push(row);
+      });
+      const widths = [24, 44, 10].concat(cols.map(c => c.label.length > 22 ? 18 : 14), [32]);
+      const heights = {}; heights[hdrIdx - 1] = 45; heights[6] = 42; for (let k = hdrIdx; k < hdrIdx + list.length; k++) heights[k] = 20;
+      sheets.push({ name: name.slice(0, 31), rows: rowsOut, widths, heights, merges: ['A1:' + bsColName(nC - 1) + '1', 'A2:' + bsColName(nC - 1) + '2', 'A7:' + bsColName(nC - 1) + '7', 'B4:' + bsColName(Math.min(nC, 5) - 1) + '4', 'B5:' + bsColName(Math.min(nC, 5) - 1) + '5', 'B6:' + bsColName(Math.min(nC, 5) - 1) + '6'], freezeRow: hdrIdx, freezeCols: 1, count: list.length });
+    });
+    return sheets;
+  }
+  function buildXlsxBytes(sheets){
+    const files = [];
+    files.push({ name: '[Content_Types].xml', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' + sheets.map((s, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('') + '</Types>' });
+    files.push({ name: '_rels/.rels', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' });
+    files.push({ name: 'xl/workbook.xml', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>' + sheets.map((s, i) => `<sheet name="${bsXml(s.name)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join('') + '</sheets></workbook>' });
+    files.push({ name: 'xl/_rels/workbook.xml.rels', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + sheets.map((s, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join('') + `<Relationship Id="rId${sheets.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>` });
+    files.push({ name: 'xl/styles.xml', data: BS_STYLES_XML });
+    sheets.forEach((s, i) => files.push({ name: `xl/worksheets/sheet${i + 1}.xml`, data: bsSheetXml(s) }));
+    return bsZip(files);
+  }
+  function createVendorBidSheet(){
+    const selRows = [...selected].map(i => rows[i]).filter(Boolean);
+    const note = document.getElementById('bulk-note');
+    if (!selRows.length){ if (note) note.textContent = 'Select some properties first.'; return; }
+    const sheets = buildBidSheetModel(selRows);
+    const bytes = buildXlsxBytes(sheets);
+    const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const d = new Date(); const stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const pmName = (selRows.every(r => r.pm && r.pm === selRows[0].pm) && selRows[0].pm) ? ' - ' + selRows[0].pm : '';
+    const fname = `Snow Bid Request${pmName} (${selRows.length} sites) ${stamp}.xlsx`;
+    ivDownload(blob, fname);
+    window.__lastBidSheet = { bytes, sheets, fname };
+    if (note) note.textContent = `Downloaded ${fname} — ${sheets.map(s => s.name + ' ' + s.count).join(', ')}. Send the same file to each vendor.`;
+  }
+
   let ivGmailOk = null;   // null = unknown, false = the Worker has no Google secrets (use the download + compose flow)
   function ivFileToB64(blob){
     return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1] || ''); fr.onerror = () => rej(fr.error || new Error('read failed')); fr.readAsDataURL(blob); });
@@ -3617,6 +3823,7 @@ td.map-cell{ width:60px; text-align:center; }
     const seasonalField = DSS_AUTOCALC_SEASONAL_FIELD[changedField];
     if (!seasonalField) return;
     const isVendor = changedField.startsWith('vendor');
+    if (cpLocked(r, isVendor ? 'vendor' : 'fdi')) return;
     const deicerVal = Number(effectiveContractValue(r, isVendor ? 'vendorDeicer' : 'deicer'));
     const pushVal = Number(effectiveContractValue(r, isVendor ? 'vendorFdi2_4' : 'fdi2_4'));
     if (Number.isNaN(deicerVal) || Number.isNaN(pushVal)) return; // need both to compute
@@ -3917,6 +4124,14 @@ td.map-cell{ width:60px; text-align:center; }
     const PDFLib = window.PDFLib;
     const kind = SUBCONTRACT_TEMPLATES[kindOverride] ? kindOverride : subcontractKindForRow(r);
     const tmpl = SUBCONTRACT_TEMPLATES[kind];
+    // Ask first: sign it (saved signature + today's date on FDI's line) or leave it blank?
+    const savedSig = loadSavedSignature();
+    let signIt = false;
+    if (savedSig && savedSig.dataUrl){
+      signIt = window.confirm('Sign this subcontract with your saved signature and today\u2019s date?\n\nOK = signed and dated\nCancel = create it unsigned (signature and date left blank)');
+    } else if (!window.confirm('You haven\u2019t saved a signature yet, so this subcontract would come out unsigned.\n\nOK = create it unsigned\nCancel = stop (use the My Signature button at the top to save one first)')){
+      return;
+    }
     const origLabel = btnEl ? btnEl.textContent : null;
     if (btnEl){ btnEl.disabled = true; btnEl.textContent = 'Building…'; }
     try {
@@ -3931,10 +4146,24 @@ td.map-cell{ width:60px; text-align:center; }
       // Single-store contract: drop Amendment A (page 5) and its fields.
       SUBCONTRACT_AMENDMENT_FIELDS.forEach(n => { try { form.removeField(form.getField(n)); } catch(e){} });
       if (pdfDoc.getPageCount() > 4) pdfDoc.removePage(pdfDoc.getPageCount() - 1);
+      if (signIt){
+        try {
+          setPdfText(form, 'fdi_sign_date', new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }));
+          const sigField = form.getTextField('fdi_signature');
+          const rect = sigField.acroField.getWidgets()[0].getRectangle();
+          const sigPage = pdfDoc.getPages()[3];
+          const sigPng = await pdfDoc.embedPng(savedSig.dataUrl);
+          const boxX = rect.x + 2, boxY = rect.y - 2, boxW = rect.width - 8, boxH = rect.height + 8;
+          const sc = Math.min(boxW / sigPng.width, boxH / sigPng.height);
+          const w2 = sigPng.width * sc, h2 = sigPng.height * sc;
+          sigPage.drawImage(sigPng, { x: boxX, y: boxY + (boxH - h2) / 2, width: w2, height: h2 });
+          form.removeField(sigField);
+        } catch(e){ console.warn('could not stamp saved signature on subcontract', e); }
+      }
       const outBytes = await pdfDoc.save();
       const blob = new Blob([outBytes], { type: 'application/pdf' });
       const safeStore = (r.store || 'store').replace(/[^A-Za-z0-9_\- ]/g, '').trim();
-      await savePdfBlob(`${safeStore} - ${tmpl.filenameSuffix}.pdf`, blob);
+      await savePdfBlob(`${safeStore} - ${tmpl.filenameSuffix}${signIt ? ' (signed)' : ''}.pdf`, blob);
       if (btnEl && warn.length) btnEl.title = tmpl.label + ' subcontract built. Heads up: ' + warn.join(' ');
     } catch(e){
       if (e && e.code === 'declined') { /* user said no in the save dialog */ }
@@ -4227,9 +4456,9 @@ td.map-cell{ width:60px; text-align:center; }
     const disabledAttr = canEdit ? '' : 'disabled title="No Smartsheet row id on file — can\'t sync"';
     const input = (val, role, mirrorField) => `<span class="cp-input-wrap">
       <span class="cp-currency">$</span>
-      <input type="number" step="0.01" inputmode="decimal" class="cp-input cp-basemonthly-input"
+      <input type="number" step="0.01" inputmode="decimal" class="cp-input cp-basemonthly-input${canEdit && cpLocked(r, role) ? ' cp-locked' : ''}"
         data-mirror-field="${mirrorField}" data-role="${role}" data-div="${div}"
-        value="${val === '' ? '' : val}" placeholder="&mdash;" ${disabledAttr}>
+        value="${val === '' ? '' : val}" placeholder="&mdash;" ${disabledAttr}${canEdit && cpLocked(r, role) ? ' disabled' : ''}>
     </span>`;
     return `<div class="cp-item">
       <div class="cp-name">${isPS ? `Monthly (seasonal &divide; ${div})` : 'Base Monthly'}</div>
@@ -4243,7 +4472,7 @@ td.map-cell{ width:60px; text-align:center; }
     const canEdit = r.rowId != null;
     return `<div class="cp-item">
       <div class="cp-name">Pushes (seasonal basis)</div>
-      <div class="cp-line"><input type="number" min="1" max="60" step="1" inputmode="numeric" class="cp-input cp-pushes-input" value="${dssPushCount(r)}" ${canEdit ? '' : 'disabled'} title="Seasonal = (2&quot;-4&quot; push rate + deicer) &times; pushes" style="width:70px;"></div>
+      <div class="cp-line"><input type="number" min="1" max="60" step="1" inputmode="numeric" class="cp-input cp-pushes-input${canEdit && (cpLocked(r,'fdi') || cpLocked(r,'vendor')) ? ' cp-locked' : ''}" value="${dssPushCount(r)}" ${canEdit && !(cpLocked(r,'fdi') || cpLocked(r,'vendor')) ? '' : 'disabled'} title="Seasonal = (2&quot;-4&quot; push rate + deicer) &times; pushes" style="width:70px;"></div>
       <div class="cp-line"><span class="cp-line-label" style="min-width:0;font-size:11px;">Seasonal = (push + deicer) &times; pushes</span></div>
     </div>`;
   }
@@ -4266,7 +4495,7 @@ td.map-cell{ width:60px; text-align:center; }
       const extra = (type === 'DSS' && k === 'seasonal' ? dssPushesItemHtml(r) : '') + ((type === 'DSS' || type === 'PS') && k === 'seasonal' ? baseMonthlyItemHtml(r) : '');
       return extra + item;
     }).join('');
-    return `<div class="contract-params"><div class="k">Contract parameters</div><div class="v"><div class="cp-grid">${rowsHtml}</div></div></div>`;
+    return `<div class="contract-params"><div class="k">Contract parameters${cpLockBarHtml(r)}</div><div class="v"><div class="cp-grid">${rowsHtml}</div></div></div>`;
   }
 
   function rowFlagBadges(r){
@@ -4537,6 +4766,18 @@ td.map-cell{ width:60px; text-align:center; }
         handleOwnerContractUpload(r, inp);
       });
     });
+    detail.querySelectorAll('button.cp-lock').forEach(btn => {
+      ['click','mousedown'].forEach(ev => btn.addEventListener(ev, e => e.stopPropagation()));
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        const side = btn.dataset.side, label = btn.dataset.label, on = cpLocked(r, side);
+        if (on && !window.confirm('Unlock ' + label + ' so they can be edited again?')) return;
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+        cpSetLock(r, side, !on);
+        cpApplyLocks(detail, r);
+      });
+    });
+    cpApplyLocks(detail, r);
     wireOverhead(detail, r);
     wireIvMail(detail, r);
     wireIvEstimates(detail, r);
@@ -4733,6 +4974,7 @@ td.map-cell{ width:60px; text-align:center; }
   document.getElementById('bulk-unmark-lost').addEventListener('click', () => {
     stageBulkStatus('lost', false);
   });
+  document.getElementById('bulk-bid-sheet').addEventListener('click', createVendorBidSheet);
   document.getElementById('bulk-clear').addEventListener('click', () => {
     selected.clear();
     updateBulkBar();
