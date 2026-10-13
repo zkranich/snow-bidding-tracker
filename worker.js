@@ -44,6 +44,7 @@ const ADD_ROW_COLUMN_IDS = {
 
 // "26/27 Snow PBR Tracker" — the storm-dispatch log behind the dashboard's Contracted tab.
 // One row per site per storm.
+const CUSTOMER_INFO_SHEET_ID = 953322563391364;   // "Customer Information" (read-only)
 const DISPATCH_SHEET_ID = '5482051831811972';
 const DISPATCH_COLS = {
   request: 8036663236005764,      // Request (primary: "<storm> | <store>")
@@ -55,6 +56,13 @@ const DISPATCH_COLS = {
   vendor: 6347813375741828,
   status: 4096013562056580,       // picklist: Requested / Dispatched / On Site / Completed / Issue / Cancelled
   service: 8599613189427076,      // picklist: Plow / Salt / Plow + Salt / Haul / Stack / Other
+  serviceItems: 2241975098838916, // text: individual contract parameters picked for the service
+  fdiAmount: 1416956307345284,    // FDI Amount (combined contract amount of the picked services)
+  vendorCost: 5920555934715780,   // Vendor Cost (combined)
+  workOrder: 3668756121030532,    // Work Order Number
+  projectNo: 8707827574804356,    // Project Number (S26000...)
+  pushedAt: 3907393630801796,     // Pushed to Billing (date)
+  vendorInvoice: 5844323083784068, // Vendor Invoice Number
   forecast: 436838864818052,
   actual: 4940438492188548,
   pushes: 2688638678503300,
@@ -75,6 +83,8 @@ const FIELD_COLUMN_IDS = {
   lost: 5987315245420420,           // Lost (checkbox)
   region: 260677394796420,          // Region (picklist)
   vendor2627: 7903831494791044,     // 26/27 Vendor (text)
+  customer: 4342064557100932,       // Customer (the DM / contact)
+  customerEmail: 8178725658857348,  // Customer Email
   // Contract rates (FDI + vendor side), seasonal amounts, and contract dates.
   // Dashboard keys that share a Smartsheet column (e.g. fdi2_4 / pfuetze2_4) point at the same ID.
   deicer: 8242098027663236,
@@ -440,6 +450,13 @@ export default {
       // GET /vendors — the whole Vendor Tracking List
       if (url.pathname === '/vendors' && request.method === 'GET') {
         const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${VENDOR_SHEET_ID}`, { headers: ssHeaders });
+        const data = await resp.json();
+        return json(data, resp.ok ? 200 : 502, headers);
+      }
+
+      // GET /customer-info — the "Customer Information" sheet (on-site contact, phone, email, gate code per store)
+      if (url.pathname === '/customer-info' && request.method === 'GET') {
+        const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${CUSTOMER_INFO_SHEET_ID}`, { headers: ssHeaders });
         const data = await resp.json();
         return json(data, resp.ok ? 200 : 502, headers);
       }

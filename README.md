@@ -145,3 +145,52 @@ Second tab next to **Bidding**. A site appears here once it reaches the stage pi
 - **Contracted Sites** — roster of every site that has reached the stage picked in the "Sites" selector (same setting the Service tab uses). Click a row to open it on the Bidding tab.
 - **Service** — service dispatch: create a service for one store (or all shown/checked), request service per site; the service type (Plow / Salt / Plow + Salt) comes from the store's contract rates, email vendors, track status. Logged to the "26/27 Snow PBR Tracker" Smartsheet.
 - **Projections** — revenue / margin projections (unchanged).
+
+## Customer (DM) picker
+
+Open any site on the Bidding tab: under **Customer (DM)** pick an existing DM from the list, or choose **+ Add new DM…** to enter a name and email. The site's Customer and Customer Email columns are updated in Smartsheet (queued if offline), the table and the Customers filter update right away, and picking an existing DM fills in their email. The DM email box can be edited on its own. Requires the updated `worker.js` (adds `customer` and `customerEmail` to `/update`).
+
+## Contracted sites hide the bidding-stage tools
+
+Once a site counts as contracted (it meets the stage picked in the Sites dropdown on the Contracted Sites / Service tabs), its expanded view on the Bidding tab hides the *Create owner contract* / *Create Vendor Subcontract* buttons (and the Vendor Contract Type dropdown), the *25/26 Vendor* line, and *Vendors interested*. They come back automatically if the site's status drops below that stage.
+
+## Expand a contracted site + Service history
+
+On the **Contracted Sites** tab, click any row to expand it in place (same panel as the Bidding tab, minus the bidding-stage tools). Under each contracted site there's a **Service history** line listing every service logged for it in the 26/27 Snow PBR Tracker (date, service, type, status, vendor, snow, pushes, salt, notes — newest first). Use **+ New service** on that line (or the Service tab) to add one; it lands at the top of that site's history immediately.
+
+## New service: pick individual contract parameters
+
+Choosing a single store in **New service** lists that store's contract parameters (each plow tier, Deicer, Salting office/gate, Seasonal) plus Haul / Stack and Other as checkboxes — tick as many as apply. The picks are saved to the new **Service Items** column of the 26/27 Snow PBR Tracker (column id `2241975098838916`, already added), and the **Service** column gets the matching Plow / Salt / Plow + Salt / Haul / Stack / Other summary. With several stores selected you can tick generic services or leave "Per each store's contract". Items show under the service on the Service tab, in Service history, and in the vendor email (amounts are never included). Requires the updated `worker.js`.
+
+## Service history columns + project numbers
+
+The dark-blue Service history bar shows: **Project #** | **Date** (MM/DD/YYYY) | **Service** (what was ticked) | **Vendor** | **FDI Amount** | **Vendor Cost** | **Work Order #**.
+
+- FDI Amount / Vendor Cost are the combined totals of the contract parameters ticked when the service is created (blank for "per each store's contract", Haul / Stack and Other). Amounts and Work Order # are editable inline and write back to Smartsheet.
+- **Project numbers** are `S` (snow) + `26` (season year) + a running number: S26000, S26001, S26002… One per service per store, assigned when the service is created (next number = highest existing + 1).
+- New columns on the "26/27 Snow PBR Tracker" sheet: Service Items, FDI Amount, Vendor Cost, Work Order Number, Project Number. **Paste the updated worker.js into Cloudflare** so these save.
+
+## Prefilled amounts in New service
+In the New service dialog (single store) FDI Amount fills live from the ticked contract parameters (sum of their FDI rates); Vendor Cost fills from the store's vendor prices when stored, otherwise stays blank to type in. Work Order # can be entered up front. All three are editable in the dialog and later in Service history. For multi-store services, each store is prefilled from its own contract (a generic "Salt" uses the store's Deicer rate; "Per each store's contract" fills only when that contract has a single service).
+
+Service history also has a **Notes** column (editable inline, saved to the existing Notes column on the dispatch sheet; the same note shows on the Service tab).
+
+## On-site contact + gate code (Contracted sites)
+Contract Start/End are hidden on contracted sites. In their place: **On-site contact** (GM/SM), **On-site phone** (GM/SM Cell, falling back to Store Phone), **On-site email** (Store Email) and **Gate code**, read from the Smartsheet **"Customer Information"** sheet (id 953322563391364), matched by Store Number. Read-only in the dashboard (edit in that sheet). Needs the updated worker.js (new GET /customer-info route).
+
+## Push to billing (Service history -> Billing tab)
+- Button at the end of each site's Service history. First click asks to confirm (shows Owner / Sub totals), second click pushes every service that has an amount and isn't already pushed.
+- **Owner billing** gets the **FDI Amount only**; **Sub billing** gets the **Vendor Cost only**. A service with only one amount appears in just that list.
+- Pushing stamps today's date in the new **Pushed to Billing** column on the "26/27 Snow PBR Tracker" sheet (so it can't be pushed twice and survives refresh); pushed rows' amounts are locked. **Undo** on the Billing tab clears it.
+- New **Billing** tab: Owner billing / Sub billing lists (Project #, Store, Customer or Vendor, date, service, amount, work order #) with totals and **Download CSV**. No separate billing sheets yet — these lists are built from the dispatch log, ready to be wired to Accounts Receivable later.
+- Needs the updated worker.js (new `pushedAt` column mapping).
+
+Sub billing list also has an editable **Vendor Invoice #** (saved to the new "Vendor Invoice Number" column on the dispatch sheet; included in the Sub billing CSV). Needs the updated worker.js.
+
+## Weather (48-hour snow / ice outlook) — inside the Service tab
+The Weather panel sits at the top of the **Service** tab, collapsed by default; its header shows live High / Watch / Low counts, click it to expand the site list.
+- Scans the **National Weather Service** (gridded snowfall + ice forecast, active winter alerts) and **Open-Meteo** (second-opinion model forecast) for each site, located by the ZIP in its address. Free, no keys, runs in the browser (nothing to deploy in the Worker).
+- Looks at the next 48 hours only. Risk: **High** = Winter Storm/Blizzard/Ice Storm/other winter Warning, or snow at/above the chosen trigger (1–4", default 2"), or ice >= 0.10"; **Watch** = Watch/Advisory, or snow >= 0.5", or any measurable ice; **Low** = trace snow/ice or likely wintry precip; **Clear**. The higher of NWS and the model wins.
+- Filters: contracted vs all active sites, region, PM, risk chips. Address links to the NWS point forecast. Sites with no ZIP in the address show "No data".
+- Refreshes when you open the Service tab (if older than 30 min) or click Check weather. It does not alert when the dashboard is closed.
+- Service history now shows the "Pushed to billing <date>" pill under each line's service date.

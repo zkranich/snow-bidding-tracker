@@ -324,6 +324,7 @@ button{ font-family:inherit; }
 .as-grid label{ display:block; font-size:11.5px; color:var(--ink-muted); font-weight:600; margin-bottom:3px; }
 .ct-contract-hint{ font-size:12px; line-height:1.5; color:var(--ink-muted); background:var(--surface-alt); border:1px solid var(--border); border-radius:7px; padding:8px 10px; }
 .ct-contract-hint b{ color:var(--ink); }
+.ct-checks{ display:grid; grid-template-columns:1fr 1fr; gap:6px 14px; } .ct-chk{ display:flex !important; align-items:center; gap:8px; font-size:13px !important; font-weight:400 !important; color:var(--ink) !important; margin:0 !important; cursor:pointer; } .ct-chk-amt{ margin-left:auto; color:var(--ink-muted); font-size:12px; } .as-grid input[type=checkbox]{ width:auto; margin:0; padding:0; }
 .as-grid input[type=radio]{ width:auto; margin:0 7px 0 0; padding:0; vertical-align:middle; }
 .as-grid input, .as-grid select{ width:100%; box-sizing:border-box; background:var(--surface-alt); color:var(--ink); border:1px solid var(--border); border-radius:7px; padding:8px 9px; font-size:13px; font-family:inherit; }
 .as-actions{ display:flex; align-items:center; gap:10px; margin-top:14px; }
@@ -331,7 +332,8 @@ button{ font-family:inherit; }
 .as-actions button.primary{ background:var(--accent); color:#fff; border-color:var(--accent); font-weight:600; }
 .as-actions button:disabled{ opacity:.6; cursor:wait; }
 .as-msg{ font-size:12px; color:var(--ink-muted); }
-.as-msg.bad{ color:#d9534f; font-weight:600; }
+.as-msg.bad{ color:#d9534f; font-weight:600; flex-basis:100%; background:rgba(217,83,79,.12); border:1px solid #d9534f; border-radius:7px; padding:7px 10px; font-size:13px; }
+.as-actions{ flex-wrap:wrap; }
 @media (max-width:520px){ .as-grid{ grid-template-columns:1fr; } }
 
 /* ---------- Contracted tab (storm operations) ---------- */
@@ -624,7 +626,17 @@ footer{
 .sub-tab.active{ background:var(--accent-soft); color:var(--accent-ink); border-color:color-mix(in srgb, var(--accent) 45%, var(--border)); }
 .sc-chip{ font-size:11px; font-weight:600; padding:2px 9px; border-radius:999px; white-space:nowrap; background:var(--surface-alt); border:1px solid var(--border-soft); color:var(--ink-muted); }
 .sc-chip.ok{ background:var(--map-green); color:#fff; border-color:transparent; } .sc-chip.bad{ background:var(--map-red); color:#fff; border-color:transparent; } .sc-chip.warn{ background:var(--map-yellow); color:#1c1c1c; border-color:transparent; }
-table.sc-table{ min-width:1100px; } table.sc-table tbody tr{ cursor:pointer; } table.sc-table tbody tr:hover{ background:var(--surface-alt); }
+table.sc-table{ min-width:1100px; } .sh-wrap .v{ margin-top:4px; } .sh-sum{ font-size:12px; color:var(--ink-muted); margin-bottom:6px; } .sh-empty{ font-size:12.5px; color:var(--ink-faint); } table.sh-table{ border-collapse:collapse; width:100%; font-size:12.5px; background:var(--surface); border:1px solid var(--border); border-radius:8px; } table.sh-table .sh-block{ overflow-x:auto; } .sh-money{ white-space:nowrap; color:#4a5666; } .ci-wait{ color:var(--ink-faint); font-size:12px; } .ci-gate{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:14px; letter-spacing:.04em; } .ci-v a{ color:var(--accent-ink); } div.sh-bl{ margin-top:4px; white-space:nowrap; } .sh-pushed{ display:inline-block; padding:2px 8px; border-radius:999px; background:#1f8a4c; color:#fff; font-size:11px; font-weight:600; } input.sh-in[readonly]{ background:#e9edf2 !important; border-color:#c3ccd7; }
+  .sh-pushbar{ display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:8px 12px; margin-top:8px; } .sh-bl-info{ font-size:12px; color:var(--ink-muted); } .sh-bl-msg{ font-size:12px; font-weight:600; color:#1e6b46; margin-right:auto; } .sh-pushbar .ct-btn.primary{ background:#1f8a4c; border-color:#1f8a4c; color:#fff; font-weight:600; } .sh-pushbar .ct-btn.primary:hover{ background:#187540; } .sh-push-done{ display:inline-block; padding:7px 14px; border-radius:7px; background:#1f8a4c; color:#fff; font-size:12.5px; font-weight:600; } .sh-pushbar .ct-btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .bl-table{ width:100%; border-collapse:separate; border-spacing:0; background:var(--surface); } .bl-amt{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; } .bl-table tfoot td{ padding:8px 9px; border-top:2px solid #1e3a5f; }
+  input.sh-in.sh-vi{ width:130px; } .wx-kpis{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:10px; } .wx-kpi{ border:2px solid transparent; border-radius:10px; padding:8px 18px; min-width:96px; text-align:left; cursor:pointer; font-family:inherit; color:#fff; display:flex; flex-direction:column; } .wx-kpi .n{ font-size:24px; font-weight:700; line-height:1.1; } .wx-kpi .t{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; opacity:.95; } .wx-kpi.on{ border-color:#14202e; box-shadow:0 0 0 2px #fff inset; } .wx-none{ font-size:12px; color:var(--ink-muted); }
+.wx-panel{ background:var(--surface,#fff); border:1px solid var(--border,#d8dee6); border-radius:10px; margin-bottom:12px; } .wx-panel>summary{ cursor:pointer; padding:10px 14px; display:flex; align-items:center; gap:14px; list-style:none; font-weight:600; } .wx-panel>summary::-webkit-details-marker{ display:none; } .wx-panel>summary::before{ content:'\25B8'; font-size:12px; order:-1; } .wx-panel[open]>summary::before{ content:'\25BE'; } .wx-panel .wx-sum{ font-weight:400; font-size:12px; color:var(--ink-muted); } .wx-panel-in{ padding:4px 14px 12px; }
+
+  .wx-alert{ background:#b4322a; } .wx-watch{ background:#d9822b; } .wx-low{ background:#c9a227; color:#2a2200 !important; } .wx-clear{ background:#4f8a63; } .wx-none-p{ background:#7a8696; }
+  .wx-pill{ display:inline-block; padding:3px 11px; border-radius:999px; font-size:11.5px; font-weight:700; color:#fff; white-space:nowrap; } .wx-pill.wx-none{ background:#7a8696; } .wx-pill.wx-low{ color:#2a2200; }
+  .wx-table{ width:100%; border-collapse:separate; border-spacing:0; background:var(--surface); } .wx-sub{ font-size:11px; color:var(--ink-muted); white-space:nowrap; } .wx-al{ display:inline-block; padding:2px 8px; border-radius:6px; font-size:11.5px; font-weight:600; color:#fff; margin:1px 4px 1px 0; } .wx-al.alert{ background:#b4322a; } .wx-al.watch{ background:#d9822b; } .wx-table a{ color:var(--accent-ink); text-decoration:none; }
+  textarea.sh-in.sh-notes{ width:100%; min-width:220px; resize:vertical; line-height:1.35; } input.sh-in::placeholder, textarea.sh-in::placeholder{ color:#7a8696 !important; -webkit-text-fill-color:#7a8696; opacity:1; } input.sh-in:focus{ outline:2px solid #1e3a5f; outline-offset:0; } table.sh-table input.sh-in,textarea.sh-in{ width:92px; box-sizing:border-box; background:#fff !important; color:#14202e !important; -webkit-text-fill-color:#14202e; color-scheme:light; border:1px solid #9aa7b6; border-radius:6px; padding:4px 6px; font-size:12.5px; font-family:inherit; } table.sh-table input.sh-pn{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .sh-wo{ width:120px; } table.sh-table .sh-items{ font-size:11.5px; color:var(--ink-muted); margin-top:2px; } table.sh-table th{ text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:#fff; background:#1e3a5f; padding:7px 9px; border-bottom:1px solid #1e3a5f; } table.sh-table th:first-child{ border-top-left-radius:7px; } table.sh-table th:last-child{ border-top-right-radius:7px; } table.sh-table td{ padding:6px 9px; border-bottom:1px solid var(--border); vertical-align:top; } table.sh-table tr:last-child td{ border-bottom:0; } .sh-st{ display:inline-block; padding:2px 10px; border-radius:999px; font-size:11.5px; font-weight:600; background:#1e3a5f !important; color:#fff !important; border:1px solid #1e3a5f; } table.sc-table tbody tr{ cursor:pointer; } table.sc-table tbody tr:hover{ background:var(--surface-alt); } table.sc-table tbody tr.active{ background:var(--surface-alt); } table.sc-table tbody tr.detail-row, table.sc-table tbody tr.detail-row:hover{ cursor:default; background:transparent; }
 .proj-wrap{ max-width:1280px; margin:16px auto 0; }
 .vc-wrap{ max-width:1280px; margin:16px auto 0; }
 .vc-bar{ display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; background:var(--surface); border:1px solid var(--border-soft); border-radius:10px; box-shadow:var(--shadow); padding:10px 14px; }
@@ -799,6 +811,7 @@ td.map-cell{ width:60px; text-align:center; }
   <button class="main-tab" id="tab-compliance" type="button" data-view="compliance">Vendors</button>
   <button class="main-tab" id="tab-sites" type="button" data-view="sites">Contracted Sites</button>
   <button class="main-tab" id="tab-contracted" type="button" data-view="contracted">Service</button>
+  <button class="main-tab" id="tab-billing" type="button" data-view="billing">Billing</button>
   <button class="main-tab" id="tab-projections" type="button" data-view="projections">Projections</button>
 </div>
 <div class="sub-tabs" id="bid-subtabs">
@@ -1054,12 +1067,41 @@ td.map-cell{ width:60px; text-align:center; }
         <tbody id="sc-tbody"></tbody>
       </table>
     </div>
-    <div class="vc-note">Every site that has reached the stage picked under &ldquo;Sites&rdquo; (the same setting the Service tab uses). Click a row to open it on the Bidding tab. Vendor compliance comes from the Vendor Tracking List; services completed counts Completed requests on the Service tab.</div>
+    <div class="vc-note">Every site that has reached the stage picked under &ldquo;Sites&rdquo; (the same setting the Service tab uses). Click a row to expand it, just like on the Bidding tab. Vendor compliance comes from the Vendor Tracking List; services completed counts Completed requests on the Service tab.</div>
   </div>
 </div><!-- /view-sites -->
 
+<div id="view-billing" hidden>
+  <div class="vc-wrap">
+    <div class="vc-bar">
+      <button type="button" class="sub-tab active" id="bl-tab-owner">Owner billing</button>
+      <button type="button" class="sub-tab" id="bl-tab-sub">Sub billing</button>
+      <span id="bl-note" style="font-size:12px;color:var(--ink-muted)"></span>
+      <button type="button" class="ct-btn" id="bl-csv" style="margin-left:auto">Download CSV</button>
+    </div>
+    <div id="bl-body" style="margin-top:12px"></div>
+  </div>
+</div><!-- /view-billing -->
+
 <div id="view-contracted" hidden>
   <div class="vc-wrap">
+    <details class="wx-panel" id="wx-panel">
+      <summary><span class="wx-ttl">&#9729; Weather &mdash; 48-hour snow/ice outlook</span><span class="wx-sum" id="wx-sum">Not checked yet</span></summary>
+      <div class="wx-panel-in">
+    <div class="wx-kpis" id="wx-kpis"></div>
+    <div class="vc-bar">
+      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Sites
+        <select id="wx-scope"><option value="contracted">Contracted sites</option><option value="all">All active sites</option></select></label>
+      <select id="wx-region"><option value="">All regions</option></select>
+      <select id="wx-pm"><option value="">All PMs</option></select>
+      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">High risk at
+        <select id="wx-trigger"><option value="1">1" snow</option><option value="2" selected>2" snow</option><option value="3">3" snow</option><option value="4">4" snow</option></select></label>
+      <button type="button" class="ct-btn" id="wx-refresh" style="margin-left:auto">Check weather</button>
+    </div>
+    <div id="wx-note" style="font-size:12px;color:var(--ink-muted);margin:8px 2px"></div>
+    <div id="wx-body"></div>
+      </div>
+    </details>
     <div class="ct-kpis" id="ct-kpis"></div>
     <div class="vc-bar">
       <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Sites
@@ -1098,19 +1140,31 @@ td.map-cell{ width:60px; text-align:center; }
   </div>
 </div><!-- /view-contracted -->
 
+<div class="as-back" id="dm-back" hidden>
+  <form class="as-card" id="dm-form" autocomplete="off" style="max-width:420px">
+    <h3>Add new DM</h3>
+    <p class="as-sub">Adds the DM to the customer list and assigns this site to them (saved to the Customer / Customer Email columns).</p>
+    <div class="as-grid">
+      <div class="full"><label for="dm-f-name">DM name *</label><input id="dm-f-name" required></div>
+      <div class="full"><label for="dm-f-email">DM email</label><input id="dm-f-email" type="email" placeholder="name@company.com"></div>
+    </div>
+    <div class="as-actions"><button type="submit" class="primary" id="dm-f-save">Add &amp; assign</button><button type="button" id="dm-f-cancel">Cancel</button><span class="as-msg" id="dm-f-msg"></span></div>
+  </form>
+</div>
 <div class="as-back" id="ct-back" hidden>
   <form class="as-card" id="ct-form" autocomplete="off">
     <h3>New service</h3>
-    <p class="as-sub">Creates a Requested service row for each site (saved to the 26/27 Snow PBR Tracker).</p>
+    <p class="as-sub">Creates the service and logs it under each site’s Service history (saved to the 26/27 Snow PBR Tracker).</p>
     <div class="as-grid">
       <div class="full"><label for="ct-f-store">Store *</label><select id="ct-f-store"></select></div>
       <div><label for="ct-f-date">Service date</label><input id="ct-f-date" type="date"></div>
-      <div><label for="ct-f-forecast">Forecast snow (in)</label><input id="ct-f-forecast" inputmode="decimal" placeholder="e.g. 3-5"></div>
-      <div class="full"><label for="ct-f-service">Service</label><select id="ct-f-service"></select></div>
+      <div class="full"><label>Service</label><div id="ct-f-service" class="ct-checks"></div></div>
       <div class="full"><div id="ct-f-contract" class="ct-contract-hint"></div></div>
-      <div class="full"><label for="ct-f-notes">Note to vendors (optional)</label><input id="ct-f-notes" placeholder="e.g. Lots must be clear by 6am"></div>
+      <div id="ct-f-amts-fdi"><label for="ct-f-fdi">FDI Amount ($)</label><input id="ct-f-fdi" inputmode="decimal" placeholder="from contract"></div>
+      <div id="ct-f-amts-ven"><label for="ct-f-ven">Vendor Cost ($)</label><input id="ct-f-ven" inputmode="decimal" placeholder="enter if known"></div>
+      <div id="ct-f-amts-wo"><label for="ct-f-wo">Work Order #</label><input id="ct-f-wo" placeholder="optional"></div>
     </div>
-    <div class="as-actions"><button type="submit" class="primary" id="ct-f-save">Create requests</button><button type="button" id="ct-f-cancel">Cancel</button><span class="as-msg" id="ct-f-msg"></span></div>
+    <div class="as-actions"><button type="submit" class="primary" id="ct-f-save">Create service</button><button type="button" id="ct-f-cancel">Cancel</button><span class="as-msg" id="ct-f-msg"></span></div>
   </form>
 </div>
 <div class="as-back" id="ctv-back" hidden>
@@ -1287,11 +1341,18 @@ td.map-cell{ width:60px; text-align:center; }
   const regions = Object.keys(raw.regionCounts).filter(r=>r!=='(no region)').sort();
   regions.forEach(r => regionSel.insertAdjacentHTML('beforeend', `<option value="${r}">${r} (${raw.regionCounts[r]})</option>`));
   regionSel.insertAdjacentHTML('beforeend', `<option value="__NONE__">(no region) (${raw.regionCounts['(no region)']||0})</option>`);
-  const customerCounts = {};
-  rows.forEach(r => { const c = r.customer || '(unassigned)'; customerCounts[c] = (customerCounts[c]||0)+1; });
-  const customers = Object.keys(customerCounts).filter(c=>c!=='(unassigned)').sort();
-  customers.forEach(c => customerSel.insertAdjacentHTML('beforeend', `<option value="${c}">${c} (${customerCounts[c]})</option>`));
-  customerSel.insertAdjacentHTML('beforeend', `<option value="__NONE__">(unassigned) (${customerCounts['(unassigned)']||0})</option>`);
+  function buildCustomerFilter(){
+    const keep = customerSel.value;
+    const customerCounts = {};
+    rows.forEach(r => { const c = r.customer || '(unassigned)'; customerCounts[c] = (customerCounts[c]||0)+1; });
+    const customers = Object.keys(customerCounts).filter(c=>c!=='(unassigned)').sort();
+    customerSel.innerHTML = '<option value="">All Customers</option>'
+      + customers.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)} (${customerCounts[c]})</option>`).join('')
+      + `<option value="__NONE__">(unassigned) (${customerCounts['(unassigned)']||0})</option>`;
+    if ([...customerSel.options].some(o => o.value === keep)) customerSel.value = keep;
+    else if (keep){ state.customer = ''; customerSel.value = ''; }
+  }
+  buildCustomerFilter();
 
   const custStatusSel = document.getElementById('filter-customer-status');
   const vendStatusSel = document.getElementById('filter-vendor-status');
@@ -1377,6 +1438,8 @@ td.map-cell{ width:60px; text-align:center; }
       else if (e.field === 'region'){ if (e.value) r.region = String(e.value); }
       else if (e.field === 'vendor2627') r.vendor2627 = e.value ? String(e.value) : '';
       else if (e.field === 'pm') r.pm = pmFromCell(e.value, '');
+      else if (e.field === 'customer'){ if (e.value) r.customer = String(e.value); }
+      else if (e.field === 'customerEmail') r.customerEmail = e.value ? String(e.value) : '';
       else if (Object.prototype.hasOwnProperty.call(INTERESTED_COLUMNS, e.field)){ if (!r.interested) r.interested = {}; r.interested[e.field] = e.value ? String(e.value) : ''; }
       else if (Object.prototype.hasOwnProperty.call(LIVE_CONTRACT_COLUMNS, e.field)){
         if (!r.contractParams) r.contractParams = {};
@@ -1492,7 +1555,7 @@ td.map-cell{ width:60px; text-align:center; }
   function pmShort(name){ return name ? String(name).split(' ')[0] : ''; }
   // Vendors interested in a site: 3 x (name, email, phone), each its own Smartsheet column.
   const INTERESTED_COLUMNS = {"iv1Name": 716833319325572, "iv1Email": 5220432946696068, "iv1Phone": 2968633133010820, "iv2Name": 7472232760381316, "iv2Email": 1842733226168196, "iv2Phone": 6346332853538692, "iv3Name": 4094533039853444, "iv3Email": 8598132667223940, "iv3Phone": 435358342614916, "iv1Emailed": 4044247596306308, "iv1Quote": 8547847223676804, "iv2Emailed": 385072899067780, "iv2Quote": 4888672526438276, "iv3Emailed": 2636872712753028, "iv3Quote": 7140472340123524};
-  const LIVE_COL = { customerStatus: 7113215152263044, vendorStatus: 1483715618049924, lost: 5987315245420420, region: 260677394796420, vendor2627: 7903831494791044 };
+  const LIVE_COL = { customerStatus: 7113215152263044, vendorStatus: 1483715618049924, lost: 5987315245420420, region: 260677394796420, vendor2627: 7903831494791044, customer: 4342064557100932, customerEmail: 8178725658857348 };
   async function loadLiveFromSmartsheet(){
     if (!SMARTSHEET_WORKER_URL) return;
     const tag = document.getElementById('snapshot-date');
@@ -1534,7 +1597,10 @@ td.map-cell{ width:60px; text-align:center; }
         r.vendorStatus = c[LIVE_COL.vendorStatus] || null;
         r.lost = !!c[LIVE_COL.lost];
         if (c[LIVE_COL.region]) r.region = String(c[LIVE_COL.region]);
+        if (c[LIVE_COL.customer]) r.customer = String(c[LIVE_COL.customer]);
+        r.customerEmail = c[LIVE_COL.customerEmail] ? String(c[LIVE_COL.customerEmail]) : '';
       });
+      try { buildCustomerFilter(); } catch(e){}
       applyOutbox(); // unsynced local edits win until Smartsheet confirms them
       // On a plain host (no db capability) Smartsheet is the single source of truth: once
       // it's been read back, drop the in-memory "pending" overlays so later edits made
@@ -3292,6 +3358,71 @@ td.map-cell{ width:60px; text-align:center; }
     return `<select class="pm-select" data-rowid="${canEdit?r.rowId:''}"${canEdit?'':' disabled'}>${opts}</select>`;
   }
 
+  // ---------- Customer (DM) picker: choose an existing DM or add a new one ----------
+  const DM_KEY = 'fdiNewDmsV1';
+  function dmLoad(){ try { return JSON.parse(localStorage.getItem(DM_KEY) || '[]') || []; } catch(e){ return []; } }
+  function dmSave(l){ try { localStorage.setItem(DM_KEY, JSON.stringify(l)); } catch(e){} }
+  function dmDirectory(){
+    const m = new Map();
+    const add = (name, email) => { name = String(name || '').trim(); if (!name) return null; const k = name.toLowerCase(); const e = m.get(k) || { name, email: '', count: 0 }; if (!e.email && email) e.email = String(email).trim(); m.set(k, e); return e; };
+    rows.forEach(r => { const e = add(r.customer, r.customerEmail); if (e) e.count++; });
+    dmLoad().forEach(d => add(d.name, d.email));
+    return [...m.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }
+  function dmEmailFor(name){ const k = String(name || '').trim().toLowerCase(); const d = dmDirectory().find(x => x.name.toLowerCase() === k); return d ? d.email : ''; }
+  function customerSelectHtml(r){
+    const canEdit = r.rowId != null; const cur = (r.customer || '').trim();
+    const dir = dmDirectory();
+    let opts = '<option value="">&mdash; none &mdash;</option>' + dir.map(d => `<option value="${escapeHtml(d.name)}"${d.name.toLowerCase() === cur.toLowerCase() ? ' selected' : ''}>${escapeHtml(d.name)}${d.count ? ' (' + d.count + ')' : ''}</option>`).join('');
+    if (cur && !dir.some(d => d.name.toLowerCase() === cur.toLowerCase())) opts += `<option value="${escapeHtml(cur)}" selected>${escapeHtml(cur)}</option>`;
+    opts += '<option value="__new__">&#43; Add new DM&hellip;</option>';
+    return `<select class="dm-select" data-rowid="${canEdit ? r.rowId : ''}"${canEdit ? '' : ' disabled'}>${opts}</select>`;
+  }
+  function customerEmailHtml(r){
+    const canEdit = r.rowId != null; const em = r.customerEmail || dmEmailFor(r.customer) || '';
+    return `<input type="email" class="dm-email-input" data-rowid="${canEdit ? r.rowId : ''}" value="${escapeHtml(em)}" placeholder="DM email"${canEdit ? '' : ' disabled'}>`;
+  }
+  function dmUpdateTableCell(r){
+    const idx = rows.indexOf(r); if (idx === -1) return;
+    const tr = document.querySelector(`#tbody tr[data-idx="${idx}"]:not(.detail-row)`); if (!tr) return;
+    const cell = tr.querySelector('td.customer'); if (!cell) return;
+    cell.title = r.customer || ''; cell.innerHTML = r.customer ? escapeHtml(r.customer) : '&mdash;';
+  }
+  function dmSetCustomer(r, name, email){
+    name = String(name || '').trim(); email = String(email || '').trim();
+    r.customer = name; r.customerEmail = email;
+    syncFieldToSmartsheet(r.rowId, 'customer', name);
+    syncFieldToSmartsheet(r.rowId, 'customerEmail', email);
+    dmUpdateTableCell(r); try { buildCustomerFilter(); } catch(e){}
+    const sv = document.getElementById('view-sites'); if (sv && !sv.hidden && typeof scRender === 'function') scRender();
+  }
+  function dmSetEmail(r, email){
+    r.customerEmail = String(email || '').trim();
+    syncFieldToSmartsheet(r.rowId, 'customerEmail', r.customerEmail);
+    if (r.customer){ const l = dmLoad(); const d = l.find(x => String(x.name).toLowerCase() === r.customer.toLowerCase()); if (d){ d.email = r.customerEmail; dmSave(l); } }
+  }
+  let dmTarget = null;
+  function dmOpenNew(r, after){
+    dmTarget = { r, after };
+    document.getElementById('dm-f-name').value = ''; document.getElementById('dm-f-email').value = '';
+    const m = document.getElementById('dm-f-msg'); m.textContent = ''; m.classList.remove('bad');
+    document.getElementById('dm-back').hidden = false; setTimeout(() => document.getElementById('dm-f-name').focus(), 30);
+  }
+  function dmSubmitNew(ev){
+    if (ev) ev.preventDefault(); if (!dmTarget) return;
+    const name = document.getElementById('dm-f-name').value.trim().replace(/\s+/g, ' '), email = document.getElementById('dm-f-email').value.trim();
+    const msg = document.getElementById('dm-f-msg');
+    if (!name){ msg.textContent = 'Enter the DM\u2019s name.'; msg.classList.add('bad'); return; }
+    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ msg.textContent = 'That email doesn\u2019t look right.'; msg.classList.add('bad'); return; }
+    const existing = dmDirectory().find(d => d.name.toLowerCase() === name.toLowerCase());
+    const finalName = existing ? existing.name : name; const finalEmail = email || (existing ? existing.email : '');
+    if (!existing){ const l = dmLoad(); l.push({ name: finalName, email: finalEmail }); dmSave(l); }
+    const { r, after } = dmTarget; dmTarget = null;
+    document.getElementById('dm-back').hidden = true;
+    dmSetCustomer(r, finalName, finalEmail);
+    if (after) after();
+  }
+
   // ---------- Overhead map (attached to the site's Bidding-sheet row via the Worker) ----------
   const ohFiles = new Map();   // rowId -> [{id,name,mime}]
   const ohMsg = new Map();     // rowId -> {text,bad}
@@ -4749,25 +4880,29 @@ td.map-cell{ width:60px; text-align:center; }
     const pendCust = r.rowId!=null ? pendingCustomerStatusMap.get(String(r.rowId)) : null;
     const pendVend = r.rowId!=null ? pendingVendorStatusMap.get(String(r.rowId)) : null;
     const pendLost = r.rowId!=null ? pendingLostMap.get(String(r.rowId)) : null;
+    let contracted = false; try { contracted = ctEligible(r); } catch(e){}
     const innerHtml = `<div class="detail-grid">
-      <div style="grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      ${contracted?'':`      <div style="grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
         ${contractKind(r.store)?`<button type="button" class="contract-btn" data-idx="${idx}" data-side="owner" title="Generate a filled ${csKind(r.store)?(csKind(r.store)==='owned'?'Owned':'Managed'):'Devon Self Storage'} snowplowing contract PDF for ${escapeHtml(r.store)}">Create Owner Contract</button>`:''}
         <button type="button" class="contract-btn" data-idx="${idx}" data-side="vendor" title="Fill the FDI subcontract that matches this store's contract parameters">Create Vendor Subcontract</button>
         <select class="contract-kind-select is-placeholder" data-idx="${idx}" title="Vendor contract type — leave on the grey label to use the auto-picked template">
           <option value="" selected>Vendor Contract Type</option>
           ${Object.entries(SUBCONTRACT_TEMPLATES).map(([k,v])=>`<option value="${k}" data-auto="${k===subcontractKindForRow(r)?'1':''}">${v.label}${k===subcontractKindForRow(r)?' (auto)':''}</option>`).join('')}
         </select>
-      </div>
+      </div>`}
       <div><div class="k">Region</div><div class="v">${regionSelectHtml(r)}</div></div>
       <div><div class="k">PM</div><div class="v">${pmSelectHtml(r)}</div></div>
+      <div><div class="k">Customer (DM)</div><div class="v">${customerSelectHtml(r)}</div></div>
+      <div><div class="k">DM email</div><div class="v">${customerEmailHtml(r)}</div></div>
       <div><div class="k">26/27 Vendor</div><div class="v">${vendor2627InputHtml(r)}</div></div>
-      <div><div class="k">25/26 Vendor</div><div class="v">${escapeHtml(r.vendor)||'&mdash;'}</div></div>
-      <div><div class="k">Contract Start</div><div class="v">${contractDateInputHtml(r, 'contractStart')}</div></div>
-      <div><div class="k">Contract End</div><div class="v">${contractDateInputHtml(r, 'contractEnd')}</div></div>
+      ${contracted?'':`<div><div class="k">25/26 Vendor</div><div class="v">${escapeHtml(r.vendor)||'&mdash;'}</div></div>`}
+      ${contracted ? ciBoxHtml(r) : `<div><div class="k">Contract Start</div><div class="v">${contractDateInputHtml(r, 'contractStart')}</div></div>
+      <div><div class="k">Contract End</div><div class="v">${contractDateInputHtml(r, 'contractEnd')}</div></div>`}
       ${r.regionRaw?`<div><div class="k">Region as entered</div><div class="v">${escapeHtml(r.regionRaw)}</div></div>`:''}
       ${r.sfIssue?`<div><div class="k">SF as entered</div><div class="v">${escapeHtml(r.sf)}</div></div>`:''}
+      ${contracted ? serviceHistoryHtml(r) : ''}
       ${contractParamsHtml(r)}
-      ${interestedVendorsHtml(r)}
+      ${contracted?'':interestedVendorsHtml(r)}
       ${overheadMapHtml(r)}
     <div class="contract-params"><div class="k">Owner Contracts</div><div class="v">
         <div class="owner-contract-list" data-rowid="${r.rowId ?? ''}">${ownerContractListHtml(r)}</div>
@@ -4890,6 +5025,21 @@ td.map-cell{ width:60px; text-align:center; }
         const vv = document.getElementById('view-vendor');
         if (vv && !vv.hidden) renderVendorContracting();
       });
+    });
+    detail.querySelectorAll('select.dm-select').forEach(sel => {
+      ['click','mousedown'].forEach(ev => sel.addEventListener(ev, e => e.stopPropagation()));
+      sel.addEventListener('change', e => {
+        e.stopPropagation();
+        if (!sel.dataset.rowid) return;
+        const refresh = () => fillDetail(detail, idx, asRow);
+        if (sel.value === '__new__'){ refresh(); dmOpenNew(r, () => fillDetail(detail, idx, asRow)); return; }
+        dmSetCustomer(r, sel.value, sel.value ? dmEmailFor(sel.value) : '');
+        refresh();
+      });
+    });
+    detail.querySelectorAll('input.dm-email-input').forEach(inp => {
+      ['click','mousedown'].forEach(ev => inp.addEventListener(ev, e => e.stopPropagation()));
+      inp.addEventListener('change', e => { e.stopPropagation(); if (!inp.dataset.rowid) return; dmSetEmail(r, inp.value); });
     });
     detail.querySelectorAll('input.iv-input').forEach(inp => {
       ['click','mousedown'].forEach(ev => inp.addEventListener(ev, e => e.stopPropagation()));
@@ -5761,16 +5911,19 @@ td.map-cell{ width:60px; text-align:center; }
     document.querySelectorAll('#proj-assume input').forEach(el => el.addEventListener('input', projReadInputs));
     document.getElementById('proj-reset').addEventListener('click', () => { projAssume = projClone(PROJ_DEFAULTS); projSave(); projSyncInputs(); renderProjections(); });
     function showView(v){
-      ['bidding', 'vendor', 'compliance', 'sites', 'contracted', 'projections'].forEach(n => { const el = document.getElementById('view-' + n); if (el) el.hidden = n !== v; });
+      ['bidding', 'vendor', 'compliance', 'sites', 'contracted', 'billing', 'projections'].forEach(n => { const el = document.getElementById('view-' + n); if (el) el.hidden = n !== v; });
       const main = (v === 'bidding' || v === 'vendor') ? 'bidding' : v;
-      ['bidding', 'compliance', 'sites', 'contracted', 'projections'].forEach(n => document.getElementById('tab-' + n).classList.toggle('active', n === main));
+      ['bidding', 'compliance', 'sites', 'contracted', 'billing', 'projections'].forEach(n => document.getElementById('tab-' + n).classList.toggle('active', n === main));
       const sub = document.getElementById('bid-subtabs'); sub.hidden = !(v === 'bidding' || v === 'vendor');
       document.getElementById('sub-bidding').classList.toggle('active', v === 'bidding');
       document.getElementById('tab-vendor').classList.toggle('active', v === 'vendor');
+      if (v !== 'sites') document.querySelectorAll('#sc-tbody .detail-row').forEach(x => x.remove());
+      if (v === 'sites') document.querySelectorAll('#tbody .detail-row').forEach(x => { const m = document.querySelector(`#tbody tr[data-idx="${x.dataset.idx}"]:not(.detail-row)`); if (m) m.classList.remove('active'); x.remove(); });
       if (v === 'vendor') renderVendorContracting();
       if (v === 'compliance'){ if (vtRows === null || vtState === 'error' || vtState === 'noconn') vtLoad(); else renderCompliance(); }
       if (v === 'sites'){ scRender(); ctLoad(false); if (SMARTSHEET_WORKER_URL) vtEnsureRows().then(scRender).catch(() => {}); }
-      if (v === 'contracted'){ ctPickStorm(); ctRender(); ctLoad(true); }
+      if (v === 'contracted'){ ctPickStorm(); ctRender(); ctLoad(true); wxRender(); if (!wxBusy && (wxState === 'idle' || Date.now() - wxAt > 30 * 60000)) wxRefresh(); }
+      if (v === 'billing'){ blRender(); ctLoad(false).then(blRender).catch(() => {}); }
       if (v === 'projections') renderProjections();
       window.__showView = showView;
     }
@@ -5780,6 +5933,7 @@ td.map-cell{ width:60px; text-align:center; }
     document.getElementById('tab-projections').addEventListener('click', () => showView('projections'));
     document.getElementById('tab-sites').addEventListener('click', () => showView('sites'));
     document.getElementById('tab-contracted').addEventListener('click', () => showView('contracted'));
+    document.getElementById('tab-billing').addEventListener('click', () => showView('billing'));
     document.getElementById('tab-vendor').addEventListener('click', () => showView('vendor'));
     document.getElementById('tab-compliance').addEventListener('click', () => showView('compliance'));
   })();
@@ -5789,7 +5943,7 @@ td.map-cell{ width:60px; text-align:center; }
   // "26/27 Snow PBR Tracker" (via the Worker /dispatch endpoints). Changes are saved in this
   // browser first (outbox) and pushed to Smartsheet, so nothing is lost on a refresh.
   const CT_OUTBOX_KEY = 'fdiDispatchOutboxV1', CT_SCOPE_KEY = 'fdiCtScopeV1';
-  const CT_COLS = {"request":8036663236005764,"storm":718313841528708,"stormDate":5221913468899204,"store":2970113655213956,"address":7473713282584452,"pm":1844213748371332,"vendor":6347813375741828,"status":4096013562056580,"service":8599613189427076,"forecast":436838864818052,"actual":4940438492188548,"pushes":2688638678503300,"salt":7192238305873796,"requestedAt":1562738771660676,"dispatchedAt":6066338399031172,"onSiteAt":3814538585345924,"completedAt":8318138212716420,"issue":999788818239364,"notes":5503388445609860};
+  const CT_COLS = {"request":8036663236005764,"storm":718313841528708,"stormDate":5221913468899204,"store":2970113655213956,"address":7473713282584452,"pm":1844213748371332,"vendor":6347813375741828,"status":4096013562056580,"service":8599613189427076,"serviceItems":2241975098838916,"fdiAmount":1416956307345284,"vendorCost":5920555934715780,"workOrder":3668756121030532,"projectNo":8707827574804356,"pushedAt":3907393630801796,"vendorInvoice":5844323083784068,"forecast":436838864818052,"actual":4940438492188548,"pushes":2688638678503300,"salt":7192238305873796,"requestedAt":1562738771660676,"dispatchedAt":6066338399031172,"onSiteAt":3814538585345924,"completedAt":8318138212716420,"issue":999788818239364,"notes":5503388445609860};
   const CT_STATUSES = ['Requested', 'Dispatched', 'On Site', 'Completed', 'Issue', 'Cancelled'];
   const CT_SERVICES = ['Plow', 'Salt', 'Plow + Salt', 'Haul / Stack', 'Other'];
   let ctReqs = [];            // all requests (server rows + not-yet-created local ones)
@@ -5887,6 +6041,124 @@ td.map-cell{ width:60px; text-align:center; }
     if (status === 'Completed'){ stamp('dispatchedAt'); stamp('onSiteAt'); stamp('completedAt'); }
   }
 
+  // ----- On-site contact / phone / email / gate code, pulled from the "Customer Information" sheet (via the Worker)
+  const CI_COLS = { customer: 8395367511969668, dm: 8050358090682244, dmCell: 5580617744863108, store: 732008696205188, address: 5235608323575684, storePhone: 2983808509890436, gate: 3891767884599172, email: 8364191376166788, contact: 7487408137260932, contactCell: 1857908603047812, hours: 1077018117492612 };
+  let ciMap = null, ciState = 'idle', ciAt = 0, ciErr = '';
+  function ciParse(sheet){
+    const byCol = {}; Object.entries(CI_COLS).forEach(([k, id]) => { byCol[id] = k; });
+    const m = new Map();
+    (sheet.rows || []).forEach(sr => {
+      const o = {}; (sr.cells || []).forEach(c => { const k = byCol[c.columnId]; if (k && c.value !== undefined && c.value !== null && String(c.value).trim() !== '') o[k] = String(c.value).trim(); });
+      if (!o.store) return; const key = normStore(o.store); const cur = m.get(key);
+      if (!cur) m.set(key, o); else Object.keys(o).forEach(k => { if (!cur[k]) cur[k] = o[k]; });   // duplicate rows for a store fill each other's blanks
+    });
+    return m;
+  }
+  async function ciEnsure(){
+    if (!SMARTSHEET_WORKER_URL){ ciState = 'noconn'; return; }
+    if (ciMap && Date.now() - ciAt < 600000) return;
+    if (ciState === 'loading') return;
+    ciState = 'loading';
+    try {
+      const resp = await fetch(vtBase() + '/customer-info', { headers: vtHdr() });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status + (resp.status === 404 ? ' (deploy the latest worker.js)' : ''));
+      const sheet = await resp.json(); if (!sheet || !Array.isArray(sheet.rows)) throw new Error('unexpected response');
+      ciMap = ciParse(sheet); ciAt = Date.now(); ciState = 'ok'; ciErr = '';
+    } catch(e){ ciState = 'error'; ciErr = (e && e.message === 'Failed to fetch') ? 'could not reach the Worker' : String((e && e.message) || e); }
+  }
+  function ciFor(r){ return (ciMap && ciMap.get(normStore(r.store))) || null; }
+  const ciTel = v => { const d = String(v || '').replace(/[^\d+]/g, ''); return d ? `<a href="tel:${escapeHtml(d)}">${escapeHtml(v)}</a>` : escapeHtml(v); };
+  function ciFieldHtml(r, key){
+    const i = ciFor(r);
+    if (!i){ return ciState === 'loading' || ciState === 'idle' ? '<span class="ci-wait">loading…</span>' : ciState === 'noconn' ? '<span class="ci-wait">connect Smartsheet</span>' : ciState === 'error' ? `<span class="ci-wait" title="${escapeHtml(ciErr)}">unavailable</span>` : '&mdash;'; }
+    if (key === 'contact') return escapeHtml(i.contact || '') || '&mdash;';
+    if (key === 'phone'){ const v = i.contactCell || i.storePhone || ''; return v ? ciTel(v) + (!i.contactCell && i.storePhone ? ' <span class="ci-wait">(store)</span>' : '') : '&mdash;'; }
+    if (key === 'email') return i.email ? `<a href="mailto:${escapeHtml(i.email)}">${escapeHtml(i.email)}</a>` : '&mdash;';
+    if (key === 'gate') return i.gate ? `<b class="ci-gate">${escapeHtml(i.gate)}</b>` : '&mdash;';
+    return '';
+  }
+  function ciBoxHtml(r){
+    const f = (k, label) => `<div class="ci-item" data-store="${escapeHtml(normStore(r.store))}" data-ci="${k}"><div class="k">${label}</div><div class="v ci-v">${ciFieldHtml(r, k)}</div></div>`;
+    setTimeout(() => { ciEnsure().then(ciRefresh); }, 0);
+    return f('contact', 'On-site contact') + f('phone', 'On-site phone') + f('email', 'On-site email') + f('gate', 'Gate code');
+  }
+  function ciRefresh(){
+    document.querySelectorAll('.ci-item').forEach(el => { const r = rows.find(x => normStore(x.store) === el.dataset.store); const v = el.querySelector('.ci-v'); if (r && v) v.innerHTML = ciFieldHtml(r, el.dataset.ci); });
+  }
+
+  // ----- Service history (dispatch log rows for one site) shown under each contracted site
+  function serviceHistoryRows(r){
+    const ns = normStore(r.store);
+    return ctReqs.filter(q => normStore(q.store) === ns).sort((a, b) => String(b.stormDate || '').localeCompare(String(a.stormDate || '')) || String(b.requestedAt || '').localeCompare(String(a.requestedAt || '')));
+  }
+  const shMdy = d => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(d || '')); return m ? `${m[2]}/${m[3]}/${m[1]}` : String(d || ''); };
+  const shNum = v => { const n = Number(String(v == null ? '' : v).replace(/[$,\s]/g, '')); return String(v == null ? '' : v).trim() === '' || isNaN(n) ? null : n; };
+  const shMoney = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  function serviceHistoryInner(r){
+    let list = []; try { list = serviceHistoryRows(r); } catch(e){}
+    if (!list.length) return '<div class="sh-empty">No services logged for this site yet. Use <b>Create new service</b> above to add one.</div>';
+    const sum = f => list.reduce((a, q) => a + (shNum(q[f]) || 0), 0);
+    const money = (q, f) => `<span class="sh-money">$<input class="sh-in" data-f="${f}" inputmode="decimal" value="${escapeHtml(q[f] || '')}" placeholder="—"${q.pushedAt ? ' readonly title="Already pushed to billing"' : ''}></span>`;
+    return `<div class="sh-sum">${list.length} service${list.length === 1 ? '' : 's'} logged &middot; FDI ${shMoney(sum('fdiAmount'))} &middot; Vendor ${shMoney(sum('vendorCost'))}</div>
+      <table class="sh-table"><thead><tr><th>Project #</th><th>Date</th><th>Service</th><th>Vendor</th><th>FDI Amount</th><th>Vendor Cost</th><th>Work Order #</th><th>Notes</th></tr></thead><tbody>`
+      + list.map(q => `<tr data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}"><td class="sh-pn">${escapeHtml(q.projectNo || '')}</td><td>${escapeHtml(shMdy(q.stormDate))}${q.pushedAt ? `<div class="sh-bl"><span class="sh-pushed" title="Pushed to owner + sub billing">Pushed to billing ${escapeHtml(shMdy(q.pushedAt))}</span></div>` : ''}</td><td>${escapeHtml(q.serviceItems || q.service || '')}${q.serviceItems && q.service ? `<div class="sh-items">${escapeHtml(q.service)}</div>` : ''}</td><td>${escapeHtml(q.vendor || '')}</td><td>${money(q, 'fdiAmount')}</td><td>${money(q, 'vendorCost')}</td><td><input class="sh-in sh-wo" data-f="workOrder" value="${escapeHtml(q.workOrder || '')}" placeholder="WO #"></td><td><textarea class="sh-in sh-notes" data-f="notes" rows="1" placeholder="Add a note…">${escapeHtml(q.notes || '')}</textarea></td></tr>`).join('')
+      + '</tbody></table>' + blPushBarHtml(r, list);
+  }
+  // ----- Push to billing: owner billing gets the FDI amount only, sub billing gets the vendor cost only
+  const blAmt = (q, f) => { const n = shNum(q[f]); return n !== null && n > 0 ? n : 0; };
+  const blPending = q => !q.pushedAt && (blAmt(q, 'fdiAmount') > 0 || blAmt(q, 'vendorCost') > 0);
+  let blConfirm = '', blMsg = {}, blMode = 'owner';
+  function blPushBarHtml(r, list){
+    const key = normStore(r.store); const pend = list.filter(blPending);
+    const owner = pend.reduce((a, q) => a + blAmt(q, 'fdiAmount'), 0), sub = pend.reduce((a, q) => a + blAmt(q, 'vendorCost'), 0);
+    const msg = blMsg[key] ? `<span class="sh-bl-msg">${escapeHtml(blMsg[key])}</span>` : '';
+    if (!pend.length){
+      const done = list.filter(q => q.pushedAt).map(q => String(q.pushedAt)).sort().pop();
+      if (done) return `<div class="sh-pushbar" data-store="${escapeHtml(key)}">${msg}<span class="sh-bl-info">All services with amounts are in billing.</span><span class="sh-push-done">&#10003; Pushed to billing ${escapeHtml(shMdy(done))}</span></div>`;
+      return `<div class="sh-pushbar" data-store="${escapeHtml(key)}">${msg}<span class="sh-bl-info">Nothing to push — add an FDI amount or vendor cost to a service first.</span><button type="button" class="ct-btn sh-push" disabled>Push to billing</button></div>`;
+    }
+    const confirming = blConfirm === key;
+    return `<div class="sh-pushbar" data-store="${escapeHtml(key)}">${msg}<span class="sh-bl-info">${pend.length} service${pend.length === 1 ? '' : 's'} ready &middot; Owner billing ${shMoney(owner)} (FDI) &middot; Sub billing ${shMoney(sub)} (vendor)</span>${confirming ? '<button type="button" class="ct-btn sh-push-cancel">Cancel</button>' : ''}<button type="button" class="ct-btn primary sh-push sh-push-go">${confirming ? 'Confirm — push to billing ' + shMdy(ctToday()) : 'Push to billing'}</button></div>`;
+  }
+  function blDoPush(r){
+    const list = serviceHistoryRows(r).filter(blPending); if (!list.length) return;
+    const stamp = ctToday(); let o = 0, sB = 0;
+    list.forEach(q => { o += blAmt(q, 'fdiAmount'); sB += blAmt(q, 'vendorCost'); ctSetField(q, 'pushedAt', stamp); });
+    blMsg[normStore(r.store)] = `Pushed ${list.length} service${list.length === 1 ? '' : 's'}: Owner billing ${shMoney(o)}, Sub billing ${shMoney(sB)}.`;
+    blConfirm = ''; scRefreshHistory(); blRender(); ctFlush().then(() => { ctRenderBanner(); });
+  }
+  function blRows(mode){
+    const f = mode === 'owner' ? 'fdiAmount' : 'vendorCost';
+    return ctReqs.filter(q => q.pushedAt && blAmt(q, f) > 0).sort((a, b) => String(b.pushedAt).localeCompare(String(a.pushedAt)) || String(a.projectNo || '').localeCompare(String(b.projectNo || '')));
+  }
+  function blRender(){
+    const host = document.getElementById('bl-body'); if (!host) return;
+    document.getElementById('bl-tab-owner').classList.toggle('active', blMode === 'owner'); document.getElementById('bl-tab-sub').classList.toggle('active', blMode === 'sub');
+    const owner = blMode === 'owner', f = owner ? 'fdiAmount' : 'vendorCost'; const list = blRows(blMode);
+    const total = list.reduce((a, q) => a + blAmt(q, f), 0);
+    document.getElementById('bl-note').textContent = `${list.length} line${list.length === 1 ? '' : 's'} · ${shMoney(total)} ${owner ? '(FDI amounts only)' : '(vendor costs only)'}`;
+    if (!list.length){ host.innerHTML = `<div class="sh-empty">Nothing in ${owner ? 'owner' : 'sub'} billing yet. Open a contracted site, fill in its Service history amounts, and click <b>Push to billing</b>.</div>`; return; }
+    const site = q => rows.find(x => normStore(x.store) === normStore(q.store));
+    host.innerHTML = `<table class="sh-table bl-table"><thead><tr><th>Project #</th><th>Store</th><th>${owner ? 'Customer' : 'Vendor'}</th><th>Service date</th><th>Service</th><th>${owner ? 'FDI Amount' : 'Vendor Cost'}</th><th>Work Order #</th>${owner ? '' : '<th>Vendor Invoice #</th>'}<th>Pushed</th><th></th></tr></thead><tbody>`
+      + list.map(q => `<tr data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}"><td class="sh-pn">${escapeHtml(q.projectNo || '')}</td><td>${escapeHtml(q.store)}</td><td>${escapeHtml(owner ? ((site(q) || {}).customer || '') : (q.vendor || ''))}</td><td>${escapeHtml(shMdy(q.stormDate))}</td><td>${escapeHtml(q.serviceItems || q.service || '')}</td><td class="bl-amt">${shMoney(blAmt(q, f))}</td><td>${escapeHtml(q.workOrder || '')}</td>${owner ? '' : `<td><input class="sh-in sh-vi" data-f="vendorInvoice" value="${escapeHtml(q.vendorInvoice || '')}" placeholder="Invoice #"></td>`}<td>${escapeHtml(shMdy(q.pushedAt))}</td><td><button type="button" class="ct-btn bl-undo" title="Remove from billing so it can be edited and pushed again">Undo</button></td></tr>`).join('')
+      + `</tbody><tfoot><tr><td colspan="5" style="text-align:right;font-weight:700">Total</td><td class="bl-amt" style="font-weight:700">${shMoney(total)}</td><td colspan="${owner ? 3 : 4}"></td></tr></tfoot></table>`;
+  }
+  function blCsv(){
+    const owner = blMode === 'owner', f = owner ? 'fdiAmount' : 'vendorCost'; const list = blRows(blMode);
+    const site = q => rows.find(x => normStore(x.store) === normStore(q.store));
+    const esc = v => { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    const head = ['Project Number', 'Store', owner ? 'Customer' : 'Vendor', 'Address', 'Service Date', 'Service', owner ? 'FDI Amount' : 'Vendor Cost', 'Work Order Number'].concat(owner ? [] : ['Vendor Invoice Number'], ['Pushed']);
+    const lines = [head.join(',')].concat(list.map(q => [q.projectNo, q.store, owner ? ((site(q) || {}).customer || '') : q.vendor, q.address, shMdy(q.stormDate), q.serviceItems || q.service, blAmt(q, f).toFixed(2), q.workOrder].concat(owner ? [] : [q.vendorInvoice], [shMdy(q.pushedAt)]).map(esc).join(',')));
+    const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (owner ? 'Owner Billing' : 'Sub Billing') + ' ' + ctToday() + '.csv';
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  function serviceHistoryHtml(r){
+    return `<div class="sh-wrap" style="grid-column:1/-1"><div class="k" style="display:flex;align-items:center;gap:10px">Service history <button type="button" class="ct-btn primary sh-new" data-store="${escapeHtml(normStore(r.store))}" style="text-transform:none;letter-spacing:0;background:var(--accent);border-color:var(--accent);color:#fff">Create new service</button></div><div class="v sh-block" data-store="${escapeHtml(normStore(r.store))}">${serviceHistoryInner(r)}</div></div>`;
+  }
+  function scRefreshHistory(){
+    document.querySelectorAll('.sh-block').forEach(el => { const r = rows.find(x => normStore(x.store) === el.dataset.store); if (r) el.innerHTML = serviceHistoryInner(r); });
+  }
   function ctEligible(r){
     if (effectiveLost(r)) return false;
     const cs = effectiveCustomerStatus(r), vs = effectiveVendorStatus(r);
@@ -5950,7 +6222,7 @@ td.map-cell{ width:60px; text-align:center; }
         const opt = (list, cur) => list.map(s => `<option value="${escapeHtml(s)}"${s === cur ? ' selected' : ''}>${escapeHtml(s)}</option>`).join('');
         const cells = q
           ? `<td><select class="ct-in ct-status st-${escapeHtml(q.status.replace(/\s+/g, ''))}" data-f="status">${opt(CT_STATUSES, q.status)}</select>${q.completedAt ? `<div class="ct-season" title="Completed">&#10003; ${escapeHtml(ctFmt(q.completedAt))}</div>` : q.onSiteAt ? `<div class="ct-season">on site ${escapeHtml(ctFmt(q.onSiteAt))}</div>` : q.dispatchedAt ? `<div class="ct-season">sent ${escapeHtml(ctFmt(q.dispatchedAt))}</div>` : ''}</td>
-             <td><select class="ct-in" data-f="service"><option value=""></option>${opt(CT_SERVICES, q.service)}</select></td>
+             <td><select class="ct-in" data-f="service"><option value=""></option>${opt(CT_SERVICES, q.service)}</select>${q.serviceItems ? `<div class="ct-season" title="Contract parameters selected">${escapeHtml(q.serviceItems)}</div>` : ''}</td>
              <td><input class="ct-in ct-num" data-f="actual" inputmode="decimal" value="${escapeHtml(q.actual)}" placeholder="${escapeHtml(q.forecast || '')}" title="${q.forecast ? 'Forecast ' + escapeHtml(q.forecast) + '"' : 'Actual snowfall (in)'}"></td>
              <td><input class="ct-in ct-num" data-f="pushes" inputmode="numeric" value="${escapeHtml(q.pushes)}"></td>
              <td><input class="ct-in ct-num" data-f="salt" inputmode="numeric" value="${escapeHtml(q.salt)}"></td>
@@ -5968,63 +6240,120 @@ td.map-cell{ width:60px; text-align:center; }
     document.getElementById('ct-email-vendors').disabled = !ctStorm;
     ctRenderBanner();
     const sv = document.getElementById('view-sites'); if (sv && !sv.hidden) scRender();
+    try { scRefreshHistory(); } catch(e){}
+    try { const bv = document.getElementById('view-billing'); if (bv && !bv.hidden) blRender(); } catch(e){}
   }
 
+  // Unique project numbers: S (snow) + 26 (season year) + running number, e.g. S26000, S26001...
+  const CT_PROJ_PREFIX = 'S26';
+  function ctNextProjectNo(){
+    let max = -1;
+    const re = new RegExp('^' + CT_PROJ_PREFIX + '(\\d+)$');
+    (ctReqs || []).forEach(q => { const m = re.exec(String(q.projectNo || '').trim()); if (m) max = Math.max(max, parseInt(m[1], 10)); });
+    const n = max + 1; return CT_PROJ_PREFIX + (n < 1000 ? String(n).padStart(3, '0') : String(n));
+  }
   function ctNewRequest(r, storm, stormDate, extra){
     const key = 'ct' + Date.now() + Math.random().toString(36).slice(2, 7);
-    const fields = Object.assign({ request: `${storm} | ${r.store}`, storm, stormDate: stormDate || '', store: r.store, address: r.address || '', pm: r.pm || '', vendor: r.vendor2627 || '', status: 'Requested', service: '', forecast: '', actual: '', pushes: '', salt: '', requestedAt: ctNow(), dispatchedAt: '', onSiteAt: '', completedAt: '', issue: '', notes: '' }, extra || {});
+    const fields = Object.assign({ request: `${storm} | ${r.store}`, storm, stormDate: stormDate || '', store: r.store, address: r.address || '', pm: r.pm || '', vendor: r.vendor2627 || '', status: 'Requested', service: '', serviceItems: '', fdiAmount: '', vendorCost: '', workOrder: '', projectNo: ctNextProjectNo(), pushedAt: '', vendorInvoice: '', forecast: '', actual: '', pushes: '', salt: '', requestedAt: ctNow(), dispatchedAt: '', onSiteAt: '', completedAt: '', issue: '', notes: '' }, extra || {});
     const ob = ctOutLoad(); ob.creates.push({ key, fields }); ctOutSave(ob);
     const q = Object.assign({ rowId: null, key }, fields); ctReqs.push(q); return q;
   }
   // Contract parameters -> which service(s) this store's contract covers.
-  const CT_PARAM_LABELS = { perInchRate: 'Per inch', deicer: 'Deicer / salting', saltingOfficeGate: 'Salting office/gate', seasonal: 'Seasonal', fdi2_399: '2–3.99"', fdi4_599: '4–5.99"', fdi6_799: '6–7.99"', fdi3_6: '3–6"', fdi6_9: '6–9"', fdi10_12: '10–12"', fdi13_15: '13–15"', fdi16_18: '16–18"', fdi2_4: '2–4"', fdi41_6: '4.1–6"', pfuetze2_4: '2–4"', pfuetze4_6: '4–6"', pfuetze6_10: '6–10"', pfuetze10plus: '10"+', sroa3_49: '3–4.9"', sroa5_79: '5–7.9"', sroa8_119: '8–11.9"', sroa12plus: '12"+' };
+  const CT_PARAM_LABELS = { perInchRate: 'Per inch', fdi2_399: '2–3.99"', fdi4_599: '4–5.99"', fdi6_799: '6–7.99"', fdi3_6: '3–6"', fdi6_9: '6–9"', fdi10_12: '10–12"', fdi13_15: '13–15"', fdi16_18: '16–18"', fdi2_4: '2–4"', fdi41_6: '4.1–6"', pfuetze2_4: '2–4"', pfuetze4_6: '4–6"', pfuetze6_10: '6–10"', pfuetze10plus: '10"+', sroa3_49: '3–4.9"', sroa5_79: '5–7.9"', sroa8_119: '8–11.9"', sroa12plus: '12"+' };
+  // Contract parameters -> the individual services this store's contract covers.
   function ctContractInfo(r){
-    const cp = (r && r.contractParams) || {}; const plow = [], salt = []; let seasonal = null;
+    const cp = (r && r.contractParams) || {}; const items = [];
+    const has = k => cp[k] !== null && cp[k] !== undefined && cp[k] !== '' && Number(cp[k]) > 0;
     Object.keys(cp).forEach(k => {
-      if (/^vendor/i.test(k)) return; const v = cp[k]; if (v === null || v === undefined || v === '' || !(Number(v) > 0)) return;
-      const lab = CT_PARAM_LABELS[k] || k; const money = '$' + Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 });
-      if (k === 'deicer' || k === 'saltingOfficeGate') salt.push(`${lab} ${money}`);
-      else if (k === 'seasonal') seasonal = money;
-      else plow.push(`${lab} ${money}`);
+      if (/^vendor/i.test(k) || !has(k)) return;
+      if (k === 'fdi2_4' && has('pfuetze2_4')) return; if (k === 'fdi41_6' && has('pfuetze4_6')) return;   // same rate stored under two names
+      const money = '$' + Number(cp[k]).toLocaleString('en-US', { maximumFractionDigits: 2 });
+      const vk = 'vendor' + k.charAt(0).toUpperCase() + k.slice(1); const vv = Number(cp[vk]); const extra = { fdi: Number(cp[k]), vendor: (cp[vk] !== null && cp[vk] !== undefined && cp[vk] !== '' && !isNaN(vv)) ? vv : null };
+      if (k === 'deicer') items.push(Object.assign({ label: 'Salt — Deicer', kind: 'salt', money }, extra));
+      else if (k === 'saltingOfficeGate') items.push(Object.assign({ label: 'Salt — Office/gate', kind: 'salt', money }, extra));
+      else if (k === 'seasonal') items.push(Object.assign({ label: 'Seasonal (plow + salt)', kind: 'seasonal', money }, extra));
+      else items.push(Object.assign({ label: 'Plow — ' + (CT_PARAM_LABELS[k] || k), kind: 'plow', money }, extra));
     });
-    let service = '';
-    if (seasonal) service = 'Plow + Salt'; else if (plow.length && salt.length) service = 'Plow + Salt'; else if (plow.length) service = 'Plow'; else if (salt.length) service = 'Salt';
-    return { service, plow, salt, seasonal };
+    const order = { plow: 0, salt: 1, seasonal: 2 }; items.sort((a, b) => order[a.kind] - order[b.kind]);
+    const plow = items.some(i => i.kind === 'plow'), salt = items.some(i => i.kind === 'salt'), seasonal = items.some(i => i.kind === 'seasonal');
+    let service = ''; if (seasonal || (plow && salt)) service = 'Plow + Salt'; else if (plow) service = 'Plow'; else if (salt) service = 'Salt';
+    return { service, items };
   }
-  function ctContractLine(r){
-    const c = ctContractInfo(r); if (!c.service) return 'No contract rates entered yet for this store, so the service defaults to Plow + Salt.';
-    const parts = [];
-    if (c.seasonal) parts.push('<b>Seasonal</b> ' + escapeHtml(c.seasonal));
-    if (c.plow.length) parts.push('<b>Plow</b> ' + c.plow.map(escapeHtml).join(' · '));
-    if (c.salt.length) parts.push('<b>Salt</b> ' + c.salt.map(escapeHtml).join(' · '));
-    return `Contract for <b>${escapeHtml(r.store)}</b> covers <b>${escapeHtml(c.service)}</b>.<br>` + parts.join('<br>');
+  // Picklist value for the Service column, from the individual items picked.
+  function ctServiceFromItems(items){
+    const t = items.map(i => i.kind);
+    const plow = t.includes('plow'), salt = t.includes('salt'), seasonal = t.includes('seasonal');
+    if (seasonal || (plow && salt)) return 'Plow + Salt'; if (plow) return 'Plow'; if (salt) return 'Salt';
+    if (t.includes('haul')) return 'Haul / Stack'; return 'Other';
   }
+  const CT_EXTRA_ITEMS = [{ label: 'Haul / Stack', kind: 'haul', money: '' }, { label: 'Other', kind: 'other', money: '' }];
   function ctNewSites(){
     const v = document.getElementById('ct-f-store').value;
     if (v === '__checked') return rows.filter(r => ctEligible(r) && ctSel.has(normStore(r.store)));
     if (v === '__shown' || !v) return ctVisibleSites();
-    return ctVisibleSites().filter(r => normStore(r.store) === v);
+    return rows.filter(r => ctEligible(r) && normStore(r.store) === v);
   }
+  let ctNewMode = 'multi';   // 'single' (checklist of this store's contract parameters) | 'multi'
   function ctRefreshNewService(){
-    const sites = ctNewSites(); const hint = document.getElementById('ct-f-contract'); const sel = document.getElementById('ct-f-service');
+    const sites = ctNewSites(); const box = document.getElementById('ct-f-service'); const hint = document.getElementById('ct-f-contract');
+    ctAmtTouched.fdi = ctAmtTouched.ven = false; ['ct-f-fdi', 'ct-f-ven', 'ct-f-wo'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+    const chk = (id, label, extra, checked) => `<label class="ct-chk"><input type="checkbox" data-id="${escapeHtml(id)}"${checked ? ' checked' : ''}> <span>${escapeHtml(label)}</span>${extra ? `<span class="ct-chk-amt">${escapeHtml(extra)}</span>` : ''}</label>`;
     if (sites.length === 1){
-      const c = ctContractInfo(sites[0]); hint.innerHTML = ctContractLine(sites[0]);
-      sel.value = '__auto'; sel.options[0].textContent = 'Per store contract (' + (c.service || 'Plow + Salt') + ')';
+      ctNewMode = 'single';
+      const c = ctContractInfo(sites[0]);
+      const list = (c.items.length ? c.items : [{ label: 'Plow', kind: 'plow', money: '' }, { label: 'Salt', kind: 'salt', money: '' }]).concat(CT_EXTRA_ITEMS);
+      box._items = list;
+      box.innerHTML = list.map((it, i) => chk('i' + i, it.label, it.money, false)).join('');
+      hint.innerHTML = c.items.length ? `Services in <b>${escapeHtml(sites[0].store)}</b>&rsquo;s contract &mdash; tick every one that applies to this service (amounts are what FDI bills).` : `No contract rates are entered for <b>${escapeHtml(sites[0].store)}</b> yet &mdash; tick what applies.`;
     } else {
-      sel.options[0].textContent = 'Per each store’s contract';
-      hint.innerHTML = sites.length ? `Each of the ${sites.length} stores gets the service its own contract covers (plow, salt, or both). Pick a specific service below to override.` : 'No stores to request — check the filters.';
+      ctNewMode = 'multi';
+      const list = [{ label: 'Per each store’s contract', kind: 'auto', money: '' }, { label: 'Plow', kind: 'plow', money: '' }, { label: 'Salt', kind: 'salt', money: '' }].concat(CT_EXTRA_ITEMS);
+      box._items = list;
+      box.innerHTML = list.map((it, i) => chk('i' + i, it.label, '', i === 0)).join('');
+      hint.innerHTML = sites.length ? `${sites.length} stores selected. &ldquo;Per each store&rsquo;s contract&rdquo; gives each one the service its own contract covers; tick specific services instead to apply them to every store. Pick a single store to choose individual contract parameters.` : 'No stores to request — check the filters.';
     }
+    ctSyncAmts();
   }
-  function ctOpenNewStorm(){
-    const sites = ctVisibleSites().slice().sort((a, b) => String(a.store).localeCompare(String(b.store), undefined, { numeric: true }));
-    const checked = rows.filter(r => ctEligible(r) && ctSel.has(normStore(r.store)));
+  // Amounts for one store from the ticked items: specific contract parameters use their own rates;
+  // a generic "Salt" uses the store's Deicer rate; "per each store's contract" is filled only when that
+  // contract has a single service. Plow tiers depend on snowfall, so a generic "Plow" is left blank.
+  function ctAmountsFor(r, picked){
+    const c = ctContractInfo(r); let fdi = null, ven = null;
+    const add = it => { if (!it) return; if (typeof it.fdi === 'number') fdi = (fdi || 0) + it.fdi; if (typeof it.vendor === 'number') ven = (ven || 0) + it.vendor; };
+    picked.forEach(i => {
+      if (i.kind === 'auto'){ if (c.items.length === 1) add(c.items[0]); }
+      else if (typeof i.fdi === 'number') add(i);
+      else if (i.label === 'Salt') add(c.items.find(x => x.label === 'Salt — Deicer'));
+    });
+    const f = n => n === null ? '' : String(Math.round(n * 100) / 100);
+    return { fdiAmount: f(fdi), vendorCost: f(ven) };
+  }
+  const ctAmtTouched = {};
+  function ctSyncAmts(){
+    const single = ctNewMode === 'single';
+    ['fdi', 'ven', 'wo'].forEach(k => { const w = document.getElementById('ct-f-amts-' + k); if (w) w.hidden = !single; });
+    if (!single) return;
+    const sites = ctNewSites(); if (sites.length !== 1) return;
+    const a = ctAmountsFor(sites[0], ctPickedItems());
+    const fdi = document.getElementById('ct-f-fdi'), ven = document.getElementById('ct-f-ven');
+    if (!ctAmtTouched.fdi) fdi.value = a.fdiAmount; if (!ctAmtTouched.ven) ven.value = a.vendorCost;
+  }
+  function ctPickedItems(){
+    const box = document.getElementById('ct-f-service'); const list = box._items || [];
+    return Array.from(box.querySelectorAll('input[type=checkbox]')).filter(c => c.checked).map(c => list[Number(String(c.dataset.id).slice(1))]).filter(Boolean);
+  }
+  function ctOpenNewStorm(pre){
+    if (typeof pre !== 'string') pre = '';
+    const sites = ctVisibleSites().slice();
+    if (pre && !sites.some(r => normStore(r.store) === pre)){ const x = rows.find(r => ctEligible(r) && normStore(r.store) === pre); if (x) sites.push(x); }
+    sites.sort((a, b) => String(a.store).localeCompare(String(b.store), undefined, { numeric: true }));
+    const checked = pre ? [] : rows.filter(r => ctEligible(r) && ctSel.has(normStore(r.store)));
     const st = document.getElementById('ct-f-store');
     st.innerHTML = `<option value="__shown"${checked.length ? '' : ' selected'}>All ${sites.length} site${sites.length === 1 ? '' : 's'} currently shown</option>`
       + (checked.length ? `<option value="__checked" selected>Only the ${checked.length} checked site${checked.length === 1 ? '' : 's'}</option>` : '')
       + sites.map(r => `<option value="${escapeHtml(normStore(r.store))}">${escapeHtml(r.store)} — ${escapeHtml(r.address || '')}</option>`).join('');
-    document.getElementById('ct-f-service').innerHTML = '<option value="__auto"></option>' + CT_SERVICES.map(x => `<option>${escapeHtml(x)}</option>`).join('');
+    if (pre) st.value = pre;
     document.getElementById('ct-f-date').value = ctToday();
-    document.getElementById('ct-f-forecast').value = ''; document.getElementById('ct-f-notes').value = '';
     ctRefreshNewService();
     const m = document.getElementById('ct-f-msg'); m.textContent = ''; m.classList.remove('bad');
     document.getElementById('ct-f-save').disabled = false;
@@ -6032,15 +6361,29 @@ td.map-cell{ width:60px; text-align:center; }
   }
   function ctSubmitNewStorm(ev){
     if (ev) ev.preventDefault();
-    const date = document.getElementById('ct-f-date').value || ctToday(); const name = 'Service ' + date;
+    const date = document.getElementById('ct-f-date').value || ctToday(); let name = 'Service ' + date;
     const msg = document.getElementById('ct-f-msg');
     const sites = ctNewSites();
     if (!sites.length){ msg.textContent = 'No store to request — check the filters.'; msg.classList.add('bad'); return; }
-    const svcPick = document.getElementById('ct-f-service').value; const forecast = document.getElementById('ct-f-forecast').value.trim();
-    const vnote = document.getElementById('ct-f-notes').value.trim();
+    const picked = ctPickedItems();
+    if (!picked.length){ msg.textContent = 'Tick at least one service above, then click Create service.'; msg.classList.add('bad'); const sv = document.getElementById('ct-f-service'); sv.scrollIntoView && sv.scrollIntoView({ block: 'center' }); return; }
+    const auto = picked.some(i => i.kind === 'auto'); const specific = picked.filter(i => i.kind !== 'auto');
+    // a second service for the same store on the same day gets its own entry: "Service <date> (2)", etc.
+    { const base = name; let n = 2; while (sites.some(r => ctReqFor(r, name))) name = `${base} (${n++})`; }
     let made = 0;
-    sites.forEach(r => { if (!ctReqFor(r, name)){ ctNewRequest(r, name, date, { service: svcPick === '__auto' ? (ctContractInfo(r).service || 'Plow + Salt') : svcPick, forecast }); made++; } });
-    window.__ctVendorNote = vnote;
+    sites.forEach(r => {
+      if (ctReqFor(r, name)) return;
+      let service, serviceItems;
+      if (auto && !specific.length){ service = ctContractInfo(r).service || 'Plow + Salt'; serviceItems = ''; }
+      else { service = ctServiceFromItems(specific); serviceItems = specific.map(i => i.label).join('; '); }
+      // combined cost of the ticked contract parameters, saved with the service (editable afterwards in Service history)
+      let { fdiAmount, vendorCost } = ctAmountsFor(r, picked); let workOrder = '';
+      if (ctNewMode === 'single' && sites.length === 1){
+        const num = id => { const n = shNum(document.getElementById(id).value); return n === null ? '' : String(n); };
+        fdiAmount = num('ct-f-fdi'); vendorCost = num('ct-f-ven'); workOrder = document.getElementById('ct-f-wo').value.trim();
+      }
+      ctNewRequest(r, name, date, { service, serviceItems, fdiAmount, vendorCost, workOrder }); made++;
+    });
     ctStorm = name; ctSel.clear(); ctStatusFilter = '';
     document.getElementById('ct-back').hidden = true;
     ctRender(); ctFlush().then(ctRender);
@@ -6070,7 +6413,7 @@ td.map-cell{ width:60px; text-align:center; }
   function ctEmailBody(grp){
     const q0 = grp.reqs[0]; const storm = ctStorm; const info = ctStorms().find(s => s.name === storm) || {};
     const lines = grp.sites.map((s, i) => `${i + 1}. ${s.store} — ${s.address || ''}${grp.reqs[i] && grp.reqs[i].notes ? ' (' + grp.reqs[i].notes + ')' : ''}`);
-    const svc = [...new Set(grp.reqs.map(q => q.service).filter(Boolean))].join(', ');
+    const svc = [...new Set(grp.reqs.map(q => q.serviceItems || q.service).filter(Boolean))].join(' | ');
     return ['Hi ' + (grp.name.split(/[\s,]/)[0] || 'there') + ',', '',
       `Please service the following ${grp.sites.length === 1 ? 'property' : grp.sites.length + ' properties'} for ${storm}${info.date ? ' (' + info.date + ')' : ''}.`,
       q0 && q0.forecast ? `Forecast: ${q0.forecast}"` : '', svc ? `Service: ${svc}` : '', '',
@@ -6118,6 +6461,180 @@ td.map-cell{ width:60px; text-align:center; }
     const msg = document.getElementById('ctv-msg'); msg.classList.remove('bad'); msg.textContent = `${g.sites.length} site${g.sites.length === 1 ? '' : 's'} marked Dispatched.`;
   }
 
+  // ---------- Weather tab: 48-hour snow / ice outlook per site ----------
+  // Sources (all free, no key): National Weather Service (api.weather.gov: gridded snowfall + ice forecast and active
+  // winter alerts) and Open-Meteo (model forecast, used as a second opinion). Sites are located by the ZIP in their address.
+  const WX_ZIPS = {"63126":[38.55,-90.38],"63011":[38.609,-90.56],"63044":[38.751,-90.416],"63146":[38.71,-90.463],"63138":[38.804,-90.178],"63123":[38.549,-90.32],"63129":[38.448,-90.326],"63119":[38.589,-90.347],"63125":[38.52,-90.297],"63021":[38.577,-90.525],"63088":[38.558,-90.492],"63042":[38.781,-90.367],"63005":[38.632,-90.614],"63143":[38.611,-90.319],"63376":[38.78,-90.623],"63303":[38.762,-90.547],"63132":[38.678,-90.378],"63074":[38.726,-90.386],"63033":[38.795,-90.283],"63136":[38.744,-90.26],"63134":[38.744,-90.342],"63102":[38.635,-90.186],"64111":[39.056,-94.593],"63110":[38.618,-90.256],"66048":[39.301,-94.934],"62034":[38.761,-89.971],"62025":[38.805,-89.964],"64105":[39.102,-94.59],"63114":[38.701,-90.361],"10305":[40.597,-74.077],"19720":[39.593,-75.651],"19802":[39.756,-75.534],"47904":[40.428,-86.874],"21921":[39.626,-75.846],"64133":[39.032,-94.47],"48509":[43.026,-83.604],"48601":[43.405,-83.916],"48503":[43.013,-83.691],"48187":[42.332,-83.469],"49007":[42.302,-85.588],"43607":[41.65,-83.597],"48603":[43.463,-84.03],"48059":[43.087,-82.5],"48084":[42.563,-83.18],"49507":[42.932,-85.654],"49508":[42.889,-85.622],"49428":[42.91,-85.828],"49424":[42.813,-86.143],"49525":[43.014,-85.603],"48026":[42.542,-82.947],"48304":[42.587,-83.236],"48091":[42.467,-83.059],"48328":[42.643,-83.355],"48047":[42.673,-82.775],"48375":[42.46,-83.458],"48185":[42.336,-83.385],"48198":[42.244,-83.583],"48104":[42.269,-83.728],"48103":[42.279,-83.784],"49001":[42.274,-85.546],"49505":[43.012,-85.631],"49509":[42.913,-85.705],"48864":[42.705,-84.419],"48911":[42.68,-84.577],"48150":[42.361,-83.365],"48170":[42.369,-83.48],"48186":[42.289,-83.369],"44128":[41.442,-81.549],"44130":[41.383,-81.796],"44070":[41.42,-81.913],"60047":[42.217,-88.077],"60060":[42.264,-88.005],"44114":[41.506,-81.674],"44108":[41.535,-81.609],"44145":[41.453,-81.922],"44136":[41.313,-81.829],"43068":[39.955,-82.803],"43026":[40.032,-83.138],"43123":[39.881,-83.084],"43228":[39.965,-83.126],"43215":[39.967,-83.004],"43035":[40.188,-82.988],"43231":[40.081,-82.938],"43207":[39.905,-82.97],"45459":[39.646,-84.172],"45431":[39.757,-84.057],"44907":[40.734,-82.52],"45342":[39.632,-84.267],"43229":[40.084,-82.973],"45426":[39.798,-84.321],"43085":[40.1,-83.016],"19607":[40.3,-75.988],"44111":[41.457,-81.784],"43224":[40.042,-82.969],"44039":[41.396,-82.003],"44310":[41.108,-81.501],"16066":[40.685,-80.107],"43015":[40.293,-83.072],"44035":[41.372,-82.105],"44109":[41.446,-81.703],"44121":[41.528,-81.532],"43081":[40.115,-82.91],"44147":[41.314,-81.673],"48067":[42.491,-83.137],"48238":[42.396,-83.141],"48430":[42.785,-83.729],"48075":[42.464,-83.225],"48438":[42.915,-83.484],"48015":[42.479,-83.025],"48423":[43.035,-83.527],"67212":[37.701,-97.438],"48033":[42.472,-83.294],"48083":[42.56,-83.114],"48312":[42.559,-83.003],"48317":[42.641,-83.05],"48180":[42.232,-83.267],"49202":[42.263,-84.408],"48309":[42.663,-83.184],"48326":[42.658,-83.237],"48507":[42.982,-83.734],"48906":[42.764,-84.558],"48390":[42.558,-83.477],"48043":[42.598,-82.882],"48188":[42.291,-83.465],"48038":[42.621,-82.961],"48124":[42.294,-83.254],"48066":[42.503,-82.939],"48336":[42.466,-83.364],"48183":[42.138,-83.218],"64055":[39.054,-94.404],"48101":[42.252,-83.212],"48310":[42.565,-83.07],"48176":[42.17,-83.785],"48080":[42.471,-82.902],"48327":[42.644,-83.408],"48393":[42.534,-83.528],"48451":[42.81,-83.799],"48089":[42.468,-82.997],"66607":[39.042,-95.645],"48335":[42.462,-83.405],"48073":[42.519,-83.157],"49512":[42.88,-85.535],"46808":[41.094,-85.162],"46804":[41.051,-85.256],"64012":[38.816,-94.533],"64118":[39.214,-94.575],"64137":[38.93,-94.54],"64131":[38.971,-94.577],"66609":[38.992,-95.668],"67209":[37.678,-97.424],"64804":[37.047,-94.51],"48071":[42.502,-83.103],"48315":[42.671,-82.999],"46814":[41.046,-85.306],"48334":[42.507,-83.348],"48314":[42.612,-83.034],"48237":[42.466,-83.184],"64136":[39.019,-94.401],"64086":[38.944,-94.288],"64015":[39.015,-94.312],"48051":[42.694,-82.821],"64134":[38.93,-94.501],"64057":[39.073,-94.353],"64138":[38.953,-94.471],"66046":[38.937,-95.242],"48035":[42.551,-82.917],"48127":[42.335,-83.286],"48021":[42.466,-82.946],"48220":[42.459,-83.136],"48146":[42.242,-83.181],"48239":[42.376,-83.289],"48320":[42.611,-83.336],"64108":[39.084,-94.587],"67002":[37.699,-97.118],"67219":[37.772,-97.317],"67206":[37.704,-97.225],"67213":[37.668,-97.359],"67204":[37.749,-97.357],"64151":[39.213,-94.638],"64152":[39.218,-94.724],"64068":[39.246,-94.419],"48529":[42.974,-83.663],"48340":[42.668,-83.289],"67211":[37.666,-97.317],"48167":[42.426,-83.479],"64079":[39.36,-94.789],"64139":[38.966,-94.406],"48215":[42.377,-82.951],"49503":[42.966,-85.653],"53233":[43.041,-87.936],"53110":[42.949,-87.862],"53154":[42.889,-87.903],"53221":[42.955,-87.945],"53132":[42.902,-88.009],"53214":[43.022,-88.018],"53051":[43.16,-88.113],"53007":[43.105,-88.071],"53219":[42.996,-87.994],"53545":[42.736,-89.04],"53719":[43.032,-89.499],"53177":[42.697,-87.903],"53223":[43.162,-87.99],"53209":[43.119,-87.948],"53072":[43.079,-88.273],"53186":[42.999,-88.22],"48843":[42.616,-83.925],"48820":[42.843,-84.58],"48092":[42.513,-83.064],"49090":[42.404,-86.254],"60647":[41.921,-87.704],"45040":[39.336,-84.315],"46350":[41.599,-86.708],"54303":[44.552,-88.079],"63010":[38.431,-90.387],"53140":[42.605,-87.83],"53182":[42.69,-88.039],"48910":[42.701,-84.549],"53538":[42.923,-88.847],"48108":[42.233,-83.701],"46628":[41.702,-86.295],"48307":[42.659,-83.123],"48162":[41.929,-83.445],"48203":[42.421,-83.101],"45011":[39.406,-84.522],"48197":[42.233,-83.634],"45050":[39.441,-84.365],"48160":[42.091,-83.678],"48120":[42.322,-83.176],"66062":[38.873,-94.775],"06451":[41.54,-72.819],"06053":[41.687,-72.791],"48111":[42.195,-83.485],"48341":[42.629,-83.304],"48356":[42.669,-83.59],"48165":[42.508,-83.634],"48114":[42.57,-83.748],"48105":[42.304,-83.707],"48152":[42.426,-83.364],"46619":[41.667,-86.315]};
+  const WX_PTS_KEY = 'fdiWxPointsV1', WX_ZIPX_KEY = 'fdiWxZipExtraV1';
+  const WX_HOURS = 48;
+  let wxState = 'idle', wxAt = 0, wxMsg = '', wxResults = new Map(), wxRiskFilter = '', wxBusy = false, wxWin = null;
+  const wxLs = (k, d) => { try { return JSON.parse(localStorage.getItem(k) || 'null') || d; } catch(e){ return d; } };
+  const wxLsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+  const wxZipOf = a => { const m = String(a || '').match(/\b(\d{5})(?:-\d{4})?\b(?!.*\b\d{5}\b)/); return m ? m[1] : ''; };
+  const wxStateOf = a => { const m = String(a || '').match(/,\s*([A-Z]{2})\s+\d{5}/); return m ? m[1] : ''; };
+  function wxDurMs(d){ const m = /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?)?$/.exec(String(d || '')); if (!m) return 3600000; return ((+m[1] || 0) * 86400 + (+m[2] || 0) * 3600 + (+m[3] || 0) * 60) * 1000 || 3600000; }
+  // intervals of an NWS grid property that overlap [t0,t1]; each gets the fraction of the interval inside the window
+  function wxIntervals(prop, t0, t1){
+    const out = []; ((prop && prop.values) || []).forEach(v => {
+      const parts = String(v.validTime || '').split('/'); const s = Date.parse(parts[0]); if (isNaN(s)) return; const e = s + wxDurMs(parts[1]);
+      const lo = Math.max(s, t0), hi = Math.min(e, t1); if (hi <= lo) return;
+      out.push({ s, e, frac: (hi - lo) / (e - s), value: v.value });
+    });
+    return out;
+  }
+  function wxNwsSummary(props, t0, t1){
+    const sum = p => wxIntervals(props[p], t0, t1).reduce((a, i) => a + (Number(i.value) || 0) * i.frac, 0);
+    const snow = wxIntervals(props.snowfallAmount, t0, t1), ice = wxIntervals(props.iceAccumulation, t0, t1);
+    const firsts = snow.concat(ice).filter(i => Number(i.value) > 0).map(i => Math.max(i.s, t0));
+    const pop = Math.max(0, ...wxIntervals(props.probabilityOfPrecipitation, t0, t1).map(i => Number(i.value) || 0));
+    const temps = wxIntervals(props.temperature, t0, t1).map(i => Number(i.value)).filter(v => !isNaN(v));
+    const types = new Set(); wxIntervals(props.weather, t0, t1).forEach(i => (Array.isArray(i.value) ? i.value : []).forEach(w => { if (w && w.weather && w.coverage !== 'slight_chance') types.add(w.weather); }));
+    if (!firsts.length) wxIntervals(props.weather, t0, t1).forEach(i => { if (Array.isArray(i.value) && i.value.some(w => w && /snow|sleet|freezing|ice/.test(w.weather || ''))) firsts.push(Math.max(i.s, t0)); });
+    return { snowIn: sum('snowfallAmount') / 25.4, iceIn: sum('iceAccumulation') / 25.4, pop, minF: temps.length ? Math.min(...temps) * 9 / 5 + 32 : null, first: firsts.length ? Math.min(...firsts) : null, types: [...types] };
+  }
+  function wxOmSummary(h, t0, t1){
+    let snow = 0, ice = 0, pop = 0, minF = null, first = null; const types = new Set();
+    (h.time || []).forEach((tm, i) => {
+      const t = Date.parse(tm + ':00Z'.slice(tm.length > 16 ? 3 : 0)); if (isNaN(t) || t < t0 - 3600000 + 1 || t >= t1) return;
+      const sn = Number(h.snowfall && h.snowfall[i]) || 0, pr = Number(h.precipitation && h.precipitation[i]) || 0, code = Number(h.weather_code && h.weather_code[i]);
+      const fz = [56, 57, 66, 67].includes(code), sl = [71, 73, 75, 77, 85, 86].includes(code);
+      snow += sn; if (fz) { ice += pr; types.add('freezing_rain'); } if (sl || sn > 0) types.add('snow');
+      pop = Math.max(pop, Number(h.precipitation_probability && h.precipitation_probability[i]) || 0);
+      const tf = Number(h.temperature_2m && h.temperature_2m[i]); if (!isNaN(tf)) minF = minF === null ? tf : Math.min(minF, tf);
+      if ((sn > 0 || fz) && first === null) first = Math.max(t, t0);
+    });
+    return { snowIn: snow, iceIn: ice, pop, minF, first, types: [...types] };
+  }
+  const WX_RANK = { alert: 3, watch: 2, low: 1, clear: 0 };
+  const WX_LABEL = { alert: 'High', watch: 'Watch', low: 'Low', clear: 'Clear' };
+  function wxAlertLevel(ev){ return /Warning/.test(ev) ? 'alert' : 'watch'; }
+  function wxRisk(res, trigger){
+    const s = Math.max(res.nws ? res.nws.snowIn : 0, res.om ? res.om.snowIn : 0), ic = Math.max(res.nws ? res.nws.iceIn : 0, res.om ? res.om.iceIn : 0);
+    const pop = Math.max(res.nws ? res.nws.pop : 0, res.om ? res.om.pop : 0);
+    const types = new Set([].concat(res.nws ? res.nws.types : [], res.om ? res.om.types : []));
+    const wet = [...types].some(t => /snow|sleet|freezing|ice/.test(t));
+    let lvl = 'clear';
+    if (s > 0.05 || ic > 0.005 || (wet && pop >= 30)) lvl = 'low';
+    if (s >= 0.5 || ic >= 0.01) lvl = 'watch';
+    if (s >= trigger || ic >= 0.10) lvl = 'alert';
+    (res.alerts || []).forEach(a => { const l = wxAlertLevel(a.event); if (WX_RANK[l] > WX_RANK[lvl]) lvl = l; });
+    return { level: lvl, snow: s, ice: ic, pop };
+  }
+  async function wxPool(items, n, fn){
+    let i = 0; const workers = Array.from({ length: Math.min(n, items.length) }, async () => { while (i < items.length){ const k = items[i++]; try { await fn(k); } catch(e){} } });
+    await Promise.all(workers);
+  }
+  const wxJson = async url => { const r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); };
+  function wxSites(){
+    const scope = (document.getElementById('wx-scope') || {}).value || 'contracted';
+    return rows.filter(r => !effectiveLost(r) && (scope === 'all' || ctEligible(r)));
+  }
+  async function wxRefresh(){
+    if (wxBusy) return; wxBusy = true; wxState = 'loading'; wxRender();
+    try {
+      const t0 = Date.now(), t1 = t0 + WX_HOURS * 3600000; wxWin = [t0, t1];
+      const sites = wxSites().map(r => ({ r, zip: wxZipOf(r.address), st: wxStateOf(r.address) }));
+      const zips = [...new Set(sites.map(x => x.zip).filter(Boolean))];
+      const extra = wxLs(WX_ZIPX_KEY, {}); const coords = {};
+      zips.forEach(z => { coords[z] = WX_ZIPS[z] || extra[z] || null; });
+      const unknown = zips.filter(z => !coords[z]);
+      await wxPool(unknown, 4, async z => { const j = await wxJson('https://api.zippopotam.us/us/' + z); const p = j.places && j.places[0]; if (p){ coords[z] = [Math.round(parseFloat(p.latitude) * 1000) / 1000, Math.round(parseFloat(p.longitude) * 1000) / 1000]; extra[z] = coords[z]; } });
+      wxLsSet(WX_ZIPX_KEY, extra);
+      const pts = wxLs(WX_PTS_KEY, {}); let done = 0; const errors = [];
+      const needPts = zips.filter(z => coords[z] && !pts[z]);
+      await wxPool(needPts, 6, async z => {
+        try { const j = await wxJson(`https://api.weather.gov/points/${coords[z][0]},${coords[z][1]}`); const p = j.properties; pts[z] = { g: p.gridId, x: p.gridX, y: p.gridY, z: p.forecastZone, c: p.county }; }
+        catch(e){ errors.push('NWS point ' + z + ': ' + e.message); }
+        wxMsg = `Locating sites… ${++done} of ${needPts.length}`; wxRender();
+      });
+      wxLsSet(WX_PTS_KEY, pts);
+      // NWS gridded forecast, one request per forecast grid cell
+      const grids = {}; zips.forEach(z => { const p = pts[z]; if (p) grids[`${p.g}/${p.x},${p.y}`] = null; });
+      const gk = Object.keys(grids); done = 0;
+      await wxPool(gk, 6, async k => {
+        try { const j = await wxJson('https://api.weather.gov/gridpoints/' + k); grids[k] = wxNwsSummary(j.properties || {}, t0, t1); }
+        catch(e){ errors.push('NWS forecast ' + k + ': ' + e.message); }
+        wxMsg = `Reading NWS forecasts… ${++done} of ${gk.length}`; wxRender();
+      });
+      // active winter alerts for the states we operate in
+      let alerts = []; const states = [...new Set(sites.map(x => x.st).filter(Boolean))];
+      if (states.length){
+        try { const j = await wxJson('https://api.weather.gov/alerts/active?area=' + states.join(',')); alerts = (j.features || []).map(f => f.properties).filter(p => /Winter|Blizzard|Ice Storm|Snow|Freezing (Rain|Drizzle)|Lake Effect|Sleet/.test(p.event || '')); }
+        catch(e){ errors.push('NWS alerts: ' + e.message); }
+      }
+      // Open-Meteo model forecast (second opinion), batched
+      const oms = {}; const zl = zips.filter(z => coords[z]); done = 0;
+      const chunks = []; for (let i = 0; i < zl.length; i += 40) chunks.push(zl.slice(i, i + 40));
+      await wxPool(chunks, 2, async ch => {
+        const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + ch.map(z => coords[z][0]).join(',') + '&longitude=' + ch.map(z => coords[z][1]).join(',') + '&hourly=snowfall,precipitation,weather_code,precipitation_probability,temperature_2m&temperature_unit=fahrenheit&precipitation_unit=inch&timezone=GMT&forecast_days=3';
+        try { const j = await wxJson(url); const arr = Array.isArray(j) ? j : [j]; arr.forEach((o, i) => { if (ch[i] && o.hourly) oms[ch[i]] = wxOmSummary(o.hourly, t0, t1); }); }
+        catch(e){ errors.push('Open-Meteo: ' + e.message); }
+      });
+      wxResults = new Map();
+      sites.forEach(({ r, zip }) => {
+        const p = zip && pts[zip]; const res = { zip, nws: p ? grids[`${p.g}/${p.x},${p.y}`] || null : null, om: oms[zip] || null, alerts: [], coords: coords[zip] || null };
+        if (p) res.alerts = alerts.filter(a => (a.affectedZones || []).some(u => u === p.z || u === p.c));
+        wxResults.set(normStore(r.store), res);
+      });
+      wxAt = Date.now(); wxState = errors.length && !wxResults.size ? 'error' : 'ok'; wxMsg = errors.length ? `${errors.length} lookup${errors.length === 1 ? '' : 's'} failed (${[...new Set(errors.map(e => e.split(':')[0]))].join(', ')}) — the rest are shown.` : '';
+      window.__wxErrors = errors;
+    } catch(e){ wxState = 'error'; wxMsg = (e && e.message) || String(e); }
+    wxBusy = false; wxRender();
+  }
+  const wxFmtT = t => { if (!t) return '—'; const d = new Date(t); return d.toLocaleDateString('en-US', { weekday: 'short' }) + ' ' + d.toLocaleTimeString('en-US', { hour: 'numeric' }); };
+  const wxIn = v => v >= 0.05 ? v.toFixed(1) + '"' : v > 0 ? 'trace' : '—';
+  const wxIce = v => v >= 0.005 ? v.toFixed(2) + '"' : '—';
+  function wxRender(){ wxRender0(); wxSummary(); }
+  function wxSummary(){
+    const el = document.getElementById('wx-sum'); if (!el) return;
+    if (wxState === 'loading'){ el.className = 'wx-sum'; el.textContent = 'Checking…'; return; }
+    if (wxState === 'error'){ el.className = 'wx-sum'; el.textContent = 'Couldn\u2019t reach weather services'; return; }
+    if (wxState === 'idle' || !window.__wxCounts){ el.className = 'wx-sum'; el.textContent = 'Not checked yet'; return; }
+    const c = window.__wxCounts; el.className = 'wx-sum on';
+    el.innerHTML = `<span class="wx-pill wx-alert">${c.alert} High</span> <span class="wx-pill wx-watch">${c.watch} Watch</span> <span class="wx-pill wx-low">${c.low} Low</span>`;
+  }
+  function wxRender0(){
+    const body = document.getElementById('wx-body'); if (!body) return;
+    const trigger = Number((document.getElementById('wx-trigger') || {}).value || 2);
+    const rg = (document.getElementById('wx-region') || {}).value || '', pm = (document.getElementById('wx-pm') || {}).value || '';
+    const status = document.getElementById('wx-note');
+    const all = wxSites();
+    const regSel = document.getElementById('wx-region'), pmSel = document.getElementById('wx-pm');
+    if (regSel && regSel.dataset.n !== String(all.length)){ const rs = [...new Set(all.map(r => r.region).filter(Boolean))].sort(); regSel.innerHTML = '<option value="">All regions</option>' + rs.map(x => `<option${x === rg ? ' selected' : ''}>${escapeHtml(x)}</option>`).join(''); regSel.dataset.n = String(all.length); }
+    if (pmSel && pmSel.dataset.n !== String(all.length)){ const ps = [...new Set(all.map(r => r.pm).filter(Boolean))].sort(); pmSel.innerHTML = '<option value="">All PMs</option>' + ps.map(x => `<option${x === pm ? ' selected' : ''}>${escapeHtml(x)}</option>`).join(''); pmSel.dataset.n = String(all.length); }
+    if (wxState === 'loading'){ status.textContent = wxMsg || 'Checking weather…'; body.innerHTML = '<div class="sh-empty">Checking the National Weather Service and Open-Meteo…</div>'; document.getElementById('wx-kpis').innerHTML = ''; return; }
+    if (wxState === 'idle'){ status.textContent = ''; body.innerHTML = '<div class="sh-empty">Click <b>Check weather</b> to scan the next 48 hours.</div>'; document.getElementById('wx-kpis').innerHTML = ''; return; }
+    if (wxState === 'error'){ status.textContent = ''; body.innerHTML = `<div class="sh-empty">Couldn’t reach the weather services (${escapeHtml(wxMsg)}). Check your connection and click <b>Check weather</b> again.</div>`; document.getElementById('wx-kpis').innerHTML = ''; return; }
+    const list = all.map(r => { const res = wxResults.get(normStore(r.store)) || { nws: null, om: null, alerts: [] }; return { r, res, k: wxRisk(res, trigger) }; });
+    const counts = { alert: 0, watch: 0, low: 0, clear: 0, none: 0 };
+    list.forEach(x => { if (!x.res.nws && !x.res.om) counts.none++; else counts[x.k.level]++; }); window.__wxCounts = counts;
+    document.getElementById('wx-kpis').innerHTML = ['alert', 'watch', 'low', 'clear'].map(l => `<button type="button" class="wx-kpi wx-${l}${wxRiskFilter === l ? ' on' : ''}" data-l="${l}"><span class="n">${counts[l]}</span><span class="t">${WX_LABEL[l]}</span></button>`).join('') + (counts.none ? `<span class="wx-none">${counts.none} site${counts.none === 1 ? '' : 's'} with no forecast (no ZIP in address?)</span>` : '');
+    const w = wxWin ? `${wxFmtT(wxWin[0])} → ${wxFmtT(wxWin[1])}` : '';
+    status.textContent = `Next 48 hours: ${w} · checked ${new Date(wxAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}${wxMsg ? ' · ' + wxMsg : ''}`;
+    const shown = list.filter(x => (!rg || x.r.region === rg) && (!pm || x.r.pm === pm) && (!wxRiskFilter || ((x.res.nws || x.res.om) && x.k.level === wxRiskFilter)))
+      .sort((a, b) => WX_RANK[b.k.level] - WX_RANK[a.k.level] || b.k.snow - a.k.snow || b.k.ice - a.k.ice || String(a.r.store).localeCompare(String(b.r.store), undefined, { numeric: true }));
+    if (!shown.length){ body.innerHTML = '<div class="sh-empty">No sites match these filters.</div>'; return; }
+    body.innerHTML = '<table class="sh-table wx-table"><thead><tr><th>Risk</th><th>Store</th><th>Address</th><th>PM</th><th>Snow</th><th>Ice</th><th>Chance</th><th>Low</th><th>Starts</th><th>NWS alert</th></tr></thead><tbody>'
+      + shown.map(({ r, res, k }) => {
+        const has = res.nws || res.om; const lv = has ? k.level : 'none';
+        const first = [res.nws && res.nws.first, res.om && res.om.first].filter(Boolean); const f = first.length ? Math.min(...first) : null;
+        const minF = [res.nws && res.nws.minF, res.om && res.om.minF].filter(v => v !== null && v !== undefined); const lo = minF.length ? Math.round(Math.min(...minF)) + '°F' : '—';
+        const link = res.coords ? `https://forecast.weather.gov/MapClick.php?lat=${res.coords[0]}&lon=${res.coords[1]}` : '';
+        const snowTxt = has ? `<b>${wxIn(k.snow)}</b>${res.nws && res.om ? `<div class="wx-sub">NWS ${wxIn(res.nws.snowIn)} · model ${wxIn(res.om.snowIn)}</div>` : `<div class="wx-sub">${res.nws ? 'NWS' : 'model'} only</div>`}` : '—';
+        const iceTxt = has ? `<b>${wxIce(k.ice)}</b>${res.nws && res.om ? `<div class="wx-sub">NWS ${wxIce(res.nws.iceIn)} · model ${wxIce(res.om.iceIn)}</div>` : ''}` : '—';
+        const al = (res.alerts || []).map(a => `<div class="wx-al ${wxAlertLevel(a.event)}" title="${escapeHtml(a.headline || '')}">${escapeHtml(a.event)}</div>`).join('') || '—';
+        return `<tr data-store="${escapeHtml(normStore(r.store))}"><td><span class="wx-pill wx-${lv}">${lv === 'none' ? 'No data' : WX_LABEL[lv]}</span></td><td><b>${escapeHtml(r.store)}</b></td><td>${link ? `<a href="${link}" target="_blank" rel="noopener">${escapeHtml(r.address || '')}</a>` : escapeHtml(r.address || '')}</td><td>${escapeHtml(r.pm || '')}</td><td>${snowTxt}</td><td>${iceTxt}</td><td>${has ? Math.round(k.pop) + '%' : '—'}</td><td>${lo}</td><td>${has ? wxFmtT(f) : '—'}</td><td>${al}</td></tr>`;
+      }).join('') + '</tbody></table>';
+  }
+  (function wxInit(){
+    const run = () => wxRefresh();
+    document.getElementById('wx-refresh').addEventListener('click', run);
+    ['wx-scope'].forEach(id => document.getElementById(id).addEventListener('change', () => { wxState = 'idle'; wxRiskFilter = ''; wxRender(); run(); }));
+    ['wx-region', 'wx-pm', 'wx-trigger'].forEach(id => document.getElementById(id).addEventListener('change', wxRender));
+    document.getElementById('wx-kpis').addEventListener('click', e => { const b = e.target.closest('.wx-kpi'); if (!b) return; wxRiskFilter = wxRiskFilter === b.dataset.l ? '' : b.dataset.l; wxRender(); });
+    window.__wxRefresh = wxRefresh;
+  })();
+
   // ---------- Sites Contracted tab (read-only roster of contracted sites) ----------
   function scVisible(){
     const pm = document.getElementById('sc-pm').value, reg = document.getElementById('sc-region').value, q = document.getElementById('sc-search').value.trim().toLowerCase();
@@ -6134,6 +6651,7 @@ td.map-cell{ width:60px; text-align:center; }
   }
   function scRender(){
     const body = document.getElementById('sc-tbody'); if (!body) return;
+    const openDetail = body.querySelector('.detail-row');   // keep an expanded site open across refreshes
     document.getElementById('sc-scope').value = ctScope;
     const list = scVisible(); const total = rows.filter(ctEligible).length;
     document.getElementById('sc-count').textContent = `${list.length} of ${total} contracted sites`;
@@ -6145,6 +6663,7 @@ td.map-cell{ width:60px; text-align:center; }
       return `<tr data-store="${escapeHtml(r.store)}"><td><b>${escapeHtml(r.store)}</b></td><td>${escapeHtml(r.address || '')}</td><td>${escapeHtml(r.customer || '')}</td><td>${escapeHtml(effectiveRegion(r))}</td><td>${escapeHtml(pmShort(r.pm))}</td>
         <td>${r.vendor2627 ? escapeHtml(r.vendor2627) : '<span class="ct-novendor">no vendor</span>'}</td><td style="white-space:nowrap">${escapeHtml(tm.beginMonthDay)} – ${escapeHtml(tm.endMonthDay)}, 20${escapeHtml(tm.endYear2)}</td><td>${scCompliance(r)}</td><td>${done} / ${reqs.length}</td></tr>`;
     }).join('');
+    if (openDetail){ const tr = Array.from(body.querySelectorAll('tr[data-store]')).find(x => x.dataset.store === openDetail.dataset.store); if (tr){ tr.classList.add('active'); tr.after(openDetail); } }
   }
 
   (function ctInit(){
@@ -6160,18 +6679,61 @@ td.map-cell{ width:60px; text-align:center; }
     ['sc-pm', 'sc-region'].forEach(id => document.getElementById(id).addEventListener('change', scRender));
     document.getElementById('sc-search').addEventListener('input', scRender);
     document.getElementById('sc-tbody').addEventListener('click', e => {
+      if (e.target.closest('tr.detail-row')) return;
       const tr = e.target.closest('tr[data-store]'); if (!tr) return; const store = tr.dataset.store;
-      window.__showView('bidding'); const s = document.getElementById('search'); s.value = store; s.dispatchEvent(new Event('input', { bubbles: true }));
-      setTimeout(() => { const row = Array.from(document.querySelectorAll('#tbody tr:not(.detail-row)')).find(x => x.textContent.includes(store)); if (row) row.click(); }, 30);
+      const body = document.getElementById('sc-tbody'); const existing = body.querySelector('.detail-row');
+      const wasThis = existing && existing.dataset.store === store;
+      if (existing){ const pm = body.querySelector('tr.active'); if (pm) pm.classList.remove('active'); existing.remove(); }
+      if (wasThis) return;
+      const idx = rows.findIndex(r => normStore(r.store) === normStore(store)); if (idx < 0) return;
+      document.querySelectorAll('#tbody .detail-row').forEach(x => x.remove());
+      tr.classList.add('active');
+      const detail = document.createElement('tr'); detail.className = 'detail-row'; detail.dataset.idx = String(idx); detail.dataset.store = store;
+      fillDetail(detail, idx, true); tr.after(detail);
     });
     document.getElementById('ct-storm').addEventListener('change', e => { ctStorm = e.target.value; ctStatusFilter = ''; ctRender(); });
     ['ct-pm', 'ct-region'].forEach(id => document.getElementById(id).addEventListener('change', ctRender));
     document.getElementById('ct-search').addEventListener('input', ctRender);
     document.getElementById('ct-kpis').addEventListener('click', e => { const k = e.target.closest('.ct-kpi'); if (!k) return; const f = k.dataset.f; ctStatusFilter = (ctStatusFilter === f) ? '' : f; ctRender(); });
-    document.getElementById('ct-new-storm').addEventListener('click', ctOpenNewStorm);
+    document.getElementById('ct-new-storm').addEventListener('click', () => ctOpenNewStorm());
+    document.addEventListener('change', e => {
+      const el = e.target; if (!el.classList || !el.classList.contains('sh-in')) return;
+      const tr = el.closest('tr'); const rid = tr.dataset.rid, key = tr.dataset.key;
+      const q = ctReqs.find(x => (rid && String(x.rowId) === rid) || (key && x.key === key)); if (!q) return;
+      let v = el.value.trim(); const f = el.dataset.f;
+      if (f === 'fdiAmount' || f === 'vendorCost'){ const n = shNum(v); if (v !== '' && n === null){ el.value = q[f] || ''; return; } v = n === null ? '' : String(n); el.value = v; }
+      ctSetField(q, f, v);
+      const blk = el.closest('.sh-block'); const sumEl = blk && blk.querySelector('.sh-sum');
+      if (sumEl){ const store = blk.dataset.store; const lst = ctReqs.filter(x => normStore(x.store) === store); const sm = k => lst.reduce((a, x) => a + (shNum(x[k]) || 0), 0); sumEl.innerHTML = `${lst.length} service${lst.length === 1 ? '' : 's'} logged &middot; FDI ${shMoney(sm('fdiAmount'))} &middot; Vendor ${shMoney(sm('vendorCost'))}`; }
+      if (blk){ const pb = blk.querySelector('.sh-pushbar'); const site = rows.find(x => normStore(x.store) === blk.dataset.store); if (pb && site){ const tmp = document.createElement('div'); tmp.innerHTML = blPushBarHtml(site, serviceHistoryRows(site)); pb.replaceWith(tmp.firstElementChild); } }
+      ctFlush().then(ctRenderBanner);
+    });
+    document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button.sh-new'); if (!b) return; e.stopPropagation(); ctOpenNewStorm(b.dataset.store); });
+    document.addEventListener('click', e => {
+      const t = e.target.closest && e.target.closest('button.sh-push, button.sh-push-cancel, button.bl-undo'); if (!t || t.disabled) return;
+      e.stopPropagation();
+      if (t.classList.contains('bl-undo')){
+        const tr = t.closest('tr'); const rid = tr.dataset.rid, key = tr.dataset.key;
+        const q = ctReqs.find(x => (rid && String(x.rowId) === rid) || (key && x.key === key)); if (!q) return;
+        ctSetField(q, 'pushedAt', ''); blRender(); scRefreshHistory(); ctFlush().then(ctRenderBanner); return;
+      }
+      const bar = t.closest('.sh-pushbar'); const store = bar && bar.dataset.store; const r = rows.find(x => normStore(x.store) === store); if (!r) return;
+      if (t.classList.contains('sh-push-cancel')){ blConfirm = ''; scRefreshHistory(); return; }
+      if (blConfirm !== store){ blConfirm = store; delete blMsg[store]; scRefreshHistory(); setTimeout(() => { if (blConfirm === store){ blConfirm = ''; scRefreshHistory(); } }, 8000); return; }
+      blDoPush(r);
+    });
+    document.getElementById('bl-tab-owner').addEventListener('click', () => { blMode = 'owner'; blRender(); });
+    document.getElementById('bl-tab-sub').addEventListener('click', () => { blMode = 'sub'; blRender(); });
+    document.getElementById('bl-csv').addEventListener('click', blCsv);
     document.getElementById('ct-email-vendors').addEventListener('click', ctOpenVendors);
     document.getElementById('ct-form').addEventListener('submit', ctSubmitNewStorm);
     document.getElementById('ct-f-store').addEventListener('change', ctRefreshNewService);
+    document.getElementById('ct-f-service').addEventListener('change', ctSyncAmts);
+    document.getElementById('ct-f-fdi').addEventListener('input', () => { ctAmtTouched.fdi = true; });
+    document.getElementById('ct-f-ven').addEventListener('input', () => { ctAmtTouched.ven = true; });
+    document.getElementById('dm-form').addEventListener('submit', dmSubmitNew);
+    document.getElementById('dm-f-cancel').addEventListener('click', () => { dmTarget = null; document.getElementById('dm-back').hidden = true; });
+    document.getElementById('dm-back').addEventListener('mousedown', e => { if (e.target.id === 'dm-back'){ dmTarget = null; e.target.hidden = true; } });
     document.getElementById('ct-f-cancel').addEventListener('click', () => { document.getElementById('ct-back').hidden = true; });
     document.getElementById('ct-back').addEventListener('mousedown', e => { if (e.target.id === 'ct-back') e.target.hidden = true; });
     document.getElementById('ctv-close').addEventListener('click', () => { document.getElementById('ctv-back').hidden = true; });
@@ -6209,7 +6771,7 @@ td.map-cell{ width:60px; text-align:center; }
       ctSel.forEach(ns => { const r = rows.find(x => normStore(x.store) === ns); if (r && !ctReqFor(r, ctStorm)) ctNewRequest(r, ctStorm, info.date || ctToday()); });
       ctRender(); ctFlush().then(ctRender);
     });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape'){ document.getElementById('ct-back').hidden = true; document.getElementById('ctv-back').hidden = true; } });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape'){ document.getElementById('ct-back').hidden = true; document.getElementById('ctv-back').hidden = true; document.getElementById('dm-back').hidden = true; } });
     // keep fresh while the tab is open
     if (SMARTSHEET_WORKER_URL) setInterval(() => { const v = document.getElementById('view-contracted'); const a = document.activeElement; if (v && !v.hidden && !document.hidden && SMARTSHEET_WORKER_URL && !(a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) && ctPendingCount() === 0) ctLoad(true); }, 60000);
   })();
@@ -6335,6 +6897,8 @@ td.map-cell{ width:60px; text-align:center; }
   document.getElementById('add-store-btn').addEventListener('click', openAddStore);
   document.getElementById('as-cancel').addEventListener('click', closeAddStore);
   document.getElementById('as-form').addEventListener('submit', submitAddStore);
+  // Save buttons also act on click: in a sandboxed preview (no allow-forms) the browser blocks the form's submit event entirely.
+  [['as-save', submitAddStore], ['ct-f-save', () => ctSubmitNewStorm()], ['dm-f-save', () => dmSubmitNew()]].forEach(([id, fn]) => { const b = document.getElementById(id); if (b) b.addEventListener('click', e => { e.preventDefault(); fn(e); }); });
   document.getElementById('as-back').addEventListener('mousedown', e => { if (e.target.id === 'as-back') closeAddStore(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAddStore(); });
 
