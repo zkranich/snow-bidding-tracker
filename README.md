@@ -1,4 +1,4 @@
-# Snow Bidding Tracker — GitHub Pages package
+# 26-27 Snow Operations — GitHub Pages package
 
 ## What's in here
 - `index.html` — the full dashboard (KPIs, status tracking, Contract Accepted map with zoom/pan, everything you've been using), wired for **live Smartsheet sync** on four fields. No build step.
@@ -118,3 +118,30 @@ Clicking **Create Vendor Contract** now asks: *Sign this subcontract with your s
 Tick the checkboxes on any properties in the Bidding view (filter by PM first if you like), then click **Vendor bid sheet (.xlsx)** in the blue selection bar. You get one Excel file with a tab per customer type (Pfuetze, CubeSmart, Devon, Public Storage, National Storage, SROA). Each tab has a vendor block at the top (company / contact / date), then one row per property: store #, address, sq ft, and **blank yellow cells** for the vendor's price at each depth tier (the tiers match that customer's contract; Pfuetze also gets the Front Loader / Bobcat / Dump Truck / Hauling $/hr and salting columns, like your Pfuetze sheet) plus a Notes column.
 
 It never includes your FDI prices — only blank cells. Send the same file to every vendor; each one fills in the yellow cells and sends it back. It's built right in the browser, so it works without the Worker.
+
+## Add a store
+
+Click **+ Add store** in the filter row. Fill in the store # (required) and anything else you know (customer/contact, address, SF, region, PM, customer status), then **Add store**. It creates a new row at the bottom of the 26-27 Snow Bidding Sheet and the site appears here right away (the table filters to it so you can see it). A store # that's already on the list is blocked.
+
+- **Needs the updated `worker.js`** (new `/add-row` endpoint) pasted into Cloudflare. Until then the store is saved in this browser and the banner says so; it's created in Smartsheet the next time a sync works (**Sync now**, or on reload).
+- **Other devices / people:** the live load now also pulls in any site that exists in Smartsheet with a Store Number this page doesn't have, so a store added here (or typed straight into Smartsheet) shows up everywhere within about a minute. Duplicate-store rows the cleanup dropped earlier stay dropped, and rows with no Store Number are skipped.
+- Contract prices / vendor info for the new store are filled in the normal way afterwards (click the row).
+
+## Service tab (storm dispatch) (running the snow operations)
+
+Second tab next to **Bidding**. A site appears here once it reaches the stage picked in the **Sites** dropdown (default: Customer Status = *Contract Accepted* and Vendor Status = *Signed Contract* or *Compliance Received*; lost sites are hidden). The choice is remembered in this browser.
+
+- **+ New storm** — name it, set the date, forecast and service, choose all shown sites or only the checked ones. It creates one **Requested** row per site in the Smartsheet sheet **26/27 Snow PBR Tracker** (one row per site per storm).
+- **✉ Email vendors** — groups the sites still at *Requested* by their 26/27 Vendor and drafts one email per vendor listing their sites (a Gmail draft if the Worker's Google secrets are set up, otherwise a Gmail compose window). **Mark dispatched** flips that vendor's sites to *Dispatched* once you've sent it.
+- **Status per site** — Requested → Dispatched → On Site → Completed (or Issue / Cancelled). Dispatched / On Site / Completed times stamp themselves. Also fill in service, actual snow, pushes, salt applications and notes per site. Tick several sites to set a status in bulk.
+- **Top tiles** show the active storm's counts across all contracted sites; click one to filter.
+- Changes are saved in this browser first and pushed to Smartsheet (**Sync now** retries). Needs the updated `worker.js` (new `/dispatch`, `/dispatch-add`, `/dispatch-update`).
+
+
+## Tab layout
+
+- **Bidding** — two sub-tabs: *Bidding* (the main site table) and *Vendor Contracting*.
+- **Vendors** — vendor compliance (COI / W-9 / expirations) from the Vendor Tracking List.
+- **Contracted Sites** — roster of every site that has reached the stage picked in the "Sites" selector (same setting the Service tab uses). Click a row to open it on the Bidding tab.
+- **Service** — service dispatch: create a service for one store (or all shown/checked), request service per site; the service type (Plow / Salt / Plow + Salt) comes from the store's contract rates, email vendors, track status. Logged to the "26/27 Snow PBR Tracker" Smartsheet.
+- **Projections** — revenue / margin projections (unchanged).

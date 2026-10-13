@@ -1,4 +1,4 @@
-<title>Snow Bidding Tracker</title>
+<title>26-27 Snow Operations</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Dancing+Script:wght@600;700&display=swap">
 <style>
 :root{
@@ -312,6 +312,58 @@ button{ font-family:inherit; }
 .dq-item .d{ font-size:12px; color:var(--ink-muted); margin-top:2px; }
 .dq-item .detail{ font-size:11.5px; color:var(--ink-faint); margin-top:5px; }
 
+
+/* ---------- Add store dialog ---------- */
+.as-back{ position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:60; display:flex; align-items:flex-start; justify-content:center; padding:6vh 16px; overflow:auto; }
+.as-back[hidden]{ display:none; }
+.as-card{ background:var(--surface); color:var(--ink); border:1px solid var(--border); border-radius:12px; max-width:540px; width:100%; padding:18px 20px 16px; box-shadow:0 12px 40px rgba(0,0,0,.35); }
+.as-card h3{ margin:0 0 4px; font-size:17px; }
+.as-card .as-sub{ margin:0 0 12px; font-size:12px; color:var(--ink-muted); }
+.as-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px 12px; }
+.as-grid .full{ grid-column:1 / -1; }
+.as-grid label{ display:block; font-size:11.5px; color:var(--ink-muted); font-weight:600; margin-bottom:3px; }
+.ct-contract-hint{ font-size:12px; line-height:1.5; color:var(--ink-muted); background:var(--surface-alt); border:1px solid var(--border); border-radius:7px; padding:8px 10px; }
+.ct-contract-hint b{ color:var(--ink); }
+.as-grid input[type=radio]{ width:auto; margin:0 7px 0 0; padding:0; vertical-align:middle; }
+.as-grid input, .as-grid select{ width:100%; box-sizing:border-box; background:var(--surface-alt); color:var(--ink); border:1px solid var(--border); border-radius:7px; padding:8px 9px; font-size:13px; font-family:inherit; }
+.as-actions{ display:flex; align-items:center; gap:10px; margin-top:14px; }
+.as-actions button{ border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); border-radius:7px; padding:8px 14px; font-size:13px; cursor:pointer; }
+.as-actions button.primary{ background:var(--accent); color:#fff; border-color:var(--accent); font-weight:600; }
+.as-actions button:disabled{ opacity:.6; cursor:wait; }
+.as-msg{ font-size:12px; color:var(--ink-muted); }
+.as-msg.bad{ color:#d9534f; font-weight:600; }
+@media (max-width:520px){ .as-grid{ grid-template-columns:1fr; } }
+
+/* ---------- Contracted tab (storm operations) ---------- */
+.ct-kpis{ display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin:0 0 12px; }
+.ct-kpi{ background:var(--surface); border:1px solid var(--border-soft); border-radius:10px; padding:10px 12px; cursor:pointer; box-shadow:var(--shadow); }
+.ct-kpi.on{ border-color:var(--accent); outline:1px solid var(--accent); }
+.ct-kpi .n{ font-size:22px; font-weight:700; line-height:1.1; }
+.ct-kpi .l{ font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-muted); margin-top:3px; }
+.ct-kpi.s-Requested .n{ color:#c98a1b; } .ct-kpi.s-Dispatched .n{ color:#3b82c4; } .ct-kpi.s-OnSite .n{ color:#8a63d2; }
+.ct-kpi.s-Completed .n{ color:#2f9e6e; } .ct-kpi.s-Issue .n{ color:#d9534f; }
+.ct-btn{ border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); border-radius:7px; padding:7px 12px; font-size:12.5px; cursor:pointer; font-family:inherit; }
+.ct-btn.primary{ background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+.ct-btn:disabled{ opacity:.55; cursor:not-allowed; }
+.ct-banner{ margin:10px 0 0; background:var(--accent-soft); color:var(--accent-ink); border:1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); border-radius:8px; padding:8px 12px; font-size:12.5px; font-weight:600; }
+.ct-banner.bad{ background:var(--warn-soft); color:var(--warn); border-color:color-mix(in srgb, var(--warn) 40%, var(--border)); }
+.ct-bulk{ margin:10px 0 0; display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:12.5px; }
+.ct-bulk select{ background:var(--surface-alt); border:1px solid var(--border); border-radius:6px; padding:6px 8px; font-size:12.5px; color:var(--ink); }
+table.ct-table{ min-width:1100px; }
+table.ct-table td{ vertical-align:middle; padding:7px 9px; }
+table.ct-table input.ct-in, table.ct-table select.ct-in{ width:100%; box-sizing:border-box; background:var(--surface-alt); color:var(--ink); border:1px solid var(--border); border-radius:6px; padding:5px 6px; font-size:12.5px; font-family:inherit; }
+table.ct-table input.ct-num{ width:62px; }
+table.ct-table select[data-f="service"]{ min-width:118px; }
+table.ct-table select.ct-status{ font-weight:600; min-width:108px; }
+table.ct-table select.st-Requested{ border-color:#c98a1b; } table.ct-table select.st-Dispatched{ border-color:#3b82c4; } table.ct-table select.st-OnSite{ border-color:#8a63d2; }
+table.ct-table select.st-Completed{ border-color:#2f9e6e; } table.ct-table select.st-Issue{ border-color:#d9534f; } table.ct-table select.st-Cancelled{ opacity:.6; }
+.ct-novendor{ color:#d9534f; font-size:12px; font-weight:600; }
+.ct-season{ font-size:11.5px; color:var(--ink-muted); white-space:nowrap; }
+.ct-empty{ padding:30px 14px; text-align:center; color:var(--ink-muted); font-size:13px; }
+.ct-vrow{ display:grid; grid-template-columns:1.3fr 70px 1.6fr auto; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-soft); font-size:13px; }
+.ct-vrow input{ width:100%; box-sizing:border-box; background:var(--surface-alt); color:var(--ink); border:1px solid var(--border); border-radius:6px; padding:6px 8px; font-size:12.5px; }
+.ct-vrow .acts{ display:flex; gap:6px; flex-wrap:wrap; }
+.as-card.wide{ max-width:760px; }
 /* ---------- toolbar ---------- */
 .toolbar{
   max-width:1280px; margin:16px auto 0; position:sticky; top:0; z-index:5;
@@ -565,6 +617,14 @@ footer{
 }
 .main-tab:hover{ color:var(--ink); }
 .main-tab.active{ color:var(--accent-ink); border-bottom-color:var(--accent); }
+.sub-tabs{ max-width:1280px; margin:10px auto 0; display:flex; gap:6px; }
+.sub-tabs[hidden]{ display:none; }
+.sub-tab{ border:1px solid var(--border); background:var(--surface); font-family:inherit; font-size:12.5px; font-weight:600; color:var(--ink-muted); padding:6px 14px; border-radius:999px; cursor:pointer; }
+.sub-tab:hover{ color:var(--ink); }
+.sub-tab.active{ background:var(--accent-soft); color:var(--accent-ink); border-color:color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.sc-chip{ font-size:11px; font-weight:600; padding:2px 9px; border-radius:999px; white-space:nowrap; background:var(--surface-alt); border:1px solid var(--border-soft); color:var(--ink-muted); }
+.sc-chip.ok{ background:var(--map-green); color:#fff; border-color:transparent; } .sc-chip.bad{ background:var(--map-red); color:#fff; border-color:transparent; } .sc-chip.warn{ background:var(--map-yellow); color:#1c1c1c; border-color:transparent; }
+table.sc-table{ min-width:1100px; } table.sc-table tbody tr{ cursor:pointer; } table.sc-table tbody tr:hover{ background:var(--surface-alt); }
 .proj-wrap{ max-width:1280px; margin:16px auto 0; }
 .vc-wrap{ max-width:1280px; margin:16px auto 0; }
 .vc-bar{ display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; background:var(--surface); border:1px solid var(--border-soft); border-radius:10px; box-shadow:var(--shadow); padding:10px 14px; }
@@ -720,8 +780,8 @@ td.map-cell{ width:60px; text-align:center; }
 
 <div class="topbar">
   <div class="title-block">
-    <h1>26–27 Snow Bidding Tracker</h1>
-    <div class="sub">A cleaned-up working view of the Smartsheet bidding sheet &mdash; built to scan, filter, and sanity-check faster than the raw grid.</div>
+    <h1>26-27 Snow Operations</h1>
+    <div class="sub">Bid the sites, contract the vendors, then run every storm &mdash; all in one place, synced with Smartsheet.</div>
   </div>
   <div class="topbar-right">
     <div style="display:flex; gap:8px;">
@@ -736,9 +796,14 @@ td.map-cell{ width:60px; text-align:center; }
 
 <div class="main-tabs" id="main-tabs">
   <button class="main-tab active" id="tab-bidding" type="button" data-view="bidding">Bidding</button>
-  <button class="main-tab" id="tab-vendor" type="button" data-view="vendor">Vendor Contracting</button>
-  <button class="main-tab" id="tab-compliance" type="button" data-view="compliance">Vendor Compliance</button>
+  <button class="main-tab" id="tab-compliance" type="button" data-view="compliance">Vendors</button>
+  <button class="main-tab" id="tab-sites" type="button" data-view="sites">Contracted Sites</button>
+  <button class="main-tab" id="tab-contracted" type="button" data-view="contracted">Service</button>
   <button class="main-tab" id="tab-projections" type="button" data-view="projections">Projections</button>
+</div>
+<div class="sub-tabs" id="bid-subtabs">
+  <button class="sub-tab active" id="sub-bidding" type="button">Bidding</button>
+  <button class="sub-tab" id="tab-vendor" type="button" data-view="vendor">Vendor Contracting</button>
 </div>
 
 
@@ -863,11 +928,28 @@ td.map-cell{ width:60px; text-align:center; }
   <button class="chip-toggle" id="toggle-novendor">No vendor on file</button>
   <button class="chip-toggle" id="toggle-followup" title="Sites where a vendor was emailed 3+ days ago and hasn't sent an estimate or quote">&#9200; Vendor follow-up <span id="followup-count"></span></button>
   <button class="chip-toggle" id="toggle-lost">Lost only</button>
+  <button class="chip-toggle" id="add-store-btn" title="Add a new site to the Bidding sheet">&#43; Add store</button>
   <button class="chip-toggle" id="open-map-btn">&#128506; Site map</button>
   <span class="result-count" id="result-count"></span>
 </div>
 
 <div class="sync-banner" id="sync-banner" hidden></div>
+<div class="as-back" id="as-back" hidden>
+  <form class="as-card" id="as-form" autocomplete="off">
+    <h3>Add a store</h3>
+    <p class="as-sub">Creates a new row at the bottom of the 26-27 Snow Bidding Sheet and adds it here.</p>
+    <div class="as-grid">
+      <div><label for="as-store">Store # *</label><input id="as-store" placeholder="e.g. CS 3406 / PS 22034 / DSS 9121" required></div>
+      <div><label for="as-customer">Customer / contact</label><input id="as-customer" list="as-customer-list" placeholder="e.g. Ben Giesecke"><datalist id="as-customer-list"></datalist></div>
+      <div class="full"><label for="as-address">Address</label><input id="as-address" placeholder="Street, City, ST ZIP"></div>
+      <div><label for="as-sf">Square feet (SF)</label><input id="as-sf" inputmode="numeric" placeholder="e.g. 55000"></div>
+      <div><label for="as-region">Region</label><select id="as-region"></select></div>
+      <div><label for="as-pm">PM</label><select id="as-pm"></select></div>
+      <div><label for="as-cstatus">Customer Status</label><select id="as-cstatus"></select></div>
+    </div>
+    <div class="as-actions"><button type="submit" class="primary" id="as-save">Add store</button><button type="button" id="as-cancel">Cancel</button><span class="as-msg" id="as-msg"></span></div>
+  </form>
+</div>
 <div class="bulk-bar" id="bulk-bar" hidden>
   <span><b id="bulk-count">0</b> selected</span>
   <select id="bulk-customer-status">
@@ -948,6 +1030,95 @@ td.map-cell{ width:60px; text-align:center; }
       <button type="button" class="vc-modal-close" id="vc-modal-close">Close</button>
     </div>
     <div class="vc-modal-detail" id="vc-modal-detail" data-idx=""></div>
+  </div>
+</div>
+<div id="view-sites" hidden>
+  <div class="vc-wrap">
+    <div class="vc-bar">
+      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Sites
+        <select id="sc-scope">
+          <option value="full">Fully contracted (customer accepted + vendor signed)</option>
+          <option value="compliance">Customer accepted + vendor compliance received</option>
+          <option value="accepted">Customer accepted (any vendor status)</option>
+          <option value="verbal">Verbally or fully accepted</option>
+        </select>
+      </label>
+      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">PM <select id="sc-pm"><option value="">All PMs</option></select></label>
+      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Region <select id="sc-region"><option value="">All regions</option></select></label>
+      <input type="search" id="sc-search" placeholder="Search store, address, customer, vendor">
+      <span class="vc-count" id="sc-count"></span>
+    </div>
+    <div class="table-wrap" style="margin-top:10px">
+      <table class="sc-table">
+        <thead><tr><th>Store #</th><th>Address</th><th>Customer</th><th>Region</th><th>PM</th><th>26/27 Vendor</th><th>Contract term</th><th>Vendor compliance</th><th>Services completed</th></tr></thead>
+        <tbody id="sc-tbody"></tbody>
+      </table>
+    </div>
+    <div class="vc-note">Every site that has reached the stage picked under &ldquo;Sites&rdquo; (the same setting the Service tab uses). Click a row to open it on the Bidding tab. Vendor compliance comes from the Vendor Tracking List; services completed counts Completed requests on the Service tab.</div>
+  </div>
+</div><!-- /view-sites -->
+
+<div id="view-contracted" hidden>
+  <div class="vc-wrap">
+    <div class="ct-kpis" id="ct-kpis"></div>
+    <div class="vc-bar">
+      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Sites
+        <select id="ct-scope">
+          <option value="full">Fully contracted (customer accepted + vendor signed)</option>
+          <option value="compliance">Customer accepted + vendor compliance received</option>
+          <option value="accepted">Customer accepted (any vendor status)</option>
+          <option value="verbal">Verbally or fully accepted</option>
+        </select>
+      </label>
+      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Service <select id="ct-storm"></select></label>
+      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">PM <select id="ct-pm"><option value="">All PMs</option></select></label>
+      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Region <select id="ct-region"><option value="">All regions</option></select></label>
+      <input type="search" id="ct-search" placeholder="Search store, address, vendor">
+      <button class="ct-btn primary" id="ct-new-storm" type="button">&#43; New service</button>
+      <button class="ct-btn" id="ct-email-vendors" type="button">&#9993; Email vendors</button>
+      <span class="vc-count" id="ct-count"></span>
+    </div>
+    <div class="ct-banner" id="ct-banner" hidden></div>
+    <div class="ct-bulk" id="ct-bulk" hidden>
+      <span><b id="ct-bulk-n">0</b> selected</span>
+      <select id="ct-bulk-status"><option value="">Set status to&hellip;</option></select>
+      <button class="ct-btn" id="ct-bulk-request" type="button">Create requests for this service</button>
+      <button class="ct-btn" id="ct-bulk-clear" type="button">Clear</button>
+    </div>
+    <div class="table-wrap" style="margin-top:10px">
+      <table class="ct-table">
+        <thead><tr>
+          <th class="select-col"><input type="checkbox" id="ct-select-all" title="Select all shown"></th>
+          <th>Store #</th><th>Address</th><th>PM</th><th>Vendor</th><th>Status</th><th>Service</th><th>Snow (in)</th><th>Pushes</th><th>Salt</th><th>Notes</th><th>Season</th>
+        </tr></thead>
+        <tbody id="ct-tbody"></tbody>
+      </table>
+    </div>
+    <div class="vc-note">A site shows up here once it reaches the stage picked under &ldquo;Sites&rdquo;. Start a service with <b>+ New service</b>: it creates one request per site (saved to the 26/27 Snow PBR Tracker sheet), then <b>Email vendors</b> drafts one email per vendor listing their sites. Update the status as vendors report in; Dispatched / On Site / Completed times stamp themselves.</div>
+  </div>
+</div><!-- /view-contracted -->
+
+<div class="as-back" id="ct-back" hidden>
+  <form class="as-card" id="ct-form" autocomplete="off">
+    <h3>New service</h3>
+    <p class="as-sub">Creates a Requested service row for each site (saved to the 26/27 Snow PBR Tracker).</p>
+    <div class="as-grid">
+      <div class="full"><label for="ct-f-store">Store *</label><select id="ct-f-store"></select></div>
+      <div><label for="ct-f-date">Service date</label><input id="ct-f-date" type="date"></div>
+      <div><label for="ct-f-forecast">Forecast snow (in)</label><input id="ct-f-forecast" inputmode="decimal" placeholder="e.g. 3-5"></div>
+      <div class="full"><label for="ct-f-service">Service</label><select id="ct-f-service"></select></div>
+      <div class="full"><div id="ct-f-contract" class="ct-contract-hint"></div></div>
+      <div class="full"><label for="ct-f-notes">Note to vendors (optional)</label><input id="ct-f-notes" placeholder="e.g. Lots must be clear by 6am"></div>
+    </div>
+    <div class="as-actions"><button type="submit" class="primary" id="ct-f-save">Create requests</button><button type="button" id="ct-f-cancel">Cancel</button><span class="as-msg" id="ct-f-msg"></span></div>
+  </form>
+</div>
+<div class="as-back" id="ctv-back" hidden>
+  <div class="as-card wide">
+    <h3>Email vendors</h3>
+    <p class="as-sub" id="ctv-sub"></p>
+    <div id="ctv-list"></div>
+    <div class="as-actions"><button type="button" id="ctv-close">Close</button><span class="as-msg" id="ctv-msg"></span></div>
   </div>
 </div>
 <div id="view-vendor" hidden>
@@ -1218,6 +1389,7 @@ td.map-cell{ width:60px; text-align:center; }
     if (!SMARTSHEET_WORKER_URL) return;
     const ents = Object.values(outboxLoad());
     for (const e of ents){ await syncFieldToSmartsheetInner(e.rowId, e.field, e.value, e.ts); }
+    try { await flushPendingAdds(); } catch(e){}
     updateSyncBanner();
   }
   async function syncFieldToSmartsheet(rowId, field, value){
@@ -1337,6 +1509,7 @@ td.map-cell{ width:60px; text-align:center; }
         if (Array.isArray(sr.attachments)) estFiles.set(String(sr.id), estList(sr.attachments));
         if (Array.isArray(sr.attachments)) ohFiles.set(String(sr.id), sr.attachments.filter(a => ohIsMap(a.name)).map(a => ({ id: a.id, name: a.name, mime: a.mimeType || '' })));
       });
+      let appended = 0; try { appended = liveAppendMissingRows(byRow); } catch(e){ console.warn('append new rows failed', e); }
       let matched = 0;
       rows.forEach(r => {
         const c = byRow.get(String(r.rowId));
@@ -1370,6 +1543,7 @@ td.map-cell{ width:60px; text-align:center; }
         pendingCustomerStatusMap.clear(); pendingVendorStatusMap.clear(); pendingLostMap.clear();
         pendingContractMap.clear(); pendingVendorMap.clear(); pendingRegionMap.clear();
       }
+      if (typeof flushPendingAdds === 'function') flushPendingAdds();
       lastSyncOk = true;
       if (tag) tag.textContent = 'LIVE ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
       console.log('Live Smartsheet load: matched', matched, 'of', rows.length, 'rows');
@@ -5587,23 +5761,582 @@ td.map-cell{ width:60px; text-align:center; }
     document.querySelectorAll('#proj-assume input').forEach(el => el.addEventListener('input', projReadInputs));
     document.getElementById('proj-reset').addEventListener('click', () => { projAssume = projClone(PROJ_DEFAULTS); projSave(); projSyncInputs(); renderProjections(); });
     function showView(v){
-      document.getElementById('view-bidding').hidden = v !== 'bidding';
-      document.getElementById('view-projections').hidden = v !== 'projections';
-      document.getElementById('view-vendor').hidden = v !== 'vendor';
-      document.getElementById('view-compliance').hidden = v !== 'compliance';
-      document.getElementById('tab-compliance').classList.toggle('active', v === 'compliance');
-      if (v === 'compliance'){ if (vtRows === null || vtState === 'error' || vtState === 'noconn') vtLoad(); else renderCompliance(); }
+      ['bidding', 'vendor', 'compliance', 'sites', 'contracted', 'projections'].forEach(n => { const el = document.getElementById('view-' + n); if (el) el.hidden = n !== v; });
+      const main = (v === 'bidding' || v === 'vendor') ? 'bidding' : v;
+      ['bidding', 'compliance', 'sites', 'contracted', 'projections'].forEach(n => document.getElementById('tab-' + n).classList.toggle('active', n === main));
+      const sub = document.getElementById('bid-subtabs'); sub.hidden = !(v === 'bidding' || v === 'vendor');
+      document.getElementById('sub-bidding').classList.toggle('active', v === 'bidding');
       document.getElementById('tab-vendor').classList.toggle('active', v === 'vendor');
       if (v === 'vendor') renderVendorContracting();
-      document.getElementById('tab-bidding').classList.toggle('active', v === 'bidding');
-      document.getElementById('tab-projections').classList.toggle('active', v === 'projections');
+      if (v === 'compliance'){ if (vtRows === null || vtState === 'error' || vtState === 'noconn') vtLoad(); else renderCompliance(); }
+      if (v === 'sites'){ scRender(); ctLoad(false); if (SMARTSHEET_WORKER_URL) vtEnsureRows().then(scRender).catch(() => {}); }
+      if (v === 'contracted'){ ctPickStorm(); ctRender(); ctLoad(true); }
       if (v === 'projections') renderProjections();
+      window.__showView = showView;
     }
+    window.__showView = showView;
     document.getElementById('tab-bidding').addEventListener('click', () => showView('bidding'));
+    document.getElementById('sub-bidding').addEventListener('click', () => showView('bidding'));
     document.getElementById('tab-projections').addEventListener('click', () => showView('projections'));
+    document.getElementById('tab-sites').addEventListener('click', () => showView('sites'));
+    document.getElementById('tab-contracted').addEventListener('click', () => showView('contracted'));
     document.getElementById('tab-vendor').addEventListener('click', () => showView('vendor'));
     document.getElementById('tab-compliance').addEventListener('click', () => showView('compliance'));
   })();
+
+  // ---------- Contracted tab: storm dispatch operations ----------
+  // Sites that reach the chosen "contracted" stage get a row per storm in the Smartsheet
+  // "26/27 Snow PBR Tracker" (via the Worker /dispatch endpoints). Changes are saved in this
+  // browser first (outbox) and pushed to Smartsheet, so nothing is lost on a refresh.
+  const CT_OUTBOX_KEY = 'fdiDispatchOutboxV1', CT_SCOPE_KEY = 'fdiCtScopeV1';
+  const CT_COLS = {"request":8036663236005764,"storm":718313841528708,"stormDate":5221913468899204,"store":2970113655213956,"address":7473713282584452,"pm":1844213748371332,"vendor":6347813375741828,"status":4096013562056580,"service":8599613189427076,"forecast":436838864818052,"actual":4940438492188548,"pushes":2688638678503300,"salt":7192238305873796,"requestedAt":1562738771660676,"dispatchedAt":6066338399031172,"onSiteAt":3814538585345924,"completedAt":8318138212716420,"issue":999788818239364,"notes":5503388445609860};
+  const CT_STATUSES = ['Requested', 'Dispatched', 'On Site', 'Completed', 'Issue', 'Cancelled'];
+  const CT_SERVICES = ['Plow', 'Salt', 'Plow + Salt', 'Haul / Stack', 'Other'];
+  let ctReqs = [];            // all requests (server rows + not-yet-created local ones)
+  let ctState = 'idle', ctError = '';   // idle | loading | ok | error | noconn
+  let ctStorm = '';           // active storm name
+  let ctStatusFilter = '';
+  const ctSel = new Set();    // normalized store numbers checked in the table
+  let ctScope = 'full'; try { ctScope = localStorage.getItem(CT_SCOPE_KEY) || 'full'; } catch(e){}
+  let ctLoadedAt = 0;
+  function ctOutLoad(){ try { const o = JSON.parse(localStorage.getItem(CT_OUTBOX_KEY) || '{}') || {}; return { creates: o.creates || [], updates: o.updates || {} }; } catch(e){ return { creates: [], updates: {} }; } }
+  function ctOutSave(o){ try { localStorage.setItem(CT_OUTBOX_KEY, JSON.stringify(o)); } catch(e){} }
+  function ctPendingCount(){ const o = ctOutLoad(); return o.creates.length + Object.keys(o.updates).length; }
+  const ctBase = () => SMARTSHEET_WORKER_URL.replace(/\/$/, '');
+  const ctHdr = extra => Object.assign({ 'X-Dashboard-Key': DASHBOARD_KEY }, extra || {});
+  const ctNow = () => new Date().toISOString();
+  const ctFmt = iso => { if (!iso) return ''; const d = new Date(iso); return isNaN(d) ? String(iso) : d.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); };
+  const ctToday = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+
+  function ctParse(sheet){
+    const byCol = {}; Object.entries(CT_COLS).forEach(([k, id]) => { byCol[id] = k; });
+    return (sheet.rows || []).map(sr => {
+      const o = { rowId: sr.id, key: null };
+      Object.keys(CT_COLS).forEach(k => { o[k] = ''; });
+      (sr.cells || []).forEach(c => { const k = byCol[c.columnId]; if (k && c.value !== undefined && c.value !== null) o[k] = String(c.value).slice(0, k === 'stormDate' ? 10 : 4000); });
+      return o;
+    }).filter(o => o.store && o.storm);
+  }
+  function ctApplyOutbox(){
+    const ob = ctOutLoad();
+    const byId = new Map(ctReqs.filter(r => r.rowId != null).map(r => [String(r.rowId), r]));
+    Object.values(ob.updates).forEach(u => { const r = byId.get(String(u.rowId)); if (r) r[u.field] = u.value == null ? '' : String(u.value); });
+    ctReqs = ctReqs.filter(r => r.rowId != null);
+    ob.creates.forEach(c => { if (!ctReqs.some(r => r.storm === c.fields.storm && normStore(r.store) === normStore(c.fields.store))) ctReqs.push(Object.assign({ rowId: null, key: c.key }, c.fields)); });
+  }
+  async function ctLoad(force){
+    if (!SMARTSHEET_WORKER_URL){ ctState = 'noconn'; ctApplyOutbox(); ctPickStorm(); ctRender(); return; }
+    if (!force && ctState === 'ok' && Date.now() - ctLoadedAt < 20000) return;
+    if (ctState !== 'ok'){ ctState = 'loading'; ctRender(); }
+    try {
+      const resp = await fetch(ctBase() + '/dispatch', { headers: ctHdr() });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status + (resp.status === 404 ? ' (the Worker needs the latest worker.js deployed)' : resp.status === 401 || resp.status === 403 ? ' (dashboard key rejected)' : ''));
+      const sheet = await resp.json();
+      if (!sheet || !Array.isArray(sheet.rows)) throw new Error('unexpected response');
+      ctReqs = ctParse(sheet); ctApplyOutbox(); ctState = 'ok'; ctError = ''; ctLoadedAt = Date.now();
+      ctPickStorm(); ctRender();
+      ctFlush();
+    } catch(e){
+      ctState = 'error'; ctError = (e && e.message === 'Failed to fetch') ? 'could not reach the Worker URL' : String((e && e.message) || e);
+      ctApplyOutbox(); ctPickStorm(); ctRender();
+    }
+  }
+  // push whatever is still waiting: new requests first (they get a row id), then field updates
+  let ctFlushing = false;
+  async function ctFlush(){
+    if (!SMARTSHEET_WORKER_URL || ctFlushing) return; ctFlushing = true;
+    try {
+      let ob = ctOutLoad();
+      if (ob.creates.length){
+        const batch = ob.creates.slice(0, 200);
+        try {
+          const resp = await fetch(ctBase() + '/dispatch-add', { method: 'POST', headers: ctHdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ items: batch.map(c => c.fields) }) });
+          const d = await resp.json().catch(() => null);
+          if (resp.ok && d && Array.isArray(d.rowIds) && d.rowIds.length === batch.length){
+            batch.forEach((c, i) => { const r = ctReqs.find(x => x.key === c.key); if (r){ r.rowId = d.rowIds[i]; r.key = null; } });
+            const cur = ctOutLoad(); cur.creates = cur.creates.filter(c => !batch.some(b => b.key === c.key)); ctOutSave(cur);
+          } else { ctError = (d && d.error) || ('HTTP ' + resp.status + (resp.status === 404 ? ' (Worker needs the latest worker.js)' : '')); ctState = 'error'; }
+        } catch(e){ ctError = 'could not reach the Worker URL'; ctState = 'error'; }
+      }
+      ob = ctOutLoad();
+      for (const u of Object.values(ob.updates)){
+        try {
+          const resp = await fetch(ctBase() + '/dispatch-update', { method: 'POST', headers: ctHdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ rowId: u.rowId, field: u.field, value: u.value }) });
+          if (resp.ok){ const cur = ctOutLoad(); const k = u.rowId + '|' + u.field; if (cur.updates[k] && cur.updates[k].ts === u.ts){ delete cur.updates[k]; ctOutSave(cur); } }
+          else { ctError = 'HTTP ' + resp.status; ctState = 'error'; }
+        } catch(e){ ctError = 'could not reach the Worker URL'; ctState = 'error'; }
+      }
+      if (ctPendingCount() === 0 && ctState === 'error' && ctError) { /* keep error text visible until next good load */ }
+    } finally { ctFlushing = false; ctRenderBanner(); }
+  }
+  // change one field on a request (local first, then queued for Smartsheet)
+  function ctSetField(req, field, value){
+    const v = value == null ? '' : String(value);
+    req[field] = v;
+    const ob = ctOutLoad();
+    if (req.rowId != null){ const k = req.rowId + '|' + field; ob.updates[k] = { rowId: req.rowId, field, value: v, ts: Date.now() }; }
+    else { const c = ob.creates.find(x => x.key === req.key); if (c) c.fields[field] = v; }
+    ctOutSave(ob);
+  }
+  function ctSetStatus(req, status){
+    if (req.status === status) return;
+    ctSetField(req, 'status', status);
+    const stamp = f => { if (!req[f]) ctSetField(req, f, ctNow()); };
+    if (status === 'Dispatched') stamp('dispatchedAt');
+    if (status === 'On Site'){ stamp('dispatchedAt'); stamp('onSiteAt'); }
+    if (status === 'Completed'){ stamp('dispatchedAt'); stamp('onSiteAt'); stamp('completedAt'); }
+  }
+
+  function ctEligible(r){
+    if (effectiveLost(r)) return false;
+    const cs = effectiveCustomerStatus(r), vs = effectiveVendorStatus(r);
+    if (ctScope === 'full') return cs === 'Contract Accepted' && (vs === 'Signed Contract' || vs === 'Compliance Received');
+    if (ctScope === 'compliance') return cs === 'Contract Accepted' && vs === 'Compliance Received';
+    if (ctScope === 'accepted') return cs === 'Contract Accepted';
+    return cs === 'Contract Accepted' || cs === 'Verbally Accepted';
+  }
+  function ctStorms(){
+    const m = new Map();
+    ctReqs.forEach(r => { if (!m.has(r.storm)) m.set(r.storm, r.stormDate || ''); else if (!m.get(r.storm) && r.stormDate) m.set(r.storm, r.stormDate); });
+    return [...m.entries()].sort((a, b) => String(b[1]).localeCompare(String(a[1])) || a[0].localeCompare(b[0])).map(([name, date]) => ({ name, date }));
+  }
+  function ctPickStorm(){ const s = ctStorms(); if (!s.some(x => x.name === ctStorm)) ctStorm = s.length ? s[0].name : ''; }
+  const ctReqFor = (r, storm) => ctReqs.find(q => q.storm === storm && normStore(q.store) === normStore(r.store)) || null;
+  function ctVisibleSites(){
+    const pm = document.getElementById('ct-pm').value, reg = document.getElementById('ct-region').value;
+    const q = document.getElementById('ct-search').value.trim().toLowerCase();
+    return rows.filter(r => ctEligible(r) && (!pm || (pm === '__NONE__' ? !r.pm : r.pm === pm)) && (!reg || effectiveRegion(r) === reg)
+      && (!q || `${r.store} ${r.address} ${r.vendor2627} ${r.customer}`.toLowerCase().includes(q)))
+      .sort((a, b) => String(a.store).localeCompare(String(b.store), undefined, { numeric: true }));
+  }
+
+  function ctRenderBanner(){
+    const b = document.getElementById('ct-banner'); if (!b) return;
+    const n = ctPendingCount();
+    if (ctState === 'noconn'){ b.hidden = false; b.className = 'ct-banner bad'; b.textContent = 'Not connected to Smartsheet — enter the Worker URL and dashboard key on the Bidding tab. Services you create now are kept in this browser until then.'; return; }
+    if (ctState === 'error'){ b.hidden = false; b.className = 'ct-banner bad'; b.textContent = '⚠ Dispatch log: ' + ctError + (n ? ` — ${n} change${n === 1 ? '' : 's'} saved in this browser, not yet in Smartsheet. ` : ' ');
+      const rb = document.createElement('button'); rb.type = 'button'; rb.className = 'ct-btn'; rb.textContent = 'Retry'; rb.addEventListener('click', () => { ctState = 'idle'; ctLoad(true); }); b.append(rb); return; }
+    if (ctState === 'loading'){ b.hidden = false; b.className = 'ct-banner'; b.textContent = 'Loading the dispatch log…'; return; }
+    if (n){ b.hidden = false; b.className = 'ct-banner'; b.textContent = `💾 ${n} change${n === 1 ? '' : 's'} saved in this browser, not yet confirmed in Smartsheet. `;
+      const sb = document.createElement('button'); sb.type = 'button'; sb.className = 'ct-btn'; sb.textContent = 'Sync now'; sb.addEventListener('click', async () => { sb.disabled = true; await ctFlush(); ctRender(); }); b.append(sb); return; }
+    b.hidden = true;
+  }
+  function ctRender(){
+    const stormSel = document.getElementById('ct-storm');
+    const storms = ctStorms();
+    stormSel.innerHTML = storms.length ? storms.map(s => `<option value="${escapeHtml(s.name)}"${s.name === ctStorm ? ' selected' : ''}>${escapeHtml(s.name)}${s.date ? ' (' + escapeHtml(s.date) + ')' : ''}</option>`).join('') : '<option value="">— no storms yet —</option>';
+    document.getElementById('ct-scope').value = ctScope;
+    const sites = ctVisibleSites();
+    const allEligible = rows.filter(ctEligible);
+    // KPIs for the active storm across ALL eligible sites (ignores filters/search)
+    const counts = {}; CT_STATUSES.forEach(s => { counts[s] = 0; }); let none = 0;
+    allEligible.forEach(r => { const q = ctStorm ? ctReqFor(r, ctStorm) : null; if (q && counts[q.status] !== undefined) counts[q.status]++; else if (!q) none++; });
+    const kp = [['', allEligible.length, 'Contracted sites']].concat(CT_STATUSES.filter(s => s !== 'Cancelled').map(s => [s, counts[s], s])).concat([['__NONE__', none, 'No request']]);
+    document.getElementById('ct-kpis').innerHTML = kp.map(([k, n, l]) => `<div class="ct-kpi s-${escapeHtml(k.replace(/\s+/g, ''))}${ctStatusFilter === k && k ? ' on' : ''}" data-f="${escapeHtml(k)}"><div class="n">${n}</div><div class="l">${escapeHtml(l)}</div></div>`).join('');
+    const shown = sites.filter(r => { if (!ctStatusFilter) return true; const q = ctStorm ? ctReqFor(r, ctStorm) : null; return ctStatusFilter === '__NONE__' ? !q : (q && q.status === ctStatusFilter); });
+    document.getElementById('ct-count').textContent = `${shown.length} of ${allEligible.length} contracted sites`;
+    const tb = document.getElementById('ct-tbody');
+    if (!allEligible.length){
+      tb.innerHTML = `<tr><td colspan="12" class="ct-empty">No sites have reached this stage yet. Sites show up here once Customer Status is <b>Contract Accepted</b> and the vendor contract is signed. (Change the stage under &ldquo;Sites&rdquo; above.)</td></tr>`;
+    } else if (!shown.length){
+      tb.innerHTML = `<tr><td colspan="12" class="ct-empty">No sites match these filters.</td></tr>`;
+    } else {
+      tb.innerHTML = shown.map(r => {
+        const q = ctStorm ? ctReqFor(r, ctStorm) : null;
+        const ns = normStore(r.store);
+        const season = ctReqs.filter(x => normStore(x.store) === ns);
+        const done = season.filter(x => x.status === 'Completed').length;
+        const vend = r.vendor2627 ? escapeHtml(r.vendor2627) : '<span class="ct-novendor">no vendor</span>';
+        const opt = (list, cur) => list.map(s => `<option value="${escapeHtml(s)}"${s === cur ? ' selected' : ''}>${escapeHtml(s)}</option>`).join('');
+        const cells = q
+          ? `<td><select class="ct-in ct-status st-${escapeHtml(q.status.replace(/\s+/g, ''))}" data-f="status">${opt(CT_STATUSES, q.status)}</select>${q.completedAt ? `<div class="ct-season" title="Completed">&#10003; ${escapeHtml(ctFmt(q.completedAt))}</div>` : q.onSiteAt ? `<div class="ct-season">on site ${escapeHtml(ctFmt(q.onSiteAt))}</div>` : q.dispatchedAt ? `<div class="ct-season">sent ${escapeHtml(ctFmt(q.dispatchedAt))}</div>` : ''}</td>
+             <td><select class="ct-in" data-f="service"><option value=""></option>${opt(CT_SERVICES, q.service)}</select></td>
+             <td><input class="ct-in ct-num" data-f="actual" inputmode="decimal" value="${escapeHtml(q.actual)}" placeholder="${escapeHtml(q.forecast || '')}" title="${q.forecast ? 'Forecast ' + escapeHtml(q.forecast) + '"' : 'Actual snowfall (in)'}"></td>
+             <td><input class="ct-in ct-num" data-f="pushes" inputmode="numeric" value="${escapeHtml(q.pushes)}"></td>
+             <td><input class="ct-in ct-num" data-f="salt" inputmode="numeric" value="${escapeHtml(q.salt)}"></td>
+             <td><input class="ct-in" data-f="notes" value="${escapeHtml(q.notes)}" placeholder="${q.status === 'Issue' ? 'What happened?' : ''}"></td>`
+          : `<td colspan="6" style="color:var(--ink-faint);font-size:12px">${ctStorm ? `<button type="button" class="ct-btn" data-act="request">Request ${escapeHtml(ctStorm)}</button>` : 'Create a service to start dispatching'}</td>`;
+        return `<tr data-store="${escapeHtml(ns)}"><td class="select-col"><input type="checkbox" class="ct-row-sel" ${ctSel.has(ns) ? 'checked' : ''}></td>
+          <td><b>${escapeHtml(r.store)}</b></td><td>${escapeHtml(r.address || '')}</td><td>${escapeHtml(pmShort(r.pm))}</td><td>${vend}</td>${cells}
+          <td class="ct-season">${done}/${season.length}</td></tr>`;
+      }).join('');
+    }
+    const nSel = [...ctSel].length; const bulk = document.getElementById('ct-bulk');
+    bulk.hidden = nSel === 0; document.getElementById('ct-bulk-n').textContent = nSel;
+    const all = document.getElementById('ct-select-all');
+    if (all){ const ids = shown.map(r => normStore(r.store)); all.checked = ids.length > 0 && ids.every(i => ctSel.has(i)); }
+    document.getElementById('ct-email-vendors').disabled = !ctStorm;
+    ctRenderBanner();
+    const sv = document.getElementById('view-sites'); if (sv && !sv.hidden) scRender();
+  }
+
+  function ctNewRequest(r, storm, stormDate, extra){
+    const key = 'ct' + Date.now() + Math.random().toString(36).slice(2, 7);
+    const fields = Object.assign({ request: `${storm} | ${r.store}`, storm, stormDate: stormDate || '', store: r.store, address: r.address || '', pm: r.pm || '', vendor: r.vendor2627 || '', status: 'Requested', service: '', forecast: '', actual: '', pushes: '', salt: '', requestedAt: ctNow(), dispatchedAt: '', onSiteAt: '', completedAt: '', issue: '', notes: '' }, extra || {});
+    const ob = ctOutLoad(); ob.creates.push({ key, fields }); ctOutSave(ob);
+    const q = Object.assign({ rowId: null, key }, fields); ctReqs.push(q); return q;
+  }
+  // Contract parameters -> which service(s) this store's contract covers.
+  const CT_PARAM_LABELS = { perInchRate: 'Per inch', deicer: 'Deicer / salting', saltingOfficeGate: 'Salting office/gate', seasonal: 'Seasonal', fdi2_399: '2–3.99"', fdi4_599: '4–5.99"', fdi6_799: '6–7.99"', fdi3_6: '3–6"', fdi6_9: '6–9"', fdi10_12: '10–12"', fdi13_15: '13–15"', fdi16_18: '16–18"', fdi2_4: '2–4"', fdi41_6: '4.1–6"', pfuetze2_4: '2–4"', pfuetze4_6: '4–6"', pfuetze6_10: '6–10"', pfuetze10plus: '10"+', sroa3_49: '3–4.9"', sroa5_79: '5–7.9"', sroa8_119: '8–11.9"', sroa12plus: '12"+' };
+  function ctContractInfo(r){
+    const cp = (r && r.contractParams) || {}; const plow = [], salt = []; let seasonal = null;
+    Object.keys(cp).forEach(k => {
+      if (/^vendor/i.test(k)) return; const v = cp[k]; if (v === null || v === undefined || v === '' || !(Number(v) > 0)) return;
+      const lab = CT_PARAM_LABELS[k] || k; const money = '$' + Number(v).toLocaleString('en-US', { maximumFractionDigits: 2 });
+      if (k === 'deicer' || k === 'saltingOfficeGate') salt.push(`${lab} ${money}`);
+      else if (k === 'seasonal') seasonal = money;
+      else plow.push(`${lab} ${money}`);
+    });
+    let service = '';
+    if (seasonal) service = 'Plow + Salt'; else if (plow.length && salt.length) service = 'Plow + Salt'; else if (plow.length) service = 'Plow'; else if (salt.length) service = 'Salt';
+    return { service, plow, salt, seasonal };
+  }
+  function ctContractLine(r){
+    const c = ctContractInfo(r); if (!c.service) return 'No contract rates entered yet for this store, so the service defaults to Plow + Salt.';
+    const parts = [];
+    if (c.seasonal) parts.push('<b>Seasonal</b> ' + escapeHtml(c.seasonal));
+    if (c.plow.length) parts.push('<b>Plow</b> ' + c.plow.map(escapeHtml).join(' · '));
+    if (c.salt.length) parts.push('<b>Salt</b> ' + c.salt.map(escapeHtml).join(' · '));
+    return `Contract for <b>${escapeHtml(r.store)}</b> covers <b>${escapeHtml(c.service)}</b>.<br>` + parts.join('<br>');
+  }
+  function ctNewSites(){
+    const v = document.getElementById('ct-f-store').value;
+    if (v === '__checked') return rows.filter(r => ctEligible(r) && ctSel.has(normStore(r.store)));
+    if (v === '__shown' || !v) return ctVisibleSites();
+    return ctVisibleSites().filter(r => normStore(r.store) === v);
+  }
+  function ctRefreshNewService(){
+    const sites = ctNewSites(); const hint = document.getElementById('ct-f-contract'); const sel = document.getElementById('ct-f-service');
+    if (sites.length === 1){
+      const c = ctContractInfo(sites[0]); hint.innerHTML = ctContractLine(sites[0]);
+      sel.value = '__auto'; sel.options[0].textContent = 'Per store contract (' + (c.service || 'Plow + Salt') + ')';
+    } else {
+      sel.options[0].textContent = 'Per each store’s contract';
+      hint.innerHTML = sites.length ? `Each of the ${sites.length} stores gets the service its own contract covers (plow, salt, or both). Pick a specific service below to override.` : 'No stores to request — check the filters.';
+    }
+  }
+  function ctOpenNewStorm(){
+    const sites = ctVisibleSites().slice().sort((a, b) => String(a.store).localeCompare(String(b.store), undefined, { numeric: true }));
+    const checked = rows.filter(r => ctEligible(r) && ctSel.has(normStore(r.store)));
+    const st = document.getElementById('ct-f-store');
+    st.innerHTML = `<option value="__shown"${checked.length ? '' : ' selected'}>All ${sites.length} site${sites.length === 1 ? '' : 's'} currently shown</option>`
+      + (checked.length ? `<option value="__checked" selected>Only the ${checked.length} checked site${checked.length === 1 ? '' : 's'}</option>` : '')
+      + sites.map(r => `<option value="${escapeHtml(normStore(r.store))}">${escapeHtml(r.store)} — ${escapeHtml(r.address || '')}</option>`).join('');
+    document.getElementById('ct-f-service').innerHTML = '<option value="__auto"></option>' + CT_SERVICES.map(x => `<option>${escapeHtml(x)}</option>`).join('');
+    document.getElementById('ct-f-date').value = ctToday();
+    document.getElementById('ct-f-forecast').value = ''; document.getElementById('ct-f-notes').value = '';
+    ctRefreshNewService();
+    const m = document.getElementById('ct-f-msg'); m.textContent = ''; m.classList.remove('bad');
+    document.getElementById('ct-f-save').disabled = false;
+    document.getElementById('ct-back').hidden = false; setTimeout(() => st.focus(), 30);
+  }
+  function ctSubmitNewStorm(ev){
+    if (ev) ev.preventDefault();
+    const date = document.getElementById('ct-f-date').value || ctToday(); const name = 'Service ' + date;
+    const msg = document.getElementById('ct-f-msg');
+    const sites = ctNewSites();
+    if (!sites.length){ msg.textContent = 'No store to request — check the filters.'; msg.classList.add('bad'); return; }
+    const svcPick = document.getElementById('ct-f-service').value; const forecast = document.getElementById('ct-f-forecast').value.trim();
+    const vnote = document.getElementById('ct-f-notes').value.trim();
+    let made = 0;
+    sites.forEach(r => { if (!ctReqFor(r, name)){ ctNewRequest(r, name, date, { service: svcPick === '__auto' ? (ctContractInfo(r).service || 'Plow + Salt') : svcPick, forecast }); made++; } });
+    window.__ctVendorNote = vnote;
+    ctStorm = name; ctSel.clear(); ctStatusFilter = '';
+    document.getElementById('ct-back').hidden = true;
+    ctRender(); ctFlush().then(ctRender);
+    window.__lastStorm = { name, made, skipped: sites.length - made };
+  }
+
+  // ----- Email vendors (one email per vendor listing that vendor's sites for the active storm)
+  function ctVendorGroups(){
+    const g = new Map();
+    ctReqs.filter(q => q.storm === ctStorm && q.status === 'Requested').forEach(q => {
+      const site = rows.find(r => normStore(r.store) === normStore(q.store)); const name = (q.vendor || (site && site.vendor2627) || '').trim();
+      const key = name ? vtNorm(name) || name.toLowerCase() : '__none__';
+      if (!g.has(key)) g.set(key, { name: name || '(no vendor assigned)', hasName: !!name, reqs: [], sites: [] });
+      g.get(key).reqs.push(q); g.get(key).sites.push(site || { store: q.store, address: q.address });
+    });
+    return [...g.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }
+  function ctVendorEmail(grp){
+    let e = '';
+    const row = vtFindRow(grp.name); if (row && String(row.email).indexOf('@') > 0) e = String(row.email).split(/[;,\s]+/)[0];
+    if (!e){
+      const k = vtNorm(grp.name);
+      grp.sites.forEach(s => { if (!e && s && s.interested) [1, 2, 3].forEach(n => { if (!e && vtNorm(s.interested['iv' + n + 'Name']) === k && String(s.interested['iv' + n + 'Email'] || '').indexOf('@') > 0) e = s.interested['iv' + n + 'Email']; }); });
+    }
+    return e;
+  }
+  function ctEmailBody(grp){
+    const q0 = grp.reqs[0]; const storm = ctStorm; const info = ctStorms().find(s => s.name === storm) || {};
+    const lines = grp.sites.map((s, i) => `${i + 1}. ${s.store} — ${s.address || ''}${grp.reqs[i] && grp.reqs[i].notes ? ' (' + grp.reqs[i].notes + ')' : ''}`);
+    const svc = [...new Set(grp.reqs.map(q => q.service).filter(Boolean))].join(', ');
+    return ['Hi ' + (grp.name.split(/[\s,]/)[0] || 'there') + ',', '',
+      `Please service the following ${grp.sites.length === 1 ? 'property' : grp.sites.length + ' properties'} for ${storm}${info.date ? ' (' + info.date + ')' : ''}.`,
+      q0 && q0.forecast ? `Forecast: ${q0.forecast}"` : '', svc ? `Service: ${svc}` : '', '',
+      ...lines, '', window.__ctVendorNote ? window.__ctVendorNote : '',
+      'Please reply to confirm you’re on it, and let me know right away if any site can’t be reached or if there’s an issue. Send completion photos / time on site when done.', '', 'Thanks,', 'Zak Kranich', 'Farmer Development'].filter((x, i, a) => !(x === '' && a[i - 1] === '')).join('\n');
+  }
+  async function ctOpenVendors(){
+    if (!ctStorm) return;
+    document.getElementById('ctv-back').hidden = false;
+    document.getElementById('ctv-sub').textContent = 'Loading vendor contacts…';
+    try { await vtEnsureRows(); } catch(e){}
+    ctRenderVendors();
+  }
+  function ctRenderVendors(){
+    const groups = ctVendorGroups();
+    document.getElementById('ctv-sub').textContent = groups.length ? `${ctStorm}: sites still at "Requested", grouped by vendor. Draft the email, then mark them Dispatched once you send it.` : `Nothing waiting for a vendor email in ${ctStorm} — every site is already dispatched (or no requests yet).`;
+    const el = document.getElementById('ctv-list');
+    el.innerHTML = groups.map((g, i) => `<div class="ct-vrow" data-i="${i}"><div><b>${escapeHtml(g.name)}</b>${g.hasName ? '' : '<div class="ct-novendor">Assign a 26/27 Vendor on the Bidding tab first</div>'}</div><div>${g.sites.length} site${g.sites.length === 1 ? '' : 's'}</div>
+      <div><input type="email" class="ctv-email" placeholder="vendor email" value="${escapeHtml(ctVendorEmail(g))}"></div>
+      <div class="acts"><button type="button" class="ct-btn primary" data-act="draft"${g.hasName ? '' : ' disabled'}>Draft email</button><button type="button" class="ct-btn" data-act="dispatched">Mark dispatched</button></div></div>`).join('');
+    el._groups = groups;
+  }
+  async function ctDraftVendor(i, rowEl){
+    const g = document.getElementById('ctv-list')._groups[i]; const msg = document.getElementById('ctv-msg');
+    const email = rowEl.querySelector('.ctv-email').value.trim();
+    if (email.indexOf('@') < 0){ msg.textContent = 'Add the vendor’s email first.'; msg.classList.add('bad'); return; }
+    msg.classList.remove('bad'); msg.textContent = 'Building…';
+    const subject = `SNOW SERVICE REQUEST: ${ctStorm} — ${g.sites.length} site${g.sites.length === 1 ? '' : 's'}`; const body = ctEmailBody(g);
+    const win = window.open('', '_blank'); let url = '';
+    if (SMARTSHEET_WORKER_URL && ivGmailOk !== false){
+      try {
+        const resp = await fetch(ctBase() + '/gmail-draft', { method: 'POST', headers: ctHdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ to: email, subject, body, attachments: [] }) });
+        if (resp.status === 501) ivGmailOk = false; else if (resp.ok){ const d = await resp.json(); if (d && d.url){ url = d.url; ivGmailOk = true; } }
+      } catch(e){}
+    }
+    if (!url) url = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(email) + '&su=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    if (win) win.location = url; else window.open(url, '_blank');
+    msg.textContent = `Draft opened for ${g.name}. Mark them dispatched when you send it.`;
+    window.__lastVendorDraft = { to: email, subject, body, url };
+  }
+  function ctMarkDispatched(i){
+    const g = document.getElementById('ctv-list')._groups[i];
+    g.reqs.forEach(q => ctSetStatus(q, 'Dispatched'));
+    ctRenderVendors(); ctRender(); ctFlush().then(ctRender);
+    const msg = document.getElementById('ctv-msg'); msg.classList.remove('bad'); msg.textContent = `${g.sites.length} site${g.sites.length === 1 ? '' : 's'} marked Dispatched.`;
+  }
+
+  // ---------- Sites Contracted tab (read-only roster of contracted sites) ----------
+  function scVisible(){
+    const pm = document.getElementById('sc-pm').value, reg = document.getElementById('sc-region').value, q = document.getElementById('sc-search').value.trim().toLowerCase();
+    return rows.filter(r => ctEligible(r) && (!pm || (pm === '__NONE__' ? !r.pm : r.pm === pm)) && (!reg || effectiveRegion(r) === reg)
+      && (!q || `${r.store} ${r.address} ${r.customer} ${r.vendor2627}`.toLowerCase().includes(q)))
+      .sort((a, b) => String(a.store).localeCompare(String(b.store), undefined, { numeric: true }));
+  }
+  function scCompliance(r){
+    const name = (r.vendor2627 || '').trim();
+    if (!name) return '<span class="sc-chip bad">no vendor</span>';
+    if (!vtRows) return '<span class="sc-chip">—</span>';
+    const row = vtFindRow(name); if (!row) return '<span class="sc-chip warn" title="Not found in the Vendor Tracking List">not in list</span>';
+    const bad = vtIssues(row); return bad.length ? `<span class="sc-chip bad" title="Missing / expired: ${escapeHtml(bad.join(', '))}">${escapeHtml(bad.length === 1 ? bad[0] : bad.length + ' issues')}</span>` : '<span class="sc-chip ok">compliant</span>';
+  }
+  function scRender(){
+    const body = document.getElementById('sc-tbody'); if (!body) return;
+    document.getElementById('sc-scope').value = ctScope;
+    const list = scVisible(); const total = rows.filter(ctEligible).length;
+    document.getElementById('sc-count').textContent = `${list.length} of ${total} contracted sites`;
+    if (!total){ body.innerHTML = '<tr><td colspan="9" class="ct-empty">No sites have reached this stage yet. Sites show up here once Customer Status is <b>Contract Accepted</b> and the vendor contract is signed. (Change the stage under &ldquo;Sites&rdquo; above.)</td></tr>'; return; }
+    if (!list.length){ body.innerHTML = '<tr><td colspan="9" class="ct-empty">No sites match these filters.</td></tr>'; return; }
+    body.innerHTML = list.map(r => {
+      const ns = normStore(r.store); const reqs = ctReqs.filter(x => normStore(x.store) === ns); const done = reqs.filter(x => x.status === 'Completed').length;
+      const tm = contractTermForRow(r);
+      return `<tr data-store="${escapeHtml(r.store)}"><td><b>${escapeHtml(r.store)}</b></td><td>${escapeHtml(r.address || '')}</td><td>${escapeHtml(r.customer || '')}</td><td>${escapeHtml(effectiveRegion(r))}</td><td>${escapeHtml(pmShort(r.pm))}</td>
+        <td>${r.vendor2627 ? escapeHtml(r.vendor2627) : '<span class="ct-novendor">no vendor</span>'}</td><td style="white-space:nowrap">${escapeHtml(tm.beginMonthDay)} – ${escapeHtml(tm.endMonthDay)}, 20${escapeHtml(tm.endYear2)}</td><td>${scCompliance(r)}</td><td>${done} / ${reqs.length}</td></tr>`;
+    }).join('');
+  }
+
+  (function ctInit(){
+    const pmSel = document.getElementById('ct-pm'); PM_LIST.forEach(p => pmSel.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`));
+    pmSel.insertAdjacentHTML('beforeend', '<option value="__NONE__">(unassigned)</option>');
+    const rg = document.getElementById('ct-region'); regions.forEach(x => rg.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`));
+    document.getElementById('ct-bulk-status').insertAdjacentHTML('beforeend', CT_STATUSES.map(s => `<option>${s}</option>`).join(''));
+    const setScope = v => { ctScope = v; try { localStorage.setItem(CT_SCOPE_KEY, ctScope); } catch(x){} ctSel.clear(); ctRender(); scRender(); };
+    document.getElementById('ct-scope').addEventListener('change', e => setScope(e.target.value));
+    document.getElementById('sc-scope').addEventListener('change', e => setScope(e.target.value));
+    const scpm = document.getElementById('sc-pm'); PM_LIST.forEach(p => scpm.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`)); scpm.insertAdjacentHTML('beforeend', '<option value="__NONE__">(unassigned)</option>');
+    const scrg = document.getElementById('sc-region'); regions.forEach(x => scrg.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`));
+    ['sc-pm', 'sc-region'].forEach(id => document.getElementById(id).addEventListener('change', scRender));
+    document.getElementById('sc-search').addEventListener('input', scRender);
+    document.getElementById('sc-tbody').addEventListener('click', e => {
+      const tr = e.target.closest('tr[data-store]'); if (!tr) return; const store = tr.dataset.store;
+      window.__showView('bidding'); const s = document.getElementById('search'); s.value = store; s.dispatchEvent(new Event('input', { bubbles: true }));
+      setTimeout(() => { const row = Array.from(document.querySelectorAll('#tbody tr:not(.detail-row)')).find(x => x.textContent.includes(store)); if (row) row.click(); }, 30);
+    });
+    document.getElementById('ct-storm').addEventListener('change', e => { ctStorm = e.target.value; ctStatusFilter = ''; ctRender(); });
+    ['ct-pm', 'ct-region'].forEach(id => document.getElementById(id).addEventListener('change', ctRender));
+    document.getElementById('ct-search').addEventListener('input', ctRender);
+    document.getElementById('ct-kpis').addEventListener('click', e => { const k = e.target.closest('.ct-kpi'); if (!k) return; const f = k.dataset.f; ctStatusFilter = (ctStatusFilter === f) ? '' : f; ctRender(); });
+    document.getElementById('ct-new-storm').addEventListener('click', ctOpenNewStorm);
+    document.getElementById('ct-email-vendors').addEventListener('click', ctOpenVendors);
+    document.getElementById('ct-form').addEventListener('submit', ctSubmitNewStorm);
+    document.getElementById('ct-f-store').addEventListener('change', ctRefreshNewService);
+    document.getElementById('ct-f-cancel').addEventListener('click', () => { document.getElementById('ct-back').hidden = true; });
+    document.getElementById('ct-back').addEventListener('mousedown', e => { if (e.target.id === 'ct-back') e.target.hidden = true; });
+    document.getElementById('ctv-close').addEventListener('click', () => { document.getElementById('ctv-back').hidden = true; });
+    document.getElementById('ctv-back').addEventListener('mousedown', e => { if (e.target.id === 'ctv-back') e.target.hidden = true; });
+    document.getElementById('ctv-list').addEventListener('click', e => {
+      const b = e.target.closest('button[data-act]'); if (!b) return; const rowEl = b.closest('.ct-vrow'); const i = Number(rowEl.dataset.i);
+      if (b.dataset.act === 'draft') ctDraftVendor(i, rowEl); else if (b.dataset.act === 'dispatched') ctMarkDispatched(i);
+    });
+    const tb = document.getElementById('ct-tbody');
+    const reqOfRow = el => { const tr = el.closest('tr'); const ns = tr && tr.dataset.store; return { tr, ns, q: ctReqs.find(x => x.storm === ctStorm && normStore(x.store) === ns) }; };
+    tb.addEventListener('change', e => {
+      const el = e.target;
+      if (el.classList.contains('ct-row-sel')){ const ns = el.closest('tr').dataset.store; if (el.checked) ctSel.add(ns); else ctSel.delete(ns); ctRender(); return; }
+      const f = el.dataset.f; if (!f) return; const { q } = reqOfRow(el); if (!q) return;
+      if (f === 'status'){ ctSetStatus(q, el.value); ctRender(); }
+      else { ctSetField(q, f, el.value.trim()); if (f === 'service') ctRender(); else ctRenderBanner(); }
+      ctFlush().then(ctRenderBanner);
+    });
+    tb.addEventListener('click', e => {
+      const b = e.target.closest('button[data-act="request"]'); if (!b) return;
+      const ns = b.closest('tr').dataset.store; const r = rows.find(x => normStore(x.store) === ns); if (!r || !ctStorm) return;
+      const info = ctStorms().find(s => s.name === ctStorm) || {};
+      ctNewRequest(r, ctStorm, info.date || ctToday()); ctRender(); ctFlush().then(ctRender);
+    });
+    document.getElementById('ct-select-all').addEventListener('change', e => { ctVisibleSites().forEach(r => { const ns = normStore(r.store); if (e.target.checked) ctSel.add(ns); else ctSel.delete(ns); }); ctRender(); });
+    document.getElementById('ct-bulk-clear').addEventListener('click', () => { ctSel.clear(); ctRender(); });
+    document.getElementById('ct-bulk-status').addEventListener('change', e => {
+      const st = e.target.value; if (!st || !ctStorm) return; let n = 0;
+      ctSel.forEach(ns => { const q = ctReqs.find(x => x.storm === ctStorm && normStore(x.store) === ns); if (q){ ctSetStatus(q, st); n++; } });
+      e.target.value = ''; ctRender(); ctFlush().then(ctRender);
+      const b = document.getElementById('ct-banner'); if (!n){ b.hidden = false; b.className = 'ct-banner bad'; b.textContent = 'None of the checked sites have a request in this storm yet.'; }
+    });
+    document.getElementById('ct-bulk-request').addEventListener('click', () => {
+      if (!ctStorm) return; const info = ctStorms().find(s => s.name === ctStorm) || {};
+      ctSel.forEach(ns => { const r = rows.find(x => normStore(x.store) === ns); if (r && !ctReqFor(r, ctStorm)) ctNewRequest(r, ctStorm, info.date || ctToday()); });
+      ctRender(); ctFlush().then(ctRender);
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape'){ document.getElementById('ct-back').hidden = true; document.getElementById('ctv-back').hidden = true; } });
+    // keep fresh while the tab is open
+    if (SMARTSHEET_WORKER_URL) setInterval(() => { const v = document.getElementById('view-contracted'); const a = document.activeElement; if (v && !v.hidden && !document.hidden && SMARTSHEET_WORKER_URL && !(a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) && ctPendingCount() === 0) ctLoad(true); }, 60000);
+  })();
+
+  // ---------- Add a store ----------
+  // New sites are created in Smartsheet through the Worker (POST /add-row). If that can't
+  // happen right now (no Worker configured / offline / rejected) the store is kept in this
+  // browser and created the next time a sync works. Sites that exist in Smartsheet but not in
+  // this page's baked-in data (added by someone else, or on another device) are pulled in by
+  // the live load — see liveAppendMissingRows().
+  const NEWSTORES_KEY = 'fdiNewStoresV1';
+  const AS_COL = { store: 7719764277628804, customer: 4342064557100932, address: 2090264743415684, sf: 8845664184471428, region: 260677394796420 };
+  function nsLoad(){ try { const a = JSON.parse(localStorage.getItem(NEWSTORES_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch(e){ return []; } }
+  function nsSave(a){ try { localStorage.setItem(NEWSTORES_KEY, JSON.stringify(a)); } catch(e){} }
+  const normStore = s => String(s == null ? '' : s).trim().toUpperCase().replace(/\s+/g, ' ');
+  function makeStoreRow(f, rowId, pendingKey){
+    const sfRaw = (f.sf == null ? '' : String(f.sf)).trim();
+    const sfNum = sfRaw === '' ? null : Number(sfRaw.replace(/[,\s]/g, ''));
+    const sfIssue = sfRaw !== '' && Number.isNaN(sfNum);
+    const region = String(f.region || '');
+    const pm = pmFromCell(f.pm || '', '');
+    const cp = {}; Object.keys((rows[0] && rows[0].contractParams) || {}).forEach(k => { cp[k] = null; });
+    return {
+      rowId: rowId == null ? null : rowId, store: String(f.store || '').trim(), customer: String(f.customer || '').trim(),
+      region, regionRaw: null, address: String(f.address || '').trim(), sf: sfRaw, sfNumeric: (sfNum == null || Number.isNaN(sfNum)) ? null : sfNum, sfIssue,
+      vendor: '', vendor2627: '', pm, needNewVendor: false, customerStatus: f.customerStatus || null, vendorStatus: null, lost: false,
+      stages: { yeti: false, qbo: false },
+      flags: { offRegion: false, noRegion: !region, noVendor: true, noPm: !pm, sfIssue, noStoreNumber: false },
+      customerStatusRank: -1, vendorStatusRank: -1, contractParams: cp, interested: {}, newStoreKey: pendingKey || null
+    };
+  }
+  function addRowLocal(f, rowId, pendingKey){
+    const r = makeStoreRow(f, rowId, pendingKey); rows.push(r);
+    const tag = document.getElementById('row-total-tag'); if (tag) tag.textContent = rows.length;
+    return r;
+  }
+  function pmEmailFor(name){ const m = PM_LIST.find(p => p.name === name); return m ? m.email : ''; }
+  async function postAddRow(f){
+    const resp = await fetch(SMARTSHEET_WORKER_URL.replace(/\/$/, '') + '/add-row', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Dashboard-Key': DASHBOARD_KEY },
+      body: JSON.stringify({ store: f.store, customer: f.customer, address: f.address, sf: f.sf, region: f.region, pm: pmEmailFor(f.pm), customerStatus: f.customerStatus })
+    });
+    let data = null; try { data = await resp.json(); } catch(e){}
+    if (resp.ok && data && data.rowId) return { ok: true, rowId: data.rowId };
+    return { ok: false, status: resp.status, error: (data && data.error) || ('HTTP ' + resp.status + (resp.status === 404 ? ' (Worker needs the new version — paste the updated worker.js)' : '')) };
+  }
+  // Retry any stores that were saved locally but not yet created in Smartsheet.
+  async function flushPendingAdds(){
+    if (!SMARTSHEET_WORKER_URL) return 0;
+    const list = nsLoad(); if (!list.length) return 0;
+    let done = 0;
+    for (const p of list){
+      let res; try { res = await postAddRow(p.fields); } catch(e){ res = { ok: false, error: String(e) }; }
+      if (!res.ok) continue;
+      const r = rows.find(x => x.newStoreKey === p.key);
+      if (r){ r.rowId = res.rowId; r.newStoreKey = null; }
+      nsSave(nsLoad().filter(x => x.key !== p.key)); done++;
+    }
+    if (done){ render(); updateSyncBanner(); }
+    return done;
+  }
+  // Bring in sites that exist in Smartsheet but not in this page's data. A site only counts as
+  // "new" if it has a Store Number that no baked-in row already uses (that rule also keeps the
+  // duplicate rows the snapshot deliberately dropped from coming back).
+  function liveAppendMissingRows(byRow){
+    const known = new Set(rows.map(r => String(r.rowId))); const stores = new Set(rows.filter(r => r.rowId != null).map(r => normStore(r.store)));
+    let added = 0;
+    byRow.forEach((c, id) => {
+      if (known.has(id)) return;
+      const store = String(c[AS_COL.store] == null ? '' : c[AS_COL.store]).trim();
+      if (!store) return;
+      const ns = normStore(store);
+      const pend = rows.find(r => r.rowId == null && r.newStoreKey && normStore(r.store) === ns);
+      if (pend){ pend.rowId = Number(id); nsSave(nsLoad().filter(x => x.key !== pend.newStoreKey)); pend.newStoreKey = null; stores.add(ns); known.add(id); return; }
+      if (stores.has(ns)) return;
+      addRowLocal({ store, customer: c[AS_COL.customer], address: c[AS_COL.address], sf: c[AS_COL.sf], region: c[AS_COL.region], pm: '', customerStatus: null }, Number(id));
+      stores.add(ns); known.add(id); added++;
+    });
+    return added;
+  }
+  nsLoad().forEach(p => { if (!rows.some(r => normStore(r.store) === normStore(p.fields.store))) addRowLocal(p.fields, null, p.key); else nsSave(nsLoad().filter(x => x.key !== p.key)); });
+
+  function openAddStore(){
+    const back = document.getElementById('as-back'); if (!back) return;
+    const opt = (v, l) => `<option value="${escapeHtml(v)}">${escapeHtml(l == null ? v : l)}</option>`;
+    document.getElementById('as-customer-list').innerHTML = [...new Set(rows.map(r => r.customer).filter(Boolean))].sort().map(c => `<option value="${escapeHtml(c)}">`).join('');
+    document.getElementById('as-region').innerHTML = opt('', '— none —') + regions.map(r => opt(r)).join('');
+    document.getElementById('as-pm').innerHTML = opt('', '— unassigned —') + PM_LIST.map(p => opt(p.name)).join('');
+    document.getElementById('as-cstatus').innerHTML = opt('', '— none —') + CUSTOMER_STATUS_ORDER.map(s => opt(s)).join('');
+    ['as-store', 'as-customer', 'as-address', 'as-sf'].forEach(id => { document.getElementById(id).value = ''; });
+    const m = document.getElementById('as-msg'); m.textContent = ''; m.classList.remove('bad');
+    document.getElementById('as-save').disabled = false;
+    back.hidden = false; setTimeout(() => document.getElementById('as-store').focus(), 30);
+  }
+  function closeAddStore(){ const b = document.getElementById('as-back'); if (b) b.hidden = true; }
+  async function submitAddStore(ev){
+    if (ev) ev.preventDefault();
+    const val = id => document.getElementById(id).value.trim();
+    const f = { store: val('as-store'), customer: val('as-customer'), address: val('as-address'), sf: val('as-sf'), region: val('as-region'), pm: val('as-pm'), customerStatus: val('as-cstatus') };
+    const msg = document.getElementById('as-msg'), btn = document.getElementById('as-save');
+    const say = (t, bad) => { msg.textContent = t; msg.classList.toggle('bad', !!bad); };
+    if (!f.store){ say('Enter a store number.', true); return; }
+    const dup = rows.find(r => normStore(r.store) === normStore(f.store));
+    if (dup){ say(`${dup.store} is already on the list — search for it instead.`, true); return; }
+    btn.disabled = true; say('Adding…');
+    let res = { ok: false, error: 'Worker not set up in this browser' };
+    if (SMARTSHEET_WORKER_URL){ try { res = await postAddRow(f); } catch(e){ res = { ok: false, error: (e && e.message === 'Failed to fetch') ? 'could not reach the Worker' : String(e) }; } }
+    let row, note;
+    if (res.ok){ row = addRowLocal(f, res.rowId, null); note = 'Added to Smartsheet.'; }
+    else {
+      const key = 'ns' + Date.now() + Math.random().toString(36).slice(2, 6);
+      const list = nsLoad(); list.push({ key, fields: f }); nsSave(list);
+      row = addRowLocal(f, null, key); note = `Saved in this browser — couldn't create it in Smartsheet yet (${res.error}). It will retry on Sync now.`;
+    }
+    closeAddStore();
+    // show it: filter the table to the new store
+    const s = document.getElementById('search'); if (s){ s.value = f.store; s.dispatchEvent(new Event('input', { bubbles: true })); }
+    render(); updateSyncBanner();
+    const banner = document.getElementById('sync-banner');
+    if (banner && !res.ok){ banner.hidden = false; banner.textContent = '⚠ ' + f.store + ': ' + note; }
+    window.__lastAddStore = { ok: !!res.ok, row, note };
+  }
+  document.getElementById('add-store-btn').addEventListener('click', openAddStore);
+  document.getElementById('as-cancel').addEventListener('click', closeAddStore);
+  document.getElementById('as-form').addEventListener('submit', submitAddStore);
+  document.getElementById('as-back').addEventListener('mousedown', e => { if (e.target.id === 'as-back') closeAddStore(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAddStore(); });
 
   applyOutbox();
   render();

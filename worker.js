@@ -30,6 +30,43 @@ const VENDOR_FIELD_COLUMN_IDS = {
   wcExpiry: 2970665422376836, // Worker's Comp Expiry (date)
 };
 
+// Columns filled in when a new store is added from the dashboard (POST /add-row).
+const ADD_ROW_COLUMN_IDS = {
+  store: 7719764277628804,          // Store Number (primary)
+  address: 2090264743415684,        // Address
+  sf: 8845664184471428,             // SF
+  customer: 4342064557100932,       // Customer
+  customerEmail: 8178725658857348,  // Customer Email
+  region: 260677394796420,          // Region (picklist)
+  pm: 3410584874028932,             // PM (contact list — send the PM's email)
+  customerStatus: 7113215152263044, // Customer Status (picklist)
+};
+
+// "26/27 Snow PBR Tracker" — the storm-dispatch log behind the dashboard's Contracted tab.
+// One row per site per storm.
+const DISPATCH_SHEET_ID = '5482051831811972';
+const DISPATCH_COLS = {
+  request: 8036663236005764,      // Request (primary: "<storm> | <store>")
+  storm: 718313841528708,
+  stormDate: 5221913468899204,    // date
+  store: 2970113655213956,
+  address: 7473713282584452,
+  pm: 1844213748371332,
+  vendor: 6347813375741828,
+  status: 4096013562056580,       // picklist: Requested / Dispatched / On Site / Completed / Issue / Cancelled
+  service: 8599613189427076,      // picklist: Plow / Salt / Plow + Salt / Haul / Stack / Other
+  forecast: 436838864818052,
+  actual: 4940438492188548,
+  pushes: 2688638678503300,
+  salt: 7192238305873796,
+  requestedAt: 1562738771660676,
+  dispatchedAt: 6066338399031172,
+  onSiteAt: 3814538585345924,
+  completedAt: 8318138212716420,
+  issue: 999788818239364,
+  notes: 5503388445609860,
+};
+
 // Field name (as sent by the dashboard) -> Smartsheet column ID.
 // Every field the dashboard can edit and save to Smartsheet.
 const FIELD_COLUMN_IDS = {
@@ -218,6 +255,84 @@ export default {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(payload),
+        });
+        const data = await resp.json();
+        return json(data, resp.ok && data.resultCode === 0 ? 200 : 502, headers);
+      }
+
+      // POST /add-row  { store, customer?, address?, sf?, region?, pm? (email), customerStatus?, customerEmail? }
+      // Adds a new site to the bottom of the Bidding sheet and returns { ok, rowId }.
+      if (url.pathname === '/add-row' && request.method === 'POST') {
+        let body;
+        try { body = await request.json(); } catch (e) { return json({ error: 'body must be JSON' }, 400, headers); }
+        const store = String((body && body.store) || '').trim();
+        if (!store) return json({ error: 'store (Store Number) is required' }, 400, headers);
+        const cells = [{ columnId: ADD_ROW_COLUMN_IDS.store, value: store }];
+        const put = (key, v) => { if (v !== undefined && v !== null && String(v).trim() !== '') cells.push({ columnId: ADD_ROW_COLUMN_IDS[key], value: typeof v === 'number' ? v : String(v).trim() }); };
+        put('customer', body.customer);
+        put('address', body.address);
+        put('customerEmail', body.customerEmail);
+        put('region', body.region);
+        put('pm', body.pm);
+        put('customerStatus', body.customerStatus);
+        if (body.sf !== undefined && body.sf !== null && String(body.sf).trim() !== '') {
+          const n = Number(String(body.sf).replace(/[,\s]/g, ''));
+          put('sf', Number.isNaN(n) ? String(body.sf) : n);
+        }
+        const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${SHEET_ID}/rows`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${env.SMARTSHEET_TOKEN}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify([{ toBottom: true, cells }]),
+        });
+        const data = await resp.json();
+        const rowId = data && data.result && data.result[0] && data.result[0].id;
+        if (resp.ok && data.resultCode === 0 && rowId) return json({ ok: true, rowId }, 200, headers);
+        return json({ ok: false, error: (data && data.message) || 'Smartsheet rejected the new row', detail: data }, 502, headers);
+      }
+
+      // ---- Storm dispatch log (Contracted tab) ----
+      // GET /dispatch — the whole log
+      if (url.pathname === '/dispatch' && request.method === 'GET') {
+        const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${DISPATCH_SHEET_ID}`, { headers: { Authorization: `Bearer ${env.SMARTSHEET_TOKEN}` } });
+        const data = await resp.json();
+        return json(data, resp.ok ? 200 : 502, headers);
+      }
+      // POST /dispatch-add  { items: [ { request, storm, stormDate, store, address, pm, vendor, status, service, forecast, ... } ] }
+      // Adds one row per item (bottom of the log). Returns { ok, rowIds: [ ... same order ... ] }.
+      if (url.pathname === '/dispatch-add' && request.method === 'POST') {
+        let body;
+        try { body = await request.json(); } catch (e) { return json({ error: 'body must be JSON' }, 400, headers); }
+        const items = Array.isArray(body && body.items) ? body.items.slice(0, 400) : [];
+        if (!items.length) return json({ error: 'items required' }, 400, headers);
+        const rowsOut = items.map(it => {
+          const cells = [];
+          for (const [k, colId] of Object.entries(DISPATCH_COLS)) {
+            const v = it[k];
+            if (v !== undefined && v !== null && String(v).trim() !== '') cells.push({ columnId: colId, value: typeof v === 'number' ? v : String(v).trim() });
+          }
+          return { toBottom: true, cells };
+        });
+        const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${DISPATCH_SHEET_ID}/rows`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${env.SMARTSHEET_TOKEN}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(rowsOut),
+        });
+        const data = await resp.json();
+        const rowIds = Array.isArray(data && data.result) ? data.result.map(x => x.id) : [];
+        if (resp.ok && data.resultCode === 0 && rowIds.length === items.length) return json({ ok: true, rowIds }, 200, headers);
+        return json({ ok: false, error: (data && data.message) || 'Smartsheet rejected the new rows', detail: data }, 502, headers);
+      }
+      // POST /dispatch-update  { rowId, field: <key of DISPATCH_COLS>, value }
+      if (url.pathname === '/dispatch-update' && request.method === 'POST') {
+        let body;
+        try { body = await request.json(); } catch (e) { return json({ error: 'body must be JSON' }, 400, headers); }
+        const { rowId, field, value } = body || {};
+        const columnId = DISPATCH_COLS[field];
+        if (!rowId || !columnId) return json({ error: `rowId and a known field are required (got field=${field})` }, 400, headers);
+        const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${DISPATCH_SHEET_ID}/rows`, {
+          method: 'PUT',
+          headers: { Authorization: `Bearer ${env.SMARTSHEET_TOKEN}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify([{ id: rowId, cells: [{ columnId, value: value === null || value === undefined ? '' : value }] }]),
         });
         const data = await resp.json();
         return json(data, resp.ok && data.resultCode === 0 ? 200 : 502, headers);
