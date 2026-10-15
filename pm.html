@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>PM Bidding View</title>
+<style>
+  :root{ --bg:#f3f5f8; --card:#fff; --ink:#14202e; --muted:#5b6b7d; --line:#d5dce5; --accent:#1c6e8c; --bad:#b3261e; --ok:#1e7a46; --row:#f7f9fb; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  .wrap{ max-width:1100px; margin:0 auto; padding:18px 14px 48px; }
+  h1{ font-size:21px; margin:6px 0 2px; } .sub{ color:var(--muted); margin:0 0 14px; }
+  .bar{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+  .bar input,.bar select{ font:inherit; padding:9px 10px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); }
+  .bar input{ flex:1; min-width:180px; } .count{ color:var(--muted); margin-left:auto; }
+  .tw{ background:var(--card); border:1px solid var(--line); border-radius:12px; overflow-x:auto; }
+  table{ border-collapse:collapse; width:100%; }
+  th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  td{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  tr.site{ cursor:pointer; } tr.site:hover td{ background:var(--row); } tr.site.open td{ background:var(--row); }
+  td.store{ font-weight:700; white-space:nowrap; }
+  .pill{ display:inline-block; padding:2px 9px; border-radius:999px; font-size:12px; font-weight:600; background:#e6ebf1; color:#33445a; white-space:nowrap; }
+  .pill.ok{ background:#d9f0e2; color:#14572f; } .pill.mid{ background:#fdecc8; color:#7a4f00; } .pill.lost{ background:#f6d6d3; color:#8a1d15; }
+  tr.detail td{ background:var(--row); padding:14px 16px 18px; }
+  .dh{ font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:0 0 10px; }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; }
+  .cp label{ display:block; font-size:12px; font-weight:600; margin-bottom:4px; }
+  .cpw{ display:flex; align-items:center; gap:4px; } .cpw span{ color:var(--muted); }
+  .cpw input{ width:100%; font:inherit; padding:8px 9px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); }
+  .cpw input:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+  .cpw input.saving{ border-color:#c58a00; background:#fff8ec; } .cpw input.saved{ border-color:var(--ok); } .cpw input.bad{ border-color:var(--bad); }
+  .st{ font-size:11px; min-height:14px; margin-top:3px; color:var(--muted); } .st.bad{ color:var(--bad); } .st.ok{ color:var(--ok); }
+  .note{ color:var(--muted); font-size:12px; margin-top:12px; }
+  .err{ text-align:center; padding:36px 10px; color:var(--bad); } .empty{ text-align:center; padding:28px; color:var(--muted); }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#10161d; --card:#18212b; --ink:#e8eef5; --muted:#9aa9b9; --line:#2c3948; --accent:#3a9bbd; --row:#1d2833; }
+    .pill{ background:#2b3846; color:#cfd9e4; } .pill.ok{ background:#17402a; color:#a5e3bf; } .pill.mid{ background:#4a3a10; color:#f5d98f; } .pill.lost{ background:#4a1d19; color:#f4b4ae; }
+    .cpw input.saving{ background:#3a2f12; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="ttl">Bidding</h1>
+  <p class="sub" id="sub">Your assigned sites</p>
+  <div id="main"><div class="empty">Loading your sites&hellip;</div></div>
+</div>
+<script src="config.js"></script>
+<script>
+(function(){
+  const cfg = window.SNOW_CONFIG || {};
+  const WORKER = String(cfg.workerUrl || '').replace(/\/$/, '');
+  const qs = new URLSearchParams(location.search);
+  const P = qs.get('p') || '', T = qs.get('t') || '';
+  const main = document.getElementById('main');
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+
+  // Same labels / per-customer-type field sets as the main dashboard (FDI side only).
+  const LABELS = { deicer:'Deicer', fdi2_4:'2"-4" Push Rate', fdi41_6:'4.1"-6" Push Rate', fdi2_399:'FDI 2-3.99"', fdi4_599:'FDI 4-5.99"', fdi6_799:'FDI 6-7.99"', fdi3_6:'FDI 3-6"', fdi6_9:'FDI 6-9"', fdi10_12:'FDI 10-12"', fdi13_15:'FDI 13-15"', fdi16_18:'FDI 16-18"', seasonal:'Seasonal', perInchRate:'Per Inch Rate', sroa3_49:'SROA 3-4.9"', sroa5_79:'SROA 5-7.9"', sroa8_119:'SROA 8-11.9"', sroa12plus:'SROA 12"+', pfuetze2_4:'2"-4"', pfuetze4_6:'4"-6"', pfuetze6_10:'6"-10"', pfuetze10plus:'10"+', saltingOfficeGate:'Salting Office/Gate', mp0_2:'MP 0-2"', mp2_499:'MP 2-4.99"', mp5_799:'MP 5-7.99"', mp8_1199:'MP 8-11.99"', mp12plus:'MP 12"+' };
+  const ORDER = Object.keys(LABELS);
+  const SETS = {
+    CS: ['deicer','perInchRate','fdi3_6','fdi6_9','fdi10_12','fdi13_15','fdi16_18'],
+    PS: ['deicer','perInchRate','fdi2_399','fdi4_599','fdi6_799','seasonal'],
+    NS: ['deicer','perInchRate','fdi2_399','fdi4_599','fdi6_799'],
+    DSS: ['deicer','fdi2_4','fdi41_6','seasonal'],
+    SROA: ['deicer','sroa3_49','sroa5_79','sroa8_119','sroa12plus'],
+    MP: ['deicer','mp0_2','mp2_499','mp5_799','mp8_1199','mp12plus'],
+    PFUETZE: ['deicer','pfuetze2_4','pfuetze4_6','pfuetze6_10','pfuetze10plus','saltingOfficeGate'],
+  };
+  function typeOf(s){
+    if ((s.customer || '').toLowerCase().includes('pfuetze')) return 'PFUETZE';
+    const x = (s.store || '').trim().toUpperCase();
+    if (x.startsWith('DSS')) return 'DSS'; if (x.startsWith('CS')) return 'CS'; if (x.startsWith('PS')) return 'PS';
+    if (x.startsWith('NS') || x.startsWith('NATIONAL')) return 'NS'; if (x.startsWith('SROA')) return 'SROA'; if (/^MP\s*\d/.test(x)) return 'MP'; return null;
+  }
+  const fieldsFor = s => { const t = typeOf(s); return t ? ORDER.filter(k => SETS[t].includes(k)) : ORDER; };
+  const pillCls = st => /accepted/i.test(st) && !/verbal/i.test(st) ? 'ok' : (/verbal|contract sent|compliance|signed/i.test(st) ? 'mid' : '');
+
+  let sites = [], open = null;
+  const fail = m => { main.innerHTML = '<div class="err">' + esc(m) + '</div>'; };
+
+  async function load(){
+    if (!WORKER) return fail('This page is not set up yet.');
+    if (!P || !T) return fail('This link is incomplete. Please use the full link you were sent.');
+    try {
+      const r = await fetch(WORKER + '/pm/sites?p=' + encodeURIComponent(P) + '&t=' + encodeURIComponent(T));
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d.ok) return fail(d.error || 'Could not load your sites. Please try again in a minute.');
+      sites = d.sites || []; document.getElementById('ttl').textContent = 'Bidding — ' + d.pm; document.title = 'Bidding — ' + d.pm;
+      document.getElementById('sub').textContent = 'Your assigned sites. You can edit the FDI contract parameters; everything else is view-only.';
+      shell(); render();
+    } catch(e){ fail('Could not reach the service. Check your connection and try again.'); }
+  }
+
+  function shell(){
+    const cs = [...new Set(sites.map(s => s.customerStatus).filter(Boolean))].sort();
+    main.innerHTML = `<div class="bar"><input id="q" type="search" placeholder="Search store, address, customer"><select id="st"><option value="">All customer statuses</option>${cs.map(c => `<option>${esc(c)}</option>`).join('')}</select><label style="display:flex;gap:6px;align-items:center"><input id="lost" type="checkbox" style="flex:none;min-width:0"> Show lost</label><span class="count" id="cnt"></span></div><div class="tw"><table><thead><tr><th>Store</th><th>Address</th><th>Customer</th><th>Region</th><th>SF</th><th>Customer status</th><th>Vendor status</th></tr></thead><tbody id="tb"></tbody></table></div>`;
+    ['q','st','lost'].forEach(id => document.getElementById(id).addEventListener(id === 'q' ? 'input' : 'change', render));
+    document.getElementById('tb').addEventListener('click', onClick);
+    document.getElementById('tb').addEventListener('change', onChange);
+  }
+
+  function visible(){
+    const q = document.getElementById('q').value.trim().toLowerCase(), st = document.getElementById('st').value, lost = document.getElementById('lost').checked;
+    return sites.filter(s => (lost || !s.lost) && (!st || s.customerStatus === st) && (!q || `${s.store} ${s.address} ${s.customer}`.toLowerCase().includes(q)));
+  }
+
+  function render(){
+    const list = visible(), tb = document.getElementById('tb');
+    document.getElementById('cnt').textContent = list.length + ' of ' + sites.length + ' sites';
+    if (!list.length){ tb.innerHTML = '<tr><td colspan="7" class="empty">No sites match.</td></tr>'; return; }
+    tb.innerHTML = list.map(s => `<tr class="site${open === s.rowId ? ' open' : ''}" data-id="${s.rowId}"><td class="store">${esc(s.store)}</td><td>${esc(s.address)}</td><td>${esc(s.customer)}</td><td>${esc(s.region)}</td><td>${esc(s.sf)}</td><td>${s.lost ? '<span class="pill lost">Lost</span>' : `<span class="pill ${pillCls(s.customerStatus)}">${esc(s.customerStatus || '—')}</span>`}</td><td><span class="pill">${esc(s.vendorStatus || '—')}</span></td></tr>`
+      + (open === s.rowId ? detail(s) : '')).join('');
+  }
+
+  function detail(s){
+    return `<tr class="detail" data-for="${s.rowId}"><td colspan="7"><div class="dh">FDI contract parameters</div><div class="grid">${fieldsFor(s).map(k => {
+      const v = s.params[k]; return `<div class="cp"><label for="f${s.rowId}${k}">${esc(LABELS[k])}</label><div class="cpw"><span>$</span><input id="f${s.rowId}${k}" type="number" min="0" step="0.01" inputmode="decimal" data-id="${s.rowId}" data-f="${k}" value="${v === null || v === undefined ? '' : esc(v)}" placeholder="—"></div><div class="st"></div></div>`; }).join('')}</div><div class="note">Changes save to Smartsheet as soon as you leave a field.</div></td></tr>`;
+  }
+
+  function onClick(e){
+    if (e.target.closest('tr.detail')) return;
+    const tr = e.target.closest('tr.site'); if (!tr) return;
+    const id = Number(tr.dataset.id); open = open === id ? null : id; render();
+  }
+
+  async function onChange(e){
+    const inp = e.target.closest('input[data-f]'); if (!inp) return;
+    const s = sites.find(x => x.rowId === Number(inp.dataset.id)), f = inp.dataset.f, st = inp.closest('.cp').querySelector('.st');
+    const raw = inp.value.trim(), prev = s.params[f];
+    if (raw !== '' && (isNaN(Number(raw)) || Number(raw) < 0)){ inp.className = 'bad'; st.className = 'st bad'; st.textContent = 'Enter a dollar amount'; inp.value = prev === null || prev === undefined ? '' : prev; return; }
+    const val = raw === '' ? null : Number(raw);
+    if (val === (prev === undefined ? null : prev)) return;
+    inp.className = 'saving'; st.className = 'st'; st.textContent = 'Saving…';
+    try {
+      const r = await fetch(WORKER + '/pm/update', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ p: P, t: T, rowId: s.rowId, field: f, value: raw }) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d.ok) throw new Error(d.error || 'Could not save');
+      s.params[f] = val; inp.className = 'saved'; st.className = 'st ok'; st.textContent = 'Saved';
+      setTimeout(() => { if (st.textContent === 'Saved'){ st.textContent = ''; inp.className = ''; } }, 2500);
+    } catch(err){ inp.className = 'bad'; st.className = 'st bad'; st.textContent = String(err.message || 'Could not save'); inp.value = prev === null || prev === undefined ? '' : prev; }
+  }
+  load();
+})();
+</script>
+</body>
+</html>

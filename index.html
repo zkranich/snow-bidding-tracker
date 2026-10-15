@@ -234,6 +234,7 @@ button{ font-family:inherit; }
 }
 .map-store-row .m-store{ font-family:"IBM Plex Mono"; font-weight:600; }
 .map-store-row .m-cust{ color:var(--ink-muted); }
+.map-store-row .m-vendor{ font-size:11px; font-weight:600; color:var(--accent,#1c6e8c); }
 .map-store-row .m-vstatus{ color:var(--ink-faint); font-size:11px; }
 .map-store-row a{
   margin-left:auto; font-size:11.5px; font-weight:600; color:var(--accent-ink);
@@ -244,6 +245,8 @@ button{ font-family:inherit; }
 /* Google map layout (map + store sidebar, like the Parkinson portal) */
 .map-modal.map-modal-wide{ max-width:1400px; width:96vw; max-height:94vh; }
 .map-filters{ display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center; padding:8px 20px 4px; font-size:11px; color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.04em; }
+.map-filters input.map-q{ font-family:inherit; font-size:12.5px; padding:5px 8px; border:1px solid var(--border); border-radius:6px; background:var(--surface-alt); color:var(--ink); text-transform:none; letter-spacing:0; margin-left:4px; width:230px; max-width:100%; }
+.map-vendor-sum{ padding:2px 20px 6px; font-size:12.5px; color:var(--ink); }
 .map-filters select{ font-family:inherit; font-size:12.5px; padding:5px 8px; border:1px solid var(--border); border-radius:6px; background:var(--surface-alt); color:var(--ink); text-transform:none; letter-spacing:0; margin-left:4px; }
 .map-filter-count{ margin-left:auto; font-family:"IBM Plex Mono", ui-monospace, monospace; text-transform:none; letter-spacing:0; }
 .gmap-shell{ display:flex; height:72vh; min-height:480px; border:1px solid var(--border-soft); border-radius:10px; overflow:hidden; background:var(--surface); }
@@ -875,8 +878,10 @@ td.map-cell{ width:60px; text-align:center; }
       </select></label>
       <label>PM <select id="map-pm"><option value="">All PMs</option></select></label>
       <label>Vendor status <select id="map-vstatus"><option value="">All</option></select></label>
+      <label>Search <input type="search" id="map-q" class="map-q" list="map-vendor-list" placeholder="26/27 vendor, store, customer, address" autocomplete="off"><datalist id="map-vendor-list"></datalist></label>
       <span class="map-filter-count" id="map-filter-count"></span>
     </div>
+    <div class="map-vendor-sum" id="map-vendor-sum" hidden></div>
     <div class="map-legend">
       <span><i class="map-dot" style="background:var(--map-none)"></i> Accepted &mdash; no vendor action yet</span>
       <span><i class="map-dot" style="background:var(--map-red)"></i> Accepted + Need New Vendor / Quoting&#8211;Waiting for Bids</span>
@@ -1058,7 +1063,9 @@ td.map-cell{ width:60px; text-align:center; }
       </label>
       <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">PM <select id="sc-pm"><option value="">All PMs</option></select></label>
       <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Region <select id="sc-region"><option value="">All regions</option></select></label>
+      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Customer <select id="sc-customer"><option value="">All customers</option></select></label>
       <input type="search" id="sc-search" placeholder="Search store, address, customer, vendor, PM">
+      <button class="ct-btn" id="cl-open" type="button" title="Private links: customer request page and PM Bidding view">&#128279; Private links</button>
       <span class="vc-count" id="sc-count"></span>
     </div>
     <div class="table-wrap" style="margin-top:10px">
@@ -1175,6 +1182,14 @@ td.map-cell{ width:60px; text-align:center; }
     <div class="as-actions"><button type="button" id="ctv-close">Close</button><span class="as-msg" id="ctv-msg"></span></div>
   </div>
 </div>
+<div class="as-back" id="cl-back" hidden>
+  <div class="as-card wide">
+    <h3>Private links</h3>
+    <p class="as-sub"><b>Customer links:</b> send each customer their own private link. They pick one of their sites, choose a service and submit &mdash; it lands in the Service tab as a <b>Requested</b> row. A link only ever shows that customer&rsquo;s accepted sites. <b>PM links</b> (below) open a Bidding-only view with just that PM&rsquo;s sites, where they can edit the FDI contract parameters and nothing else.</p>
+    <div id="cl-list"></div>
+    <div class="as-actions"><button type="button" id="cl-close">Close</button><span class="as-msg" id="cl-msg"></span></div>
+  </div>
+</div>
 <div id="view-vendor" hidden>
   <div class="vc-wrap">
     <div class="vc-bar">
@@ -1202,7 +1217,7 @@ td.map-cell{ width:60px; text-align:center; }
       <input type="search" id="vt-search" placeholder="Search vendor, contact, email, phone">
       <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Show
         <select id="vt-filter">
-          <option value="all">All 26/27 vendors</option>
+          <option value="all">All vendors (customer contract signed)</option>
           <option value="bad">Not compliant</option>
           <option value="expiring">Insurance expired / expiring in 30 days</option>
           <option value="missing">Not in Vendor Tracking List</option>
@@ -1213,7 +1228,7 @@ td.map-cell{ width:60px; text-align:center; }
     </div>
     <div class="vc-note" id="vt-status"></div>
     <div class="vt-list" id="vt-list"></div>
-    <div class="vc-note">One card per 26/27 Vendor on the Bidding sheet, matched by name to your Vendor Tracking List in Smartsheet. Edits and uploads save straight to that list (files attach to the vendor&rsquo;s row). &ldquo;Compliant&rdquo; follows the same rule as the sheet: contract and W9 on file, and General Liability and Worker&rsquo;s Comp not expired.</div>
+    <div class="vc-note">One card per 26/27 Vendor on a site where the customer has signed (Customer Status = Contract Accepted), matched by name to your Vendor Tracking List in Smartsheet. Edits and uploads save straight to that list (files attach to the vendor&rsquo;s row). &ldquo;Compliant&rdquo; follows the same rule as the sheet: contract and W9 on file, and General Liability and Worker&rsquo;s Comp not expired.</div>
   </div>
 </div>
 
@@ -1276,14 +1291,10 @@ td.map-cell{ width:60px; text-align:center; }
   // the existing chip toggles.
   function renderKpis(){
     const { custCounts, vendCounts, lostCount } = computeStatusCounts();
-    const flaggedCount = rows.filter(r => Object.values(r.flags).some(Boolean)).length;
     const kpis = [
       { label:"Total sites", num: rows.length, clear:true },
       ...CUSTOMER_STATUS_ORDER.map(s => ({ label:`Customer: ${s}`, num: custCounts[s], custStatus:s })),
       ...VENDOR_STATUS_ORDER.map(s => ({ label:`Vendor: ${s}`, num: vendCounts[s], vendStatus:s })),
-      { label:"Lost", num: lostCount, flag:true, toggle:"lostOnly" },
-      { label:"No 25/26 vendor on file", num: summary.noVendor, flag:true, toggle:"noVendorOnly" },
-      { label:"Rows flagged for cleanup", num: flaggedCount, flag:true, toggle:"flaggedOnly" },
     ];
     document.getElementById('kpi-row').innerHTML = kpis.map(k => {
       const clickable = k.custStatus || k.vendStatus || k.toggle || k.clear;
@@ -1535,6 +1546,16 @@ td.map-cell{ width:60px; text-align:center; }
   "vendorSaltingOfficeGate": 8152198531551108,
   "seasonal": 4024930901200772,
   "vendorSeasonal": 1367910251270020,
+  "mp0_2": 4375937342541700,
+  "mp2_499": 8879536969912196,
+  "mp5_799": 83443947704196,
+  "mp8_1199": 4587043575074692,
+  "mp12plus": 2335243761389444,
+  "vendorMp0_2": 6838843388759940,
+  "vendorMp2_499": 1209343854546820,
+  "vendorMp5_799": 5712943481917316,
+  "vendorMp8_1199": 3461143668232068,
+  "vendorMp12plus": 7964743295602564,
   "contractStart": 5828404848660356,
   "contractEnd": 3576605034975108
 };
@@ -2919,11 +2940,12 @@ td.map-cell{ width:60px; text-align:center; }
       <span class="m-store">${escapeHtml(r.store || '')}</span>
       <span class="m-cust">${escapeHtml(r.customer || '')}</span>
       <span class="m-vstatus">${escapeHtml(vs || 'no vendor status yet')}</span>
+      ${r.vendor2627 ? `<span class="m-vendor" title="26/27 vendor">${escapeHtml(r.vendor2627)}</span>` : ''}
       ${link ? `<a href="${link}" target="_blank" rel="noopener">Open in Maps &#8594;</a>` : ''}
     </div>`;
   }
 
-  let mapScope = 'accepted', mapPm = '', mapVstatus = '';
+  let mapScope = 'accepted', mapPm = '', mapVstatus = '', mapQ = '';
   function mapInScope(r){
     const cs = effectiveCustomerStatus(r), lost = effectiveLost(r);
     if (mapScope === 'lost'){ if (!lost) return false; }
@@ -2934,6 +2956,10 @@ td.map-cell{ width:60px; text-align:center; }
     }
     if (mapPm && (mapPm === '__NONE__' ? !!r.pm : r.pm !== mapPm)) return false;
     if (mapVstatus){ const vs = effectiveVendorStatus(r) || ''; if (mapVstatus === '__NONE__' ? !!vs : vs !== mapVstatus) return false; }
+    if (mapQ){
+      const hay = [r.vendor2627, r.store, r.customer, r.address, effectiveRegion(r)].map(x => String(x || '').toLowerCase()).join(' | ');
+      if (!mapQ.toLowerCase().split(/\s+/).filter(Boolean).every(t => hay.includes(t))) return false;
+    }
     return true;
   }
 
@@ -2945,6 +2971,15 @@ td.map-cell{ width:60px; text-align:center; }
     const titleEl = document.getElementById('map-title');
     if (titleEl) titleEl.textContent = ({ accepted:'Contract Accepted', verbal:'Verbally + Contract Accepted', contract:'Accepted + Contract Sent', all:'All sites', lost:'Lost sites' })[mapScope] + ' \u2014 site map';
     const fc = document.getElementById('map-filter-count'); if (fc) fc.textContent = qualifying.length + ' site' + (qualifying.length === 1 ? '' : 's');
+    // Vendor datalist (every 26/27 vendor on file) + a "vendor X has N sites" summary when the search matches one vendor
+    const vl = document.getElementById('map-vendor-list');
+    if (vl){ const names = Array.from(new Set(rows.map(r => String(r.vendor2627 || '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b)); const sig = names.join('\u0001'); if (vl.dataset.sig !== sig){ vl.dataset.sig = sig; vl.innerHTML = names.map(n => `<option value="${escapeHtml(n)}"></option>`).join(''); } }
+    const vsum = document.getElementById('map-vendor-sum');
+    if (vsum){
+      const vend = Array.from(new Set(qualifying.map(r => String(r.vendor2627 || '').trim()).filter(Boolean)));
+      if (mapQ && vend.length === 1){ const nOf = qualifying.filter(r => String(r.vendor2627 || '').trim() === vend[0]).length; vsum.hidden = false; vsum.innerHTML = `<b>${escapeHtml(vend[0])}</b> &mdash; ${nOf} site${nOf === 1 ? '' : 's'} shown${qualifying.length !== nOf ? ' (' + qualifying.length + ' match the search)' : ''}`; }
+      else { vsum.hidden = true; vsum.textContent = ''; }
+    }
 
     const proj = projectRegions();
     const contextProj = projectContextCities();
@@ -3188,6 +3223,8 @@ td.map-cell{ width:60px; text-align:center; }
     pf.insertAdjacentHTML('beforeend', '<option value="__NONE__">(unassigned)</option>');
     VENDOR_STATUS_ORDER.forEach(v => vf.insertAdjacentHTML('beforeend', `<option value="${v}">${v}</option>`));
     vf.insertAdjacentHTML('beforeend', '<option value="__NONE__">(no vendor status)</option>');
+    const qf = document.getElementById('map-q');
+    if (qf) qf.addEventListener('input', () => { mapQ = qf.value.trim(); renderMap(); });
     sc.addEventListener('change', () => { mapScope = sc.value; renderMap(); });
     pf.addEventListener('change', () => { mapPm = pf.value; renderMap(); });
     vf.addEventListener('change', () => { mapVstatus = vf.value; renderMap(); });
@@ -3237,6 +3274,11 @@ td.map-cell{ width:60px; text-align:center; }
     ['pfuetze6_10', 'vendorPfuetze6_10', '6"-10"'],
     ['pfuetze10plus', 'vendorPfuetze10plus', '10"+'],
     ['saltingOfficeGate', 'vendorSaltingOfficeGate', 'Salting Office/Gate'],
+    ['mp0_2', 'vendorMp0_2', 'MP 0-2"'],
+    ['mp2_499', 'vendorMp2_499', 'MP 2-4.99"'],
+    ['mp5_799', 'vendorMp5_799', 'MP 5-7.99"'],
+    ['mp8_1199', 'vendorMp8_1199', 'MP 8-11.99"'],
+    ['mp12plus', 'vendorMp12plus', 'MP 12"+'],
   ];
 
   // Which contract-parameter fields are relevant depends on the customer type,
@@ -3247,6 +3289,7 @@ td.map-cell{ width:60px; text-align:center; }
     NS: ['deicer', 'perInchRate', 'fdi2_399', 'fdi4_599', 'fdi6_799'],
     DSS: ['deicer', 'fdi2_4', 'fdi41_6', 'seasonal', 'vendorSeasonal'],
     SROA: ['deicer', 'sroa3_49', 'sroa5_79', 'sroa8_119', 'sroa12plus'],
+    MP: ['deicer', 'seasonal', 'mp0_2', 'mp2_499', 'mp5_799', 'mp8_1199', 'mp12plus'],
     PFUETZE: ['deicer', 'pfuetze2_4', 'pfuetze4_6', 'pfuetze6_10', 'pfuetze10plus', 'saltingOfficeGate'],
   };
 
@@ -3257,6 +3300,7 @@ td.map-cell{ width:60px; text-align:center; }
     if (s.startsWith('PS')) return 'PS';
     if (s.startsWith('NS') || s.startsWith('NATIONAL')) return 'NS';
     if (s.startsWith('SROA')) return 'SROA';
+    if (/^MP\s*\d/.test(s)) return 'MP';
     return null;
   }
 
@@ -3752,7 +3796,7 @@ td.map-cell{ width:60px; text-align:center; }
     const term = contractTermForRow(r);
     const lines = vendorParamLines(r);
     const anyPriced = contractFieldsForRow(r).some(([k, vk]) => hasVal(effectiveContractValue(r, vk)));
-    const brand = ({ CS: 'CubeSmart', DSS: 'Devon Self Storage', PS: 'Public Storage', NS: 'National Storage' })[storePrefixType(r.store)] || r.store || '';
+    const brand = ({ CS: 'CubeSmart', DSS: 'Devon Self Storage', PS: 'Public Storage', NS: 'National Storage', MP: 'MyPlace' })[storePrefixType(r.store)] || r.store || '';
     return [
       'Thanks for taking my call earlier today.',
       '',
@@ -4109,28 +4153,38 @@ td.map-cell{ width:60px; text-align:center; }
   // another device) it's inferred from the saved Seasonal when that divides evenly by
   // (2"-4" push + deicer), so the box still shows the number the price was built on.
   const DSS_DEFAULT_PUSHES = 15;
+  // MyPlace seasonal (Nov-Mar, 5 months) is priced the same way on 12 pushes + 12 salts, using the 2-4.99" tier.
+  const MP_DEFAULT_PUSHES = 12, MP_SEASON_MONTHS = 5, MP_SNOW_MOVING_RATE = 500;
+  function seasonCfg(r){
+    return storePrefixType(r && r.store) === 'MP'
+      ? { type:'MP', push:'mp2_499', vpush:'vendorMp2_499', def:MP_DEFAULT_PUSHES, label:'2-4.99"' }
+      : { type:'DSS', push:'fdi2_4', vpush:'vendorFdi2_4', def:DSS_DEFAULT_PUSHES, label:'2"-4"' };
+  }
   const DSS_PUSHES_KEY = 'fdiDssPushesV1';
   function dssPushOverrides(){ try { return JSON.parse(localStorage.getItem(DSS_PUSHES_KEY) || '{}') || {}; } catch(e){ return {}; } }
   function dssSetPushes(r, n){ try { const o = dssPushOverrides(); o[String(r.rowId)] = n; localStorage.setItem(DSS_PUSHES_KEY, JSON.stringify(o)); } catch(e){} }
   function dssPushCount(r){
     const o = dssPushOverrides()[String(r.rowId)];
     if (Number(o) >= 1) return Number(o);
-    for (const [sk, pk, dk] of [['seasonal','fdi2_4','deicer'], ['vendorSeasonal','vendorFdi2_4','vendorDeicer']]){
+    const cfg = seasonCfg(r);
+    for (const [sk, pk, dk] of [['seasonal',cfg.push,'deicer'], ['vendorSeasonal',cfg.vpush,'vendorDeicer']]){
       const se = Number(effectiveContractValue(r, sk)), pu = Number(effectiveContractValue(r, pk)), de = Number(effectiveContractValue(r, dk));
       const per = pu + de;
       if (se > 0 && per > 0){ const n = se / per; if (n >= 1 && n <= 60 && Math.abs(n - Math.round(n)) < 0.02) return Math.round(n); }
     }
-    return DSS_DEFAULT_PUSHES;
+    return cfg.def;
   }
-  const DSS_AUTOCALC_SEASONAL_FIELD = { deicer: 'seasonal', fdi2_4: 'seasonal', vendorDeicer: 'vendorSeasonal', vendorFdi2_4: 'vendorSeasonal' };
+  const DSS_AUTOCALC_SEASONAL_FIELD = { deicer: 'seasonal', fdi2_4: 'seasonal', vendorDeicer: 'vendorSeasonal', vendorFdi2_4: 'vendorSeasonal', mp2_499: 'seasonal', vendorMp2_499: 'vendorSeasonal' };
   function applyDssSeasonalAutocalc(r, detail, changedField){
-    if (storePrefixType(r.store) !== 'DSS') return;
+    const cfg = seasonCfg(r);
+    if (storePrefixType(r.store) !== cfg.type) return;
     const seasonalField = DSS_AUTOCALC_SEASONAL_FIELD[changedField];
     if (!seasonalField) return;
+    if ((cfg.type === 'MP') !== /mp2_499/i.test(changedField) && changedField !== 'deicer' && changedField !== 'vendorDeicer') return;
     const isVendor = changedField.startsWith('vendor');
     if (cpLocked(r, isVendor ? 'vendor' : 'fdi')) return;
     const deicerVal = Number(effectiveContractValue(r, isVendor ? 'vendorDeicer' : 'deicer'));
-    const pushVal = Number(effectiveContractValue(r, isVendor ? 'vendorFdi2_4' : 'fdi2_4'));
+    const pushVal = Number(effectiveContractValue(r, isVendor ? cfg.vpush : cfg.push));
     if (Number.isNaN(deicerVal) || Number.isNaN(pushVal)) return; // need both to compute
     const seasonalInput = detail.querySelector(`input.cp-input[data-field="${seasonalField}"]`);
     if (!seasonalInput || !seasonalInput.dataset.rowid) return;
@@ -4143,7 +4197,7 @@ td.map-cell{ width:60px; text-align:center; }
     if (seasonalItem) refreshMarginForItem(seasonalItem);
     const mirror = detail.querySelector(`input.cp-basemonthly-input[data-mirror-field="${seasonalField}"]`);
     if (mirror){
-      const q = quarterOf(seasonalInput.value);
+      const q = quarterOf(seasonalInput.value, mirror.dataset.div);
       mirror.value = q === '' ? '' : String(q);
       const mirrorItem = mirror.closest('.cp-item');
       if (mirrorItem) refreshMarginForItem(mirrorItem);
@@ -4211,6 +4265,15 @@ td.map-cell{ width:60px; text-align:center; }
   // measured coordinates of each blank (verified against the rendered PDF
   // with pdfplumber + visual crops). Coordinates are in PDF points, y
   // measured from the bottom of a 612x792 (Letter) page.
+  // MyPlace Self Storage (MP-prefixed stores): MyPlace's own fillable "2026 Snow Removal & Ice
+  // Management Bid Request" (templates/myplace.pdf, AcroForm). We fill the facility / vendor /
+  // season blocks and the per-application salt rate from the Deicer parameter; the depth-tier
+  // prices (their tiers don't match ours) and Option B are left for manual entry in the PDF.
+  const MYPLACE_TEMPLATE = {
+    file: 'templates/myplace.pdf',
+    filenameSuffix: 'MyPlace Bid Request',
+    sigPage: 3, sigBox: { x: 43, y: 510, w: 335, h: 22 },   // page index + rect of the vendor_signature field
+  };
   const DSS_CONTRACT_TEMPLATE = {
     file: 'templates/dss.pdf',
     filenameSuffix: 'Devon Self Storage',
@@ -4492,6 +4555,7 @@ td.map-cell{ width:60px; text-align:center; }
     const cs = csKind(store);
     if (cs) return cs;
     if ((store || '').trim().toUpperCase().startsWith('DSS')) return 'dss';
+    if (/^MP\s*\d/i.test((store || '').trim())) return 'myplace';
     return null;
   }
 
@@ -4526,7 +4590,7 @@ td.map-cell{ width:60px; text-align:center; }
     if (side === 'vendor') return createSubcontractForRow(r, btnEl, arguments[3]);
     const kind = contractKind(r.store);
     if (!kind){
-      alert('Auto-fill contracts are only set up for CubeSmart (CS-prefixed) and Devon Self Storage (DSS-prefixed) stores right now.');
+      alert('Auto-fill contracts are only set up for CubeSmart (CS), Devon Self Storage (DSS) and MyPlace (MP) stores right now.');
       return;
     }
     const origLabel = btnEl ? btnEl.textContent : null;
@@ -4535,6 +4599,52 @@ td.map-cell{ width:60px; text-align:center; }
       const PDFLib = window.PDFLib;
       if (!PDFLib) throw new Error('PDF library failed to load');
       const term = contractTermForRow(r);
+
+      if (kind === 'myplace'){
+        const bytes = await fetchTemplateBytes(MYPLACE_TEMPLATE.file);
+        const pdfDoc = await PDFLib.PDFDocument.load(bytes);
+        const form = pdfDoc.getForm();
+        const pmObj = PM_LIST.find(p => p.name === r.pm) || null;
+        setPdfText(form, 'facility_name', r.store || '');
+        setPdfText(form, 'facility_address', r.address || '');
+        setPdfText(form, 'pm_contact', r.customer || '');
+        setPdfText(form, 'season_dates', `${term.beginFull} - ${term.endFull}`);
+        setPdfText(form, 'vendor_company', SERVICE_PROVIDER_NAME);
+        if (pmObj){ setPdfText(form, 'vendor_contact_phone', pmObj.name); setPdfText(form, 'vendor_email', pmObj.email); }
+        // Snow plowing row, by depth tier (MyPlace tiers: below 2 / 2-<5 / 5-<8 / 8-<12 / 12+)
+        [['a1_plow_below2','mp0_2'],['a1_plow_2to5','mp2_499'],['a1_plow_5to8','mp5_799'],['a1_plow_8to12','mp8_1199'],['a1_plow_12plus','mp12plus']]
+          .forEach(([f, k]) => setPdfText(form, f, moneyForPdf(effectiveContractValue(r, k))));
+        setPdfText(form, 'a2_salt', moneyForPdf(effectiveContractValue(r, 'deicer')));
+        // Snow moving / relocation is always $500 per hour (loader line, billed per hour)
+        setPdfText(form, 'a2_loader', moneyForPdf(MP_SNOW_MOVING_RATE));
+        // Option B flat seasonal (Nov-Mar): 12 pushes + 12 salts, spread over the season's months
+        const seasonTotal = Number(effectiveContractValue(r, 'seasonal'));
+        if (seasonTotal > 0){
+          const nMonths = Number(term.months) || MP_SEASON_MONTHS;
+          const nP = dssPushCount(r);
+          setPdfText(form, 'b_season_total', moneyForPdf(seasonTotal));
+          setPdfText(form, 'b_months', String(nMonths));
+          setPdfText(form, 'b_price_month', moneyForPdf(Math.round(seasonTotal / nMonths * 100) / 100));
+          setPdfText(form, 'b_billable_period', `${term.beginMonthDay} - ${term.endMonthDay}`);
+          setPdfText(form, 'b_full_season', `${term.beginFull} - ${term.endFull}`);
+          setPdfText(form, 'b_included', `${nP} plow pushes and ${nP} salt applications`);
+        }
+        const savedSig = loadSavedSignature();
+        if (savedSig && savedSig.dataUrl){
+          try {
+            const sigPage = pdfDoc.getPages()[MYPLACE_TEMPLATE.sigPage];
+            const sigPng = await pdfDoc.embedPng(savedSig.dataUrl);
+            const { x, y, w, h } = MYPLACE_TEMPLATE.sigBox;
+            const sc = Math.min(w / sigPng.width, h / sigPng.height);
+            sigPage.drawImage(sigPng, { x, y: y + (h - sigPng.height * sc) / 2, width: sigPng.width * sc, height: sigPng.height * sc });
+            setPdfText(form, 'vendor_sign_date', new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }));
+          } catch(e){ console.warn('could not stamp saved signature', e); }
+        }
+        const outBytes = await pdfDoc.save();
+        const safeStore = (r.store || 'store').replace(/[^A-Za-z0-9_\- ]/g, '').trim();
+        await savePdfBlob(`${safeStore} - ${MYPLACE_TEMPLATE.filenameSuffix}.pdf`, new Blob([outBytes], { type: 'application/pdf' }));
+        return;
+      }
 
       if (kind === 'dss'){
         const bytes = await fetchTemplateBytes(DSS_CONTRACT_TEMPLATE.file);
@@ -4736,6 +4846,7 @@ td.map-cell{ width:60px; text-align:center; }
   // uses the Projections "seasonal installments" setting (default 5, Nov-Mar) so the
   // monthly shown here always matches what the Projections tab counts.
   function monthlyDivisor(r){
+    if (storePrefixType(r.store) === 'MP') return MP_SEASON_MONTHS;
     if (storePrefixType(r.store) === 'PS'){
       const d = (typeof projAssume !== 'undefined' && projAssume && Number(projAssume.seasonalMonths)) || 5;
       return d >= 1 ? d : 5;
@@ -4754,7 +4865,7 @@ td.map-cell{ width:60px; text-align:center; }
     const fdiVal = effectiveContractValue(r, 'seasonal');
     const vendVal = effectiveContractValue(r, 'vendorSeasonal');
     const div = monthlyDivisor(r);
-    const isPS = storePrefixType(r.store) === 'PS';
+    const isPS = ['PS','MP'].includes(storePrefixType(r.store));
     const fdiMonthly = quarterOf(fdiVal, div);
     const vendMonthly = quarterOf(vendVal, div);
     const margin = computeMargin(fdiVal, vendVal); // same ratio either way
@@ -4777,8 +4888,8 @@ td.map-cell{ width:60px; text-align:center; }
     const canEdit = r.rowId != null;
     return `<div class="cp-item">
       <div class="cp-name">Pushes (seasonal basis)</div>
-      <div class="cp-line"><input type="number" min="1" max="60" step="1" inputmode="numeric" class="cp-input cp-pushes-input${canEdit && (cpLocked(r,'fdi') || cpLocked(r,'vendor')) ? ' cp-locked' : ''}" value="${dssPushCount(r)}" ${canEdit && !(cpLocked(r,'fdi') || cpLocked(r,'vendor')) ? '' : 'disabled'} title="Seasonal = (2&quot;-4&quot; push rate + deicer) &times; pushes" style="width:70px;"></div>
-      <div class="cp-line"><span class="cp-line-label" style="min-width:0;font-size:11px;">Seasonal = (push + deicer) &times; pushes</span></div>
+      <div class="cp-line"><input type="number" min="1" max="60" step="1" inputmode="numeric" class="cp-input cp-pushes-input${canEdit && (cpLocked(r,'fdi') || cpLocked(r,'vendor')) ? ' cp-locked' : ''}" value="${dssPushCount(r)}" ${canEdit && !(cpLocked(r,'fdi') || cpLocked(r,'vendor')) ? '' : 'disabled'} title="Seasonal = (${seasonCfg(r).label.replace(/"/g,'&quot;')} push rate + deicer) &times; pushes" style="width:70px;"></div>
+      <div class="cp-line"><span class="cp-line-label" style="min-width:0;font-size:11px;">Seasonal = (push + deicer) &times; pushes${seasonCfg(r).type === 'MP' ? ' &middot; Nov&ndash;Mar' : ''}</span></div>
     </div>`;
   }
 
@@ -4797,7 +4908,7 @@ td.map-cell{ width:60px; text-align:center; }
       // Devon Self Storage pays monthly, so alongside Seasonal (the season
       // total) show a reverse-linked Base Monthly = Seasonal / 4, placed
       // right before Seasonal.
-      const extra = (type === 'DSS' && k === 'seasonal' ? dssPushesItemHtml(r) : '') + ((type === 'DSS' || type === 'PS') && k === 'seasonal' ? baseMonthlyItemHtml(r) : '');
+      const extra = ((type === 'DSS' || type === 'MP') && k === 'seasonal' ? dssPushesItemHtml(r) : '') + ((type === 'DSS' || type === 'PS' || type === 'MP') && k === 'seasonal' ? baseMonthlyItemHtml(r) : '');
       return extra + item;
     }).join('');
     return `<div class="contract-params"><div class="k">Contract parameters${cpLockBarHtml(r)}</div><div class="v"><div class="cp-grid">${rowsHtml}</div></div></div>`;
@@ -4883,7 +4994,7 @@ td.map-cell{ width:60px; text-align:center; }
     let contracted = false; try { contracted = ctEligible(r); } catch(e){}
     const innerHtml = `<div class="detail-grid">
       ${contracted?'':`      <div style="grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-        ${contractKind(r.store)?`<button type="button" class="contract-btn" data-idx="${idx}" data-side="owner" title="Generate a filled ${csKind(r.store)?(csKind(r.store)==='owned'?'Owned':'Managed'):'Devon Self Storage'} snowplowing contract PDF for ${escapeHtml(r.store)}">Create Owner Contract</button>`:''}
+        ${contractKind(r.store)?`<button type="button" class="contract-btn" data-idx="${idx}" data-side="owner" title="Generate a filled ${csKind(r.store)?(csKind(r.store)==='owned'?'Owned':'Managed'):(contractKind(r.store)==='myplace'?'MyPlace bid request':'Devon Self Storage')} snowplowing contract PDF for ${escapeHtml(r.store)}">Create Owner Contract</button>`:''}
         <button type="button" class="contract-btn" data-idx="${idx}" data-side="vendor" title="Fill the FDI subcontract that matches this store's contract parameters">Create Vendor Subcontract</button>
         <select class="contract-kind-select is-placeholder" data-idx="${idx}" title="Vendor contract type — leave on the grey label to use the auto-picked template">
           <option value="" selected>Vendor Contract Type</option>
@@ -4980,13 +5091,14 @@ td.map-cell{ width:60px; text-align:center; }
       inp.addEventListener('change', e => {
         e.stopPropagation();
         let n = Math.round(Number(inp.value));
-        if (!Number.isFinite(n) || n < 1) n = DSS_DEFAULT_PUSHES;
+        if (!Number.isFinite(n) || n < 1) n = seasonCfg(r).def;
         if (n > 60) n = 60;
         inp.value = String(n);
         dssSetPushes(r, n);
         const has = k => { const v = effectiveContractValue(r, k); return v !== null && v !== undefined && v !== ''; };
-        if (has('deicer') && has('fdi2_4')) applyDssSeasonalAutocalc(r, detail, 'deicer');
-        if (has('vendorDeicer') && has('vendorFdi2_4')) applyDssSeasonalAutocalc(r, detail, 'vendorDeicer');
+        const cfgP = seasonCfg(r);
+        if (has('deicer') && has(cfgP.push)) applyDssSeasonalAutocalc(r, detail, 'deicer');
+        if (has('vendorDeicer') && has(cfgP.vpush)) applyDssSeasonalAutocalc(r, detail, 'vendorDeicer');
       });
     });
     detail.querySelectorAll('input.cp-basemonthly-input').forEach(inp => {
@@ -5728,6 +5840,7 @@ td.map-cell{ width:60px; text-align:center; }
     const map = new Map();
     rows.forEach(r => {
       if (effectiveLost(r)) return;
+      if (effectiveCustomerStatus(r) !== 'Contract Accepted') return;   // only vendors on sites where the customer has signed
       const nm = String(effectiveVendor2627(r) || '').trim();
       if (!nm || nm === '-' || nm === '—') return;
       const k = vtNorm(nm); if (!k) return;
@@ -5833,7 +5946,7 @@ td.map-cell{ width:60px; text-align:center; }
     document.getElementById('vt-count').textContent = `${shown.length} of ${all.length} vendor${all.length === 1 ? '' : 's'}`;
     vtEntries.clear(); all.forEach(v => vtEntries.set(v.key, v));
     list.innerHTML = shown.length ? shown.map(v => `<div class="vt-card-wrap" data-wrap="${escapeHtml(v.key)}">${vtCardHtml(v)}</div>`).join('')
-      : `<div class="vc-note">${all.length ? 'No vendors match these filters.' : 'No 26/27 vendors are filled in on the Bidding sheet yet.'}</div>`;
+      : `<div class="vc-note">${all.length ? 'No vendors match these filters.' : 'No vendors yet on sites where the customer contract is signed (Customer Status = Contract Accepted).'}</div>`;
   }
   function vtRefreshCard(key){
     const wrap = document.querySelector(`.vt-card-wrap[data-wrap="${CSS.escape(key)}"]`);
@@ -6259,7 +6372,7 @@ td.map-cell{ width:60px; text-align:center; }
     const q = Object.assign({ rowId: null, key }, fields); ctReqs.push(q); return q;
   }
   // Contract parameters -> which service(s) this store's contract covers.
-  const CT_PARAM_LABELS = { perInchRate: 'Per inch', fdi2_399: '2–3.99"', fdi4_599: '4–5.99"', fdi6_799: '6–7.99"', fdi3_6: '3–6"', fdi6_9: '6–9"', fdi10_12: '10–12"', fdi13_15: '13–15"', fdi16_18: '16–18"', fdi2_4: '2–4"', fdi41_6: '4.1–6"', pfuetze2_4: '2–4"', pfuetze4_6: '4–6"', pfuetze6_10: '6–10"', pfuetze10plus: '10"+', sroa3_49: '3–4.9"', sroa5_79: '5–7.9"', sroa8_119: '8–11.9"', sroa12plus: '12"+' };
+  const CT_PARAM_LABELS = { perInchRate: 'Per inch', fdi2_399: '2–3.99"', fdi4_599: '4–5.99"', fdi6_799: '6–7.99"', fdi3_6: '3–6"', fdi6_9: '6–9"', fdi10_12: '10–12"', fdi13_15: '13–15"', fdi16_18: '16–18"', fdi2_4: '2–4"', fdi41_6: '4.1–6"', pfuetze2_4: '2–4"', pfuetze4_6: '4–6"', pfuetze6_10: '6–10"', pfuetze10plus: '10"+', sroa3_49: '3–4.9"', sroa5_79: '5–7.9"', sroa8_119: '8–11.9"', sroa12plus: '12"+', mp0_2: '0–2"', mp2_499: '2–4.99"', mp5_799: '5–7.99"', mp8_1199: '8–11.99"', mp12plus: '12"+' };
   // Contract parameters -> the individual services this store's contract covers.
   function ctContractInfo(r){
     const cp = (r && r.contractParams) || {}; const items = [];
@@ -6635,10 +6748,50 @@ td.map-cell{ width:60px; text-align:center; }
     window.__wxRefresh = wxRefresh;
   })();
 
+  // ---------- Customer request links (public page: request.html) ----------
+  const clBase = () => location.href.replace(/[#?].*$/, '').replace(/[^/]*$/, '') + 'request.html';
+  function clCustomers(){
+    const m = new Map();
+    rows.forEach(r => { if (!r.customer || effectiveLost(r) || effectiveCustomerStatus(r) !== 'Contract Accepted') return; m.set(r.customer, (m.get(r.customer) || 0) + 1); });
+    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }
+  async function clOpen(){
+    const back = document.getElementById('cl-back'), list = document.getElementById('cl-list'), msg = document.getElementById('cl-msg');
+    back.hidden = false; msg.textContent = ''; msg.classList.remove('bad');
+    const cs = clCustomers();
+    if (!SMARTSHEET_WORKER_URL){ list.innerHTML = '<div class="sh-empty">Connect the dashboard to the Worker first (Bidding tab).</div>'; return; }
+    list.innerHTML = '<div class="sh-empty">Creating links…</div>';
+    try {
+      const resp = await fetch(vtBase() + '/portal-links', { method: 'POST', headers: vtHdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ customers: cs.map(x => x[0]), pms: PM_LIST.map(p => p.name) }) });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok || !data.ok) throw new Error(data.error || ('HTTP ' + resp.status + (resp.status === 404 ? ' (deploy the latest worker.js)' : '')));
+      const base = clBase(), pmBase = base.replace(/request\.html$/, 'pm.html');
+      const rowH = (name, n, url) => `<tr><td><b>${escapeHtml(name)}</b></td><td>${n}</td><td><input class="cl-url" readonly value="${escapeHtml(url)}" style="width:100%;min-width:260px"></td><td style="white-space:nowrap"><button type="button" class="ct-btn cl-copy">Copy</button> <a class="ct-btn" href="${escapeHtml(url)}" target="_blank" rel="noopener">Open</a></td></tr>`;
+      const pmRows = PM_LIST.filter(p => data.pmLinks && data.pmLinks[p.name]).map(p => rowH(p.name, rows.filter(r => r.pm === p.name && !effectiveLost(r)).length, `${pmBase}?p=${encodeURIComponent(p.name)}&t=${encodeURIComponent(data.pmLinks[p.name])}`)).join('');
+      list.innerHTML = '<div class="dh-t" style="font-weight:600;margin:4px 0">PM links (Bidding view)</div><table class="sh-table"><thead><tr><th>PM</th><th>Sites</th><th>Private link</th><th></th></tr></thead><tbody>' + (pmRows || '<tr><td colspan="4">PM links need the latest worker.js.</td></tr>') + '</tbody></table>'
+        + '<div class="dh-t" style="font-weight:600;margin:16px 0 4px">Customer links (request a service)</div>' + (cs.length ? '<table class="sh-table"><thead><tr><th>Customer</th><th>Sites</th><th>Private link</th><th></th></tr></thead><tbody>' + cs.map(([name, n]) => {
+        const url = `${base}?c=${encodeURIComponent(name)}&t=${encodeURIComponent(data.links[name] || '')}`;
+        return rowH(name, n, url);
+      }).join('') + '</tbody></table>' : '<div class="sh-empty">No customers have accepted sites yet.</div>');
+    } catch(e){ list.innerHTML = ''; msg.classList.add('bad'); msg.textContent = (e && e.message === 'Failed to fetch') ? 'Could not reach the Worker.' : String((e && e.message) || e); }
+  }
+  (function clInit(){
+    document.getElementById('cl-open').addEventListener('click', clOpen);
+    document.getElementById('cl-close').addEventListener('click', () => { document.getElementById('cl-back').hidden = true; });
+    document.getElementById('cl-back').addEventListener('mousedown', e => { if (e.target.id === 'cl-back') e.target.hidden = true; });
+    document.getElementById('cl-list').addEventListener('click', e => {
+      const b = e.target.closest('.cl-copy'); if (!b) return;
+      const inp = b.closest('tr').querySelector('.cl-url'); inp.focus(); inp.select();
+      let ok = false; try { ok = document.execCommand('copy'); } catch(x){}
+      if (!ok && navigator.clipboard) navigator.clipboard.writeText(inp.value).catch(() => {});
+      b.textContent = 'Copied'; setTimeout(() => { b.textContent = 'Copy'; }, 1500);
+    });
+  })();
+
   // ---------- Sites Contracted tab (read-only roster of contracted sites) ----------
   function scVisible(){
-    const pm = document.getElementById('sc-pm').value, reg = document.getElementById('sc-region').value, q = document.getElementById('sc-search').value.trim().toLowerCase();
-    return rows.filter(r => ctEligible(r) && (!pm || (pm === '__NONE__' ? !r.pm : r.pm === pm)) && (!reg || effectiveRegion(r) === reg)
+    const pm = document.getElementById('sc-pm').value, reg = document.getElementById('sc-region').value, cu = (document.getElementById('sc-customer') || {}).value || '', q = document.getElementById('sc-search').value.trim().toLowerCase();
+    return rows.filter(r => ctEligible(r) && (!cu || (r.customer || '') === cu) && (!pm || (pm === '__NONE__' ? !r.pm : r.pm === pm)) && (!reg || effectiveRegion(r) === reg)
       && (!q || `${r.store} ${r.address} ${r.customer} ${r.vendor2627} ${r.pm || ''} ${effectiveRegion(r)}`.toLowerCase().includes(q)))
       .sort((a, b) => String(a.store).localeCompare(String(b.store), undefined, { numeric: true }));
   }
@@ -6653,6 +6806,8 @@ td.map-cell{ width:60px; text-align:center; }
     const body = document.getElementById('sc-tbody'); if (!body) return;
     const openDetail = body.querySelector('.detail-row');   // keep an expanded site open across refreshes
     document.getElementById('sc-scope').value = ctScope;
+    const cuSel = document.getElementById('sc-customer');
+    if (cuSel){ const cs = [...new Set(rows.filter(ctEligible).map(r => r.customer).filter(Boolean))].sort(); const key = cs.join('|'); if (cuSel.dataset.k !== key){ const cur = cuSel.value; cuSel.dataset.k = key; cuSel.innerHTML = '<option value="">All customers</option>' + cs.map(c => `<option${c === cur ? ' selected' : ''}>${escapeHtml(c)}</option>`).join(''); } }
     const list = scVisible(); const total = rows.filter(ctEligible).length;
     document.getElementById('sc-count').textContent = `${list.length} of ${total} contracted sites`;
     if (!total){ body.innerHTML = '<tr><td colspan="9" class="ct-empty">No sites have reached this stage yet. Sites show up here once Customer Status is <b>Contract Accepted</b> and the vendor contract is signed. (Change the stage under &ldquo;Sites&rdquo; above.)</td></tr>'; return; }
@@ -6660,7 +6815,7 @@ td.map-cell{ width:60px; text-align:center; }
     body.innerHTML = list.map(r => {
       const ns = normStore(r.store); const reqs = ctReqs.filter(x => normStore(x.store) === ns); const done = reqs.filter(x => x.status === 'Completed').length;
       const tm = contractTermForRow(r);
-      return `<tr data-store="${escapeHtml(r.store)}"><td><b>${escapeHtml(r.store)}</b></td><td>${escapeHtml(r.address || '')}</td><td>${escapeHtml(r.customer || '')}</td><td>${escapeHtml(effectiveRegion(r))}</td><td>${escapeHtml(pmShort(r.pm))}</td>
+      return `<tr data-store="${escapeHtml(r.store)}"><td><b>${escapeHtml(r.store)}</b></td><td>${escapeHtml(r.address || '')}</td><td>${escapeHtml(r.customer || '')}</td><td class="sc-reg">${regionSelectHtml(r)}</td><td>${escapeHtml(pmShort(r.pm))}</td>
         <td>${r.vendor2627 ? escapeHtml(r.vendor2627) : '<span class="ct-novendor">no vendor</span>'}</td><td style="white-space:nowrap">${escapeHtml(tm.beginMonthDay)} – ${escapeHtml(tm.endMonthDay)}, 20${escapeHtml(tm.endYear2)}</td><td>${scCompliance(r)}</td><td>${done} / ${reqs.length}</td></tr>`;
     }).join('');
     if (openDetail){ const tr = Array.from(body.querySelectorAll('tr[data-store]')).find(x => x.dataset.store === openDetail.dataset.store); if (tr){ tr.classList.add('active'); tr.after(openDetail); } }
@@ -6676,10 +6831,15 @@ td.map-cell{ width:60px; text-align:center; }
     document.getElementById('sc-scope').addEventListener('change', e => setScope(e.target.value));
     const scpm = document.getElementById('sc-pm'); PM_LIST.forEach(p => scpm.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`)); scpm.insertAdjacentHTML('beforeend', '<option value="__NONE__">(unassigned)</option>');
     const scrg = document.getElementById('sc-region'); regions.forEach(x => scrg.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`));
-    ['sc-pm', 'sc-region'].forEach(id => document.getElementById(id).addEventListener('change', scRender));
+    ['sc-pm', 'sc-region', 'sc-customer'].forEach(id => document.getElementById(id).addEventListener('change', scRender));
     document.getElementById('sc-search').addEventListener('input', scRender);
+    document.getElementById('sc-tbody').addEventListener('change', e => {
+      const sel = e.target.closest && e.target.closest('td.sc-reg select.region-select'); if (!sel || !sel.dataset.rowid) return;
+      const r = rows.find(x => String(x.rowId) === sel.dataset.rowid); if (!r) return;
+      stageRegionChange(r, sel, sel.value).then(() => scRender());
+    });
     document.getElementById('sc-tbody').addEventListener('click', e => {
-      if (e.target.closest('tr.detail-row')) return;
+      if (e.target.closest('tr.detail-row') || e.target.closest('select.region-select')) return;
       const tr = e.target.closest('tr[data-store]'); if (!tr) return; const store = tr.dataset.store;
       const body = document.getElementById('sc-tbody'); const existing = body.querySelector('.detail-row');
       const wasThis = existing && existing.dataset.store === store;
@@ -6771,7 +6931,7 @@ td.map-cell{ width:60px; text-align:center; }
       ctSel.forEach(ns => { const r = rows.find(x => normStore(x.store) === ns); if (r && !ctReqFor(r, ctStorm)) ctNewRequest(r, ctStorm, info.date || ctToday()); });
       ctRender(); ctFlush().then(ctRender);
     });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape'){ document.getElementById('ct-back').hidden = true; document.getElementById('ctv-back').hidden = true; document.getElementById('dm-back').hidden = true; } });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape'){ document.getElementById('ct-back').hidden = true; document.getElementById('ctv-back').hidden = true; document.getElementById('dm-back').hidden = true; document.getElementById('cl-back').hidden = true; } });
     // keep fresh while the tab is open
     if (SMARTSHEET_WORKER_URL) setInterval(() => { const v = document.getElementById('view-contracted'); const a = document.activeElement; if (v && !v.hidden && !document.hidden && SMARTSHEET_WORKER_URL && !(a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) && ctPendingCount() === 0) ctLoad(true); }, 60000);
   })();

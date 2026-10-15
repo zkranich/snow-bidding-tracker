@@ -194,3 +194,44 @@ The Weather panel sits at the top of the **Service** tab, collapsed by default; 
 - Filters: contracted vs all active sites, region, PM, risk chips. Address links to the NWS point forecast. Sites with no ZIP in the address show "No data".
 - Refreshes when you open the Service tab (if older than 30 min) or click Check weather. It does not alert when the dashboard is closed.
 - Service history now shows the "Pushed to billing <date>" pill under each line's service date.
+
+## Contracted Sites: customer filter + editable region
+- New **Customer** dropdown next to PM/Region; the search box also matches customer, vendor, PM and region.
+- The **Region** column is now a dropdown on each row. Changing it saves to the Region column on the Bidding sheet (same save path as the Bidding tab's detail panel); the cell turns amber while pending.
+
+## Customer request page (request.html)
+Lets a customer request a service at one of their sites without seeing the dashboard.
+- On **Contracted Sites** click **Customer links**: it lists every customer that has accepted sites with their own private link (Copy / Open). Send each customer only their link.
+- The customer picks a site (only their own accepted, not-lost sites), a service (Plow / Salt / Plow + Salt / Other), adds details, their name and phone/email, and submits.
+- It adds a row to the **26/27 Snow PBR Tracker** with Status **Requested**, Storm "Customer Request <date time>", the site's PM, and a Notes line "[Customer request] name (contact): details". It shows up in the **Service** tab like any other request; assign the vendor and dispatch from there.
+- Security: the link carries a signed token (made with the Worker's `PORTAL_SECRET`), so a customer can't get another customer's sites. The Worker's public routes can only list that customer's sites and add a Requested row; everything else still needs the dashboard key. A hidden honeypot field blocks simple bots.
+- Setup: upload `request.html` next to `index.html`, paste the new `worker.js`, and add a second secret **`PORTAL_SECRET`** (any random string, Encrypt) in Cloudflare. Changing `PORTAL_SECRET` later invalidates every link.
+- Nothing emails the PM yet; new requests appear in the Service tab (Requested).
+
+## PM view (pm.html) — Bidding-only, per PM
+A separate page for a PM (e.g. Bobby): **only the Bidding view**, **only the sites assigned to that PM**, and the only thing they can change is the **FDI contract parameters** (deicer, per-inch, tier rates, seasonal, etc.). Vendor rates/costs, statuses, billing, other PMs' sites are not sent to the page and the Worker refuses to write them.
+- Get a PM's link from the dashboard: Contracted Sites -> **Private links** -> **PM links** -> Copy. The link is `pm.html?p=<PM name>&t=<token>`.
+- Enforced in the Worker (`/pm/sites`, `/pm/update`): the token is signed with `PORTAL_SECRET`, the Worker re-checks on every save that the row's PM is that person, and only allows the FDI-side fields in `PM_EDITABLE_FIELDS`.
+- It's a private link, not a username/password: anyone holding the link can use it, so send it only to that PM. Changing `PORTAL_SECRET` kills every PM and customer link. A new PM must be added to `PM_DIRECTORY` in `worker.js` (and the dashboard's PM list).
+- Setup is the same as the customer page: upload `pm.html`, paste the new `worker.js`, and have `PORTAL_SECRET` set.
+- Note: `index.html` (your full dashboard) still embeds the data snapshot and key, so don't give PMs that link; give them only `pm.html`.
+
+## Vendors tab: signed-contract vendors only
+The Vendors tab now lists only 26/27 vendors on sites where the customer contract is signed (Customer Status = Contract Accepted, not Lost). Vendors that appear only on bids, sent contracts or verbal acceptances are hidden, and each card's site count counts signed sites only.
+
+## MyPlace (MP) contract
+`templates/myplace.pdf` is MyPlace's own 2026 Snow Removal & Ice Management Bid Request (fillable). Any store whose number starts with **MP** now gets a **Create Owner Contract** button in the Bidding detail panel. It fills: facility (store #, address), property management contact (the site's DM/customer), season dates, vendor company (Farmer Development, LLC), the assigned PM as vendor contact/email, the per-application **salt rate from the Deicer parameter**, **Option B season total** from Seasonal (if set), and your saved signature + date. The depth-tier prices (MyPlace's tiers differ from ours) and exclusions stay blank in the PDF for you to type in; the PDF stays fillable.
+
+## MyPlace depth tiers (MP stores)
+
+MP-prefixed stores use five depth tiers as contract parameters, each with an FDI and a Vendor column in the Bidding sheet:
+`MP 0-2"`, `MP 2-4.99"`, `MP 5-7.99"`, `MP 8-11.99"`, `MP 12"+` (plus the existing Deicer). They show on the Bidding row, are editable in the PM view (FDI side), and the **Create Owner Contract** button fills the "Snow plowing" row of the MyPlace bid request from the FDI tiers (walks/doors stay blank). `worker.js` changed (new column IDs) — re-paste it into Cloudflare.
+
+### MyPlace season cost (Nov–Mar)
+
+MP stores have a **Seasonal** field (existing Seasonal column) calculated as **(MP 2-4.99" + Deicer) × Pushes**, default **12 pushes + 12 salts**, for both FDI and Vendor sides. Change the Pushes box, Deicer, or the 2-4.99" rate and Seasonal recalculates. Monthly = Seasonal ÷ 5 (Nov–Mar). The Create Owner Contract button fills MyPlace Option B (price per month, 5 months, season total, billable period, "12 plow pushes and 12 salt applications"). No `worker.js` change beyond the MP tier IDs already added.
+The MyPlace bid request also fills Loader / snow relocation at a fixed $500/hr.
+
+### Map search
+
+The Site map has a Search box: type a 26/27 vendor (pick from the list), store, customer or address to show only matching pins/sites; a vendor match shows "Vendor — N sites".

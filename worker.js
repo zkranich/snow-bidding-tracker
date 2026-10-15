@@ -10,6 +10,9 @@
 //   SMARTSHEET_TOKEN   - a Smartsheet API access token (see WORKER_SETUP.md)
 //   DASHBOARD_KEY      - any random string you make up; must match the
 //                        DASHBOARD_KEY constant in index.html
+//   PORTAL_SECRET      - another random string (different from DASHBOARD_KEY). Signs the
+//                        private links for the customer request page (request.html)
+//                        and the PM view (pm.html).
 // Optional (only for the "Draft email" button to create real Gmail drafts
 // with attachments — see GMAIL_SETUP.md):
 //   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN
@@ -131,6 +134,16 @@ const FIELD_COLUMN_IDS = {
   vendorSaltingOfficeGate: 8152198531551108,
   seasonal: 4024930901200772,
   vendorSeasonal: 1367910251270020,
+  mp0_2: 4375937342541700,
+  mp2_499: 8879536969912196,
+  mp5_799: 83443947704196,
+  mp8_1199: 4587043575074692,
+  mp12plus: 2335243761389444,
+  vendorMp0_2: 6838843388759940,
+  vendorMp2_499: 1209343854546820,
+  vendorMp5_799: 5712943481917316,
+  vendorMp8_1199: 3461143668232068,
+  vendorMp12plus: 7964743295602564,
   contractStart: 5828404848660356,
   contractEnd: 3576605034975108,
   pm: 3410584874028932,             // PM (contact list — dashboard sends the PM's email)
@@ -208,6 +221,100 @@ function buildMime({ to, subject, body, attachments }) {
   return b64Utf8(mime).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
+
+// ---- Customer request portal (public page: request.html) ----
+// Each customer/DM gets a private link: request.html?c=<customer>&t=<token>. The token is an
+// HMAC of the customer name made with the PORTAL_SECRET Worker secret, so it can't be guessed
+// or made up for another customer. These two routes are the ONLY ones that work without the
+// dashboard key, and they can only (a) list that customer's accepted sites and (b) add a
+// "Requested" row to the dispatch log for one of those sites.
+const PORTAL_SERVICES = ['Plow', 'Salt', 'Plow + Salt', 'Other'];
+const portalNorm = (x) => String(x || '').trim().toLowerCase().replace(/\s+/g, ' ');
+async function portalToken(secret, customer) {
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode('portal:' + portalNorm(customer))));
+  let bin = ''; sig.forEach(b => { bin += String.fromCharCode(b); });
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '').slice(0, 24);
+}
+async function portalTokenOk(env, customer, token) {
+  if (!env.PORTAL_SECRET || !customer || !token) return false;
+  const want = await portalToken(env.PORTAL_SECRET, customer);
+  const got = String(token);
+  if (got.length !== want.length) return false;
+  let diff = 0; for (let i = 0; i < want.length; i++) diff |= want.charCodeAt(i) ^ got.charCodeAt(i);
+  return diff === 0;
+}
+// This customer's sites: Customer Status = Contract Accepted, not Lost, Customer column matches.
+async function portalSites(env, customer) {
+  const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${SHEET_ID}`, { headers: { Authorization: `Bearer ${env.SMARTSHEET_TOKEN}` } });
+  const data = await resp.json();
+  if (!resp.ok || !Array.isArray(data.rows)) throw new Error('Could not read the bidding sheet');
+  const want = portalNorm(customer), out = [];
+  for (const row of data.rows) {
+    const cell = (id) => { const c = (row.cells || []).find(x => x.columnId === id); return c ? (c.displayValue !== undefined && c.displayValue !== null ? c.displayValue : c.value) : ''; };
+    if (portalNorm(cell(ADD_ROW_COLUMN_IDS.customer)) !== want) continue;
+    if (String(cell(ADD_ROW_COLUMN_IDS.customerStatus)) !== 'Contract Accepted') continue;
+    if (cell(FIELD_COLUMN_IDS.lost) === true) continue;
+    const store = String(cell(ADD_ROW_COLUMN_IDS.store) || '').trim(); if (!store) continue;
+    out.push({ store, address: String(cell(ADD_ROW_COLUMN_IDS.address) || '').trim(), pm: String(cell(ADD_ROW_COLUMN_IDS.pm) || '').trim() });
+  }
+  out.sort((a, b) => a.store.localeCompare(b.store, undefined, { numeric: true }));
+  return out;
+}
+
+// ---- PM view (public page: pm.html) ----
+// Each PM gets a private link: pm.html?p=<PM name>&t=<token> (token = HMAC of "pm:<name>" with
+// PORTAL_SECRET). The PM sees ONLY the sites assigned to them, read-only except the FDI-side
+// contract parameters (no vendor rates). The Worker enforces all of it: it re-checks the PM
+// assignment on every write and refuses any field outside PM_EDITABLE_FIELDS.
+const PM_DIRECTORY = [
+  { name: 'Zak Kranich', email: 'zkranich@farmerdevelopment.com' },
+  { name: 'Bobby Kearney', email: 'bkearney@farmerdevelopment.com' },
+  { name: 'Connor Thomas', email: 'cthomas@farmerdevelopment.com' },
+  { name: 'Jacob Dafoe', email: 'jdafoe@farmerdevelopment.com' },
+];
+const PM_EDITABLE_FIELDS = [
+  'deicer', 'perInchRate', 'seasonal',
+  'fdi2_399', 'fdi4_599', 'fdi6_799', 'fdi3_6', 'fdi6_9', 'fdi10_12', 'fdi13_15', 'fdi16_18',
+  'fdi2_4', 'fdi41_6',
+  'sroa3_49', 'sroa5_79', 'sroa8_119', 'sroa12plus',
+  'pfuetze2_4', 'pfuetze4_6', 'pfuetze6_10', 'pfuetze10plus', 'saltingOfficeGate',
+  'mp0_2', 'mp2_499', 'mp5_799', 'mp8_1199', 'mp12plus',
+];
+const pmFind = (name) => PM_DIRECTORY.find(p => portalNorm(p.name) === portalNorm(name)) || null;
+function pmCellMatches(pm, cell) {
+  if (!cell) return false;
+  const a = portalNorm(cell.value), b = portalNorm(cell.displayValue);
+  return a === portalNorm(pm.email) || a === portalNorm(pm.name) || b === portalNorm(pm.name) || b === portalNorm(pm.email);
+}
+const rowCell = (row, id) => { const c = (row.cells || []).find(x => x.columnId === id); return c || null; };
+const cellDisp = (c) => (!c ? '' : (c.displayValue !== undefined && c.displayValue !== null ? c.displayValue : (c.value === undefined || c.value === null ? '' : c.value)));
+async function pmSites(env, pm) {
+  const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${SHEET_ID}`, { headers: { Authorization: `Bearer ${env.SMARTSHEET_TOKEN}` } });
+  const data = await resp.json();
+  if (!resp.ok || !Array.isArray(data.rows)) throw new Error('Could not read the bidding sheet');
+  const out = [];
+  for (const row of data.rows) {
+    if (!pmCellMatches(pm, rowCell(row, ADD_ROW_COLUMN_IDS.pm))) continue;
+    const store = String(cellDisp(rowCell(row, ADD_ROW_COLUMN_IDS.store)) || '').trim(); if (!store) continue;
+    const params = {};
+    for (const f of PM_EDITABLE_FIELDS) { const c = rowCell(row, FIELD_COLUMN_IDS[f]); const v = c ? c.value : null; params[f] = (v === undefined || v === null || v === '') ? null : v; }
+    out.push({
+      rowId: row.id, store,
+      address: String(cellDisp(rowCell(row, ADD_ROW_COLUMN_IDS.address)) || ''),
+      customer: String(cellDisp(rowCell(row, ADD_ROW_COLUMN_IDS.customer)) || ''),
+      region: String(cellDisp(rowCell(row, FIELD_COLUMN_IDS.region)) || ''),
+      sf: cellDisp(rowCell(row, ADD_ROW_COLUMN_IDS.sf)),
+      customerStatus: String(cellDisp(rowCell(row, FIELD_COLUMN_IDS.customerStatus)) || ''),
+      vendorStatus: String(cellDisp(rowCell(row, FIELD_COLUMN_IDS.vendorStatus)) || ''),
+      lost: cellDisp(rowCell(row, FIELD_COLUMN_IDS.lost)) === true,
+      params,
+    });
+  }
+  out.sort((a, b) => a.store.localeCompare(b.store, undefined, { numeric: true }));
+  return out;
+}
+
 export default {
   async fetch(request, env) {
     const origin = request.headers.get('Origin') || '*';
@@ -215,6 +322,85 @@ export default {
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers });
+    }
+
+
+    // ---- Public customer-request portal routes (token-checked, no dashboard key) ----
+    {
+      const pu = new URL(request.url);
+      if (pu.pathname === '/portal/sites' && request.method === 'GET') {
+        if (!env.SMARTSHEET_TOKEN || !env.PORTAL_SECRET) return json({ error: 'The request portal is not set up yet' }, 503, headers);
+        const c = pu.searchParams.get('c') || '', t = pu.searchParams.get('t') || '';
+        if (!(await portalTokenOk(env, c, t))) return json({ error: 'This link is not valid. Please ask Farmer Development for a new one.' }, 403, headers);
+        try { const sites = await portalSites(env, c); return json({ ok: true, customer: c, sites: sites.map(x => ({ store: x.store, address: x.address })) }, 200, headers); }
+        catch (e) { return json({ error: 'Could not load your sites right now' }, 502, headers); }
+      }
+      if (pu.pathname === '/pm/sites' && request.method === 'GET') {
+        if (!env.SMARTSHEET_TOKEN || !env.PORTAL_SECRET) return json({ error: 'The PM view is not set up yet' }, 503, headers);
+        const pmName = pu.searchParams.get('p') || '', t = pu.searchParams.get('t') || '';
+        const pm = pmFind(pmName);
+        if (!pm || !(await portalTokenOk(env, 'pm:' + pm.name, t))) return json({ error: 'This link is not valid. Ask Zak for a new one.' }, 403, headers);
+        try { return json({ ok: true, pm: pm.name, editable: PM_EDITABLE_FIELDS, sites: await pmSites(env, pm) }, 200, headers); }
+        catch (e) { return json({ error: 'Could not load your sites right now' }, 502, headers); }
+      }
+      if (pu.pathname === '/pm/update' && request.method === 'POST') {
+        if (!env.SMARTSHEET_TOKEN || !env.PORTAL_SECRET) return json({ error: 'The PM view is not set up yet' }, 503, headers);
+        let b; try { b = await request.json(); } catch (e) { return json({ error: 'Bad request' }, 400, headers); }
+        b = b || {};
+        const pm = pmFind(b.p);
+        if (!pm || !(await portalTokenOk(env, 'pm:' + pm.name, String(b.t || '')))) return json({ error: 'This link is not valid. Ask Zak for a new one.' }, 403, headers);
+        const field = String(b.field || ''), rowId = Number(b.rowId);
+        if (!PM_EDITABLE_FIELDS.includes(field) || !rowId) return json({ error: 'That field can\'t be edited here.' }, 403, headers);
+        let value = b.value;
+        if (value === '' || value === null || value === undefined) value = '';
+        else { value = Number(value); if (!isFinite(value) || value < 0 || value > 1000000) return json({ error: 'Enter a valid dollar amount.' }, 400, headers); }
+        try {
+          // Re-check on the server that this row is really assigned to this PM.
+          const rr = await fetch(`https://api.smartsheet.com/2.0/sheets/${SHEET_ID}/rows/${rowId}`, { headers: { Authorization: `Bearer ${env.SMARTSHEET_TOKEN}` } });
+          const row = await rr.json();
+          if (!rr.ok || !pmCellMatches(pm, rowCell(row, ADD_ROW_COLUMN_IDS.pm))) return json({ error: 'That site is not assigned to you.' }, 403, headers);
+          const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${SHEET_ID}/rows`, {
+            method: 'PUT', headers: { Authorization: `Bearer ${env.SMARTSHEET_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify([{ id: rowId, cells: [{ columnId: FIELD_COLUMN_IDS[field], value }] }]),
+          });
+          const data = await resp.json();
+          if (resp.ok && data.resultCode === 0) return json({ ok: true, rowId, field, value }, 200, headers);
+          return json({ error: 'Could not save that change.' }, 502, headers);
+        } catch (e) { return json({ error: 'Could not save that change.' }, 502, headers); }
+      }
+      if (pu.pathname === '/portal/request' && request.method === 'POST') {
+        if (!env.SMARTSHEET_TOKEN || !env.PORTAL_SECRET) return json({ error: 'The request portal is not set up yet' }, 503, headers);
+        let b; try { b = await request.json(); } catch (e) { return json({ error: 'Bad request' }, 400, headers); }
+        b = b || {};
+        if (b.website) return json({ ok: true }, 200, headers);   // honeypot field: bots fill it, people never see it
+        const c = String(b.c || ''), t = String(b.t || '');
+        if (!(await portalTokenOk(env, c, t))) return json({ error: 'This link is not valid. Please ask Farmer Development for a new one.' }, 403, headers);
+        const clean = (v, n) => String(v === undefined || v === null ? '' : v).replace(/[\r\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, ' ').trim().slice(0, n);
+        const store = clean(b.store, 40), service = clean(b.service, 20), name = clean(b.name, 80), contact = clean(b.contact, 120), notes = clean(b.notes, 1000);
+        if (!store || !PORTAL_SERVICES.includes(service) || !name || !contact) return json({ error: 'Please choose a site and service and enter your name and phone or email.' }, 400, headers);
+        try {
+          const site = (await portalSites(env, c)).find(x => x.store === store);
+          if (!site) return json({ error: 'That site is not on your account.' }, 403, headers);
+          const now = new Date();
+          const stormDate = now.toISOString().slice(0, 10);
+          const stamp = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'numeric', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }).format(now).replace(',', '');
+          const storm = `Customer Request ${stamp}`;
+          const item = {
+            request: `${storm} | ${site.store}`, storm, stormDate, store: site.store, address: site.address, pm: site.pm,
+            status: 'Requested', service, requestedAt: now.toISOString(),
+            notes: `[Customer request] ${name} (${contact})${notes ? ': ' + notes : ''}`,
+          };
+          const cells = [];
+          for (const [k, colId] of Object.entries(DISPATCH_COLS)) { const v = item[k]; if (v !== undefined && v !== null && String(v).trim() !== '') cells.push({ columnId: colId, value: String(v).trim() }); }
+          const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${DISPATCH_SHEET_ID}/rows`, {
+            method: 'POST', headers: { Authorization: `Bearer ${env.SMARTSHEET_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify([{ toBottom: true, cells }]),
+          });
+          const data = await resp.json();
+          if (resp.ok && data.resultCode === 0) return json({ ok: true, store: site.store }, 200, headers);
+          return json({ error: 'We could not save your request. Please call us.' }, 502, headers);
+        } catch (e) { return json({ error: 'We could not save your request. Please call us.' }, 502, headers); }
+      }
     }
 
     // Shared-secret check. Worth knowing honestly: this key lives in
@@ -298,6 +484,19 @@ export default {
         const rowId = data && data.result && data.result[0] && data.result[0].id;
         if (resp.ok && data.resultCode === 0 && rowId) return json({ ok: true, rowId }, 200, headers);
         return json({ ok: false, error: (data && data.message) || 'Smartsheet rejected the new row', detail: data }, 502, headers);
+      }
+
+
+      // POST /portal-links  { customers: [name, ...] } -> { ok, links: { name: token } }  (dashboard only)
+      if (url.pathname === '/portal-links' && request.method === 'POST') {
+        if (!env.PORTAL_SECRET) return json({ ok: false, error: 'PORTAL_SECRET is not set on the Worker yet' }, 503, headers);
+        let body; try { body = await request.json(); } catch (e) { return json({ error: 'body must be JSON' }, 400, headers); }
+        const list = Array.isArray(body && body.customers) ? body.customers.slice(0, 500) : [];
+        const links = {};
+        for (const nm of list) { const n = String(nm || '').trim(); if (n) links[n] = await portalToken(env.PORTAL_SECRET, n); }
+        const pmLinks = {};
+        for (const nm of (Array.isArray(body && body.pms) ? body.pms.slice(0, 50) : [])) { const pmx = pmFind(nm); if (pmx) pmLinks[pmx.name] = await portalToken(env.PORTAL_SECRET, 'pm:' + pmx.name); }
+        return json({ ok: true, links, pmLinks }, 200, headers);
       }
 
       // ---- Storm dispatch log (Contracted tab) ----

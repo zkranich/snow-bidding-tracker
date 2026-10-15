@@ -82,3 +82,7 @@ old Worker only knows the first four fields.
 Still not saved anywhere on a plain web host: vendor estimate uploads and
 owner contract uploads (no file storage here), and brand-new rows added in
 Smartsheet — those only appear after `index.html` is rebuilt from a fresh pull.
+
+## Customer request page: one extra secret
+To use `request.html` (customer self-service requests), add a third secret on the Worker:
+`PORTAL_SECRET` = any random string (not the same as DASHBOARD_KEY), **Encrypt** it. Then upload `request.html` next to `index.html`. Generate each customer's private link from the dashboard: Contracted Sites -> **Customer links**.
