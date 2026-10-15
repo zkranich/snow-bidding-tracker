@@ -164,7 +164,12 @@ const FIELD_COLUMN_IDS = {
   iv2Quote: 4888672526438276,
   iv3Emailed: 2636872712753028,
   iv3Quote: 7140472340123524,
+  // Price locks (checkboxes) — "FDI price locked" / "Vendor price locked" on the contract-params panel
+  fdiLocked: 10645392887684,
+  vendorLocked: 4514245020258180,
 };
+// Fields stored in Smartsheet CHECKBOX columns: coerce whatever the page sends to a real boolean.
+const CHECKBOX_FIELDS = ['lost', 'fdiLocked', 'vendorLocked'];
 
 function corsHeaders(origin) {
   return {
@@ -437,11 +442,13 @@ export default {
 
         const { rowId, field, value } = body || {};
         const columnId = FIELD_COLUMN_IDS[field];
-        if (!rowId || !columnId) {
-          return json({ error: `rowId and a known field are required (got field=${field})` }, 400, headers);
+        if (!rowId) return json({ error: 'rowId is required' }, 400, headers);
+        if (!columnId) {
+          return json({ error: `unknown field "${field}" — add it to FIELD_COLUMN_IDS in worker.js`, field }, 400, headers);
         }
 
-        const cellValue = value === null || value === undefined ? '' : value;
+        let cellValue = value === null || value === undefined ? '' : value;
+        if (CHECKBOX_FIELDS.includes(field)) cellValue = (cellValue === true || cellValue === 'true' || cellValue === 1 || cellValue === '1');
         const payload = [{ id: rowId, cells: [{ columnId, value: cellValue }] }];
 
         const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${SHEET_ID}/rows`, {

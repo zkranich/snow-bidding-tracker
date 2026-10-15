@@ -86,3 +86,11 @@ Smartsheet — those only appear after `index.html` is rebuilt from a fresh pull
 ## Customer request page: one extra secret
 To use `request.html` (customer self-service requests), add a third secret on the Worker:
 `PORTAL_SECRET` = any random string (not the same as DASHBOARD_KEY), **Encrypt** it. Then upload `request.html` next to `index.html`. Generate each customer's private link from the dashboard: Contracted Sites -> **Customer links**.
+
+
+## Routes used for live saving
+- `GET /rows` — the whole sheet (+ attachments); the page re-reads it every 20 s.
+- `POST /update { rowId, field, value }` — one cell. Every field the page edits is accepted (see `FIELD_COLUMN_IDS` in worker.js). Checkbox fields (`lost`, `fdiLocked`, `vendorLocked`) are coerced to true/false. Unknown field → HTTP 400 naming it.
+- `POST /add-row { store, customer?, address?, sf?, region?, pm?, customerStatus?, customerEmail? }` → `{ ok, rowId }`.
+- `POST /attach?rowId=&name=` — raw file body; used for estimates, overhead maps and owner contracts.
+After pasting a new worker.js, click Deploy; no secrets change.

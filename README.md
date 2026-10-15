@@ -40,7 +40,7 @@ A second tab next to Bidding. Season total (Dec-Mar) at the top, then December /
 
 ## Edits are always kept in the browser
 
-Every edit is saved in this browser first (so a refresh never loses it), then sent to Smartsheet. If Smartsheet isn't reachable or the Worker isn't connected, a bar shows how many edits are waiting and a **Sync now** button re-sends them. An edit is only forgotten once Smartsheet confirms it. Browser storage is per browser/device: use Sync now before switching computers or clearing browser data.
+**Every edit now saves straight to Smartsheet** (see "Live saving" at the bottom). There is no Sync button and nothing is staged. The top-right indicator shows Saved / Saving… / Offline.
 
 ## CubeSmart managed contract (2026 form)
 
@@ -123,7 +123,7 @@ It never includes your FDI prices — only blank cells. Send the same file to ev
 
 Click **+ Add store** in the filter row. Fill in the store # (required) and anything else you know (customer/contact, address, SF, region, PM, customer status), then **Add store**. It creates a new row at the bottom of the 26-27 Snow Bidding Sheet and the site appears here right away (the table filters to it so you can see it). A store # that's already on the list is blocked.
 
-- **Needs the updated `worker.js`** (new `/add-row` endpoint) pasted into Cloudflare. Until then the store is saved in this browser and the banner says so; it's created in Smartsheet the next time a sync works (**Sync now**, or on reload).
+- **Needs the updated `worker.js`** (new `/add-row` endpoint) pasted into Cloudflare. Until then the store is saved in this browser and the banner says so; it's created in Smartsheet automatically as soon as the Worker is reachable (retries every few seconds and on reload).
 - **Other devices / people:** the live load now also pulls in any site that exists in Smartsheet with a Store Number this page doesn't have, so a store added here (or typed straight into Smartsheet) shows up everywhere within about a minute. Duplicate-store rows the cleanup dropped earlier stay dropped, and rows with no Store Number are skipped.
 - Contract prices / vendor info for the new store are filled in the normal way afterwards (click the row).
 
@@ -135,7 +135,7 @@ Second tab next to **Bidding**. A site appears here once it reaches the stage pi
 - **✉ Email vendors** — groups the sites still at *Requested* by their 26/27 Vendor and drafts one email per vendor listing their sites (a Gmail draft if the Worker's Google secrets are set up, otherwise a Gmail compose window). **Mark dispatched** flips that vendor's sites to *Dispatched* once you've sent it.
 - **Status per site** — Requested → Dispatched → On Site → Completed (or Issue / Cancelled). Dispatched / On Site / Completed times stamp themselves. Also fill in service, actual snow, pushes, salt applications and notes per site. Tick several sites to set a status in bulk.
 - **Top tiles** show the active storm's counts across all contracted sites; click one to filter.
-- Changes are saved in this browser first and pushed to Smartsheet (**Sync now** retries). Needs the updated `worker.js` (new `/dispatch`, `/dispatch-add`, `/dispatch-update`).
+- Changes are saved in this browser first and pushed to Smartsheet (it retries automatically). Needs the updated `worker.js` (new `/dispatch`, `/dispatch-add`, `/dispatch-update`).
 
 
 ## Tab layout
@@ -239,3 +239,16 @@ The Site map has a Search box: type a 26/27 vendor (pick from the list), store, 
 ### Map tab
 
 The site map is now its own **Map** tab (next to Contracted Sites). Clicking a pin or a site in the right-hand column opens that site's details in the column as the same editable form as a Bidding row (Customer/Vendor status, Lost, region, PM, DM, 26/27 vendor, contract dates + parameters, interested vendors, owner contracts, contract buttons) instead of a popup. Edits stage/sync exactly like edits on the Bidding tab. The Bidding "Site map" chip jumps to the tab.
+
+
+## Live saving — no Sync button, no staging (current)
+
+Every edit on every tab writes to the "26-27 Snow Bidding Sheet" the moment you make it, and shows up for everyone else within about 20 seconds.
+
+- **What saves live:** Customer Status, Vendor Status, Lost (single and bulk), Region, PM, DM, 26/27 vendor, contract rates, contract dates, interested vendors (name/email/phone, emailed date, quote), **price locks**, add-a-store, and estimate / overhead-map / **owner-contract** uploads (attached to the row as `Estimate n - …`, `Overhead Map - …`, `Owner Contract - …`).
+- **Save indicator** (top right, replaces the Sync button): *Saved*, *Saving…*, or *Offline · n waiting*. A red bar only appears if this browser isn't connected to the Worker or the dashboard key is rejected.
+- **Offline retry queue:** each edit shows on screen instantly (optimistic). A small copy sits in this browser's localStorage until Smartsheet confirms it, then it's removed. If you're offline, the edit stays and sends automatically (every 8 s, when the connection returns, and at next load). No button. If Smartsheet/the Worker rejects an edit outright (HTTP 400), that edit is dropped and a console warning names the field.
+- **Price locks** now live in two checkbox columns on the sheet (`FDI Locked` 10645392887684, `Vendor Locked` 4514245020258180), so a lock set by one person applies for everyone. Locks previously saved only in a browser (`fdiContractLocksV1`) are copied up to the sheet once on the next load, then removed.
+- **Live refresh:** the page re-reads the sheet every 20 s while the tab is visible, and immediately when you come back to the tab/window. Only real changes redraw the screen; a refresh never rebuilds the table under a field you're typing in (it waits until you leave the field), an open site stays open, and a refresh that overlaps one of your own saves is discarded so it can't revert your edit.
+- **Worker:** `/update` accepts every field the page edits (including `iv1/2/3Emailed`, `iv1/2/3Quote`, `fdiLocked`, `vendorLocked`; checkboxes are coerced to true/false; an unknown field returns a clear 400 naming it). `POST /add-row` creates a site (Store Number, Customer, Address, SF, Region, PM, Customer Status) and returns `{ ok, rowId }`.
+- **You must paste the new `worker.js` into Cloudflare** (the previous version doesn't know `fdiLocked` / `vendorLocked` and older copies reject `iv*Emailed`). The Smartsheet token stays in the Worker only.
