@@ -238,4 +238,4 @@ The Site map has a Search box: type a 26/27 vendor (pick from the list), store, 
 
 ### Map tab
 
-The site map is now its own **Map** tab (next to Contracted Sites). Clicking a pin or a site in the right-hand column opens that site's details in the column (status, PM, 26/27 vendor, region, contract parameters, Open in Google Maps / Open in Bidding) instead of a popup. The Bidding "Site map" chip jumps to the tab.
+The site map is now its own **Map** tab (next to Contracted Sites). Clicking a pin or a site in the right-hand column opens that site's details in the column as the same editable form as a Bidding row (Customer/Vendor status, Lost, region, PM, DM, 26/27 vendor, contract dates + parameters, interested vendors, owner contracts, contract buttons) instead of a popup. Edits stage/sync exactly like edits on the Bidding tab. The Bidding "Site map" chip jumps to the tab.

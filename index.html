@@ -271,6 +271,13 @@ button{ font-family:inherit; }
 .gd-back:hover{ background:var(--accent-soft); }
 .gd-store{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:12px; color:var(--ink-faint); }
 .gd-body{ padding:12px 14px 0; }
+.gd-addr{ font-size:12px; color:var(--ink-muted); margin:0 0 10px; }
+.gd-addr a{ color:var(--accent-ink); font-weight:600; text-decoration:none; white-space:nowrap; }
+.gd-addr a:hover{ text-decoration:underline; }
+.gd-status{ display:flex; flex-wrap:wrap; gap:8px 14px; align-items:flex-end; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--border-soft); }
+.gd-status .k{ color:var(--ink-muted); font-size:11px; text-transform:uppercase; letter-spacing:0.03em; margin-bottom:2px; }
+.gd-form .detail-grid{ gap:12px 16px; }
+.gmap-side.gd-open{ width:min(560px, 46vw); }
 .gd-name{ font-size:15px; font-weight:700; line-height:1.3; margin:0 0 6px; }
 .gd-pills{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
 .gd-pill{ font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink-muted); }
@@ -3149,34 +3156,19 @@ td.map-cell{ width:60px; text-align:center; }
     }
     return null;
   }
-  function mapSiteDetailHtml(r){
+  // Editable site panel for the Map tab's right-hand column: status controls on top, then the same editable form the
+  // Bidding row opens (region, PM, DM, 26/27 vendor, contract dates + parameters, interested vendors, owner contracts).
+  function mapSiteHeadHtml(r, idx){
+    const canEdit = r.rowId != null, cs = effectiveCustomerStatus(r), vs = effectiveVendorStatus(r), lost = effectiveLost(r);
+    const cc = statusColor(cs), vc = statusColor(vs);
+    const dis = canEdit ? '' : ' disabled title="No Smartsheet row id on file — can\'t sync"';
     const link = gmapLink(r.address || '');
-    const cs = effectiveCustomerStatus(r), vs = effectiveVendorStatus(r), v26 = effectiveVendor2627(r), reg = effectiveRegion(r);
-    const dash = '<span style="color:var(--ink-faint)">&mdash;</span>';
-    const val = x => (x === null || x === undefined || x === '') ? dash : escapeHtml(String(x));
-    const cStart = effectiveContractValue(r, 'contractStart'), cEnd = effectiveContractValue(r, 'contractEnd');
-    const fields = (typeof contractFieldsForRow === 'function') ? contractFieldsForRow(r) : [];
-    const rateRows = fields.map(([k, vk, label]) => {
-      const f = effectiveContractValue(r, k), v = effectiveContractValue(r, vk);
-      const has = x => x !== null && x !== undefined && x !== '';
-      if (!has(f) && !has(v)) return '';
-      return `<tr><td>${escapeHtml(label)}</td><td>${has(f) ? fmtMoney(f) : dash}</td><td>${has(v) ? fmtMoney(v) : dash}</td></tr>`;
-    }).join('');
-    return `<div class="gd-top"><button type="button" class="gd-back">&larr; All sites</button><span class="gd-store">${escapeHtml(r.store || '')}</span></div>
-      <div class="gd-body">
-        <div class="gd-name">${escapeHtml(r.customer || r.store || '')}</div>
-        <div class="gd-pills">${pinDotHtml(r)}<span class="gd-pill">Customer: ${escapeHtml(cs || 'no status')}</span><span class="gd-pill">Vendor: ${escapeHtml(vs || 'no vendor status yet')}</span>${effectiveLost(r) ? '<span class="gd-pill">LOST</span>' : ''}</div>
-        <dl class="gd-grid">
-          <dt>Address</dt><dd>${val(r.address)}</dd>
-          <dt>PM</dt><dd>${val(r.pm)}</dd>
-          <dt>26/27 Vendor</dt><dd>${val(v26)}</dd>
-          <dt>Region</dt><dd>${val(reg)}</dd>
-          <dt>Sq ft</dt><dd>${val(r.sf)}</dd>
-          ${r.customerEmail ? `<dt>Contact</dt><dd>${escapeHtml(r.customerEmail)}</dd>` : ''}
-          ${(cStart || cEnd) ? `<dt>Contract</dt><dd>${val(cStart)} &ndash; ${val(cEnd)}</dd>` : ''}
-        </dl>
-        ${rateRows ? `<div class="gd-sec">Contract parameters</div><table class="gd-rates"><thead><tr><th>Rate</th><th>FDI</th><th>Vendor</th></tr></thead><tbody>${rateRows}</tbody></table>` : ''}
-        <div class="gd-actions">${link ? `<a href="${link}" target="_blank" rel="noopener">Open in Google Maps &rarr;</a>` : ''}<button type="button" class="gd-bidding">Open in Bidding</button></div>
+    return `<div class="gd-name">${escapeHtml(r.customer || r.store || '')}</div>
+      <div class="gd-addr">${escapeHtml(r.address || 'no address on file')}${link ? ` &middot; <a href="${link}" target="_blank" rel="noopener">Open in Google Maps &rarr;</a>` : ''}${r.sf ? ` &middot; ${escapeHtml(String(r.sf))} sf` : ''}</div>
+      <div class="gd-status">
+        <div><div class="k">Customer status</div><select class="status-select gd-sel" data-kind="customerStatus" style="background:${cc.bg};color:${cc.fg}"${dis}><option value=""${!cs ? ' selected' : ''}>&mdash;</option>${CUSTOMER_STATUS_ORDER.map(x => `<option value="${escapeHtml(x)}"${x === cs ? ' selected' : ''}>${escapeHtml(x)}</option>`).join('')}</select></div>
+        <div><div class="k">Vendor status</div><select class="status-select gd-sel" data-kind="vendorStatus" style="background:${vc.bg};color:${vc.fg}"${dis}><option value=""${!vs ? ' selected' : ''}>&mdash;</option>${VENDOR_STATUS_ORDER.map(x => `<option value="${escapeHtml(x)}"${x === vs ? ' selected' : ''}>${escapeHtml(x)}</option>`).join('')}</select></div>
+        <label class="lost-toggle-wrap${lost ? ' is-lost' : ''}"><input type="checkbox" class="gd-lost"${lost ? ' checked' : ''}${canEdit ? '' : ' disabled'}> Lost</label>
       </div>`;
   }
   let gmapRenderToken = 0;
@@ -3206,19 +3198,42 @@ td.map-cell{ width:60px; text-align:center; }
       const listPane = side.querySelector('.gmap-listpane'), detailPane = side.querySelector('.gmap-detail');
       // Site details open in this right-hand column (instead of a popup on the map).
       const showList = (k) => {
-        detailPane.hidden = true; listPane.hidden = false;
+        detailPane.hidden = true; listPane.hidden = false; side.classList.remove('gd-open'); setTimeout(() => { try { if (map) maps.event.trigger(map, 'resize'); } catch(e){} }, 50);
         const row = k != null ? side.querySelector(`.gmap-item[data-k="${k}"]`) : null;
         if (row) row.scrollIntoView({ block: 'nearest' }); else side.scrollTop = 0;
       };
+      const markerByK = {};
+      const iconFor = (r) => pinKey(r) === 'lost'
+        ? { url: SKULL_SVG, scaledSize: new maps.Size(30, 30), anchor: new maps.Point(15, 15), labelOrigin: new maps.Point(15, 38) }
+        : { path: 'M0,0 C-2,-14 -11,-19 -11,-30 A11,11 0 1,1 11,-30 C11,-19 2,-14 0,0 Z', fillColor: pinHex(r), fillOpacity: 1, strokeColor: 'rgba(0,0,0,0.45)', strokeWeight: 1, scale: 1, labelOrigin: new maps.Point(0, -30) };
+      const resizeMap = () => { try { if (map) maps.event.trigger(map, 'resize'); } catch(e){} };
+      // After a status/Lost change: refresh this site's list row and pin color so the map matches.
+      const syncSite = (r, k) => {
+        const it = side.querySelector(`.gmap-item[data-k="${k}"]`);
+        if (it){
+          const st = it.querySelector('.gmap-item-store'); if (st) st.innerHTML = pinDotHtml(r) + escapeHtml(r.store || '');
+          const vsEl = it.querySelector('.gmap-item-vs'); if (vsEl) vsEl.innerHTML = escapeHtml(effectiveVendorStatus(r) || 'no vendor status yet') + (r.pm ? ' &middot; PM ' + escapeHtml(pmShort(r.pm)) : '');
+        }
+        const mk = markerByK[k]; if (mk && mk.setIcon) mk.setIcon(iconFor(r));
+      };
       const showDetail = (r, k) => {
-        detailPane.innerHTML = mapSiteDetailHtml(r);
-        listPane.hidden = true; detailPane.hidden = false; side.scrollTop = 0;
-        const back = detailPane.querySelector('.gd-back'); if (back) back.onclick = () => showList(k);
-        const go = detailPane.querySelector('.gd-bidding');
-        if (go) go.onclick = () => {
-          if (window.__showView) window.__showView('bidding');
-          const se = document.getElementById('search'); if (se){ se.value = r.store || ''; se.dispatchEvent(new Event('input', { bubbles: true })); se.scrollIntoView({ block: 'center' }); }
+        const idx = rows.indexOf(r); if (idx < 0) return;
+        detailPane.innerHTML = `<div class="gd-top"><button type="button" class="gd-back">&larr; All sites</button><span class="gd-store">${escapeHtml(r.store || '')}</span></div><div class="gd-body"><div class="gd-head"></div><div class="gd-form"></div></div>`;
+        listPane.hidden = true; detailPane.hidden = false; side.classList.add('gd-open'); side.scrollTop = 0;
+        const headEl = detailPane.querySelector('.gd-head'), formEl = detailPane.querySelector('.gd-form');
+        const paint = (refillForm) => {
+          headEl.innerHTML = mapSiteHeadHtml(r, idx);
+          if (refillForm) fillDetail(formEl, idx, false);
+          headEl.querySelectorAll('select.gd-sel').forEach(sel => sel.addEventListener('change', async () => {
+            await stageStatusChange(sel.dataset.kind, r, sel.value || null);
+            syncSite(r, k); paint(true);
+          }));
+          const lc = headEl.querySelector('input.gd-lost');
+          if (lc) lc.addEventListener('change', async () => { await stageStatusChange('lost', r, lc.checked); syncSite(r, k); paint(true); });
         };
+        paint(true);
+        detailPane.querySelector('.gd-back').onclick = () => showList(k);
+        setTimeout(resizeMap, 50);
       };
       const focusByK = {};
       side.addEventListener('click', ev => { const it = ev.target.closest('.gmap-item'); if (it && focusByK[it.dataset.k]) focusByK[it.dataset.k](); });
@@ -3245,15 +3260,10 @@ td.map-cell{ width:60px; text-align:center; }
         const isLost = pinKey(r) === 'lost';
         const marker = new maps.Marker({
           position: pt, map, title: `${r.store || ''} — ${r.customer || ''}${isLost ? ' (LOST)' : ''}`,
-          icon: isLost
-            ? { url: SKULL_SVG, scaledSize: new maps.Size(30, 30), anchor: new maps.Point(15, 15), labelOrigin: new maps.Point(15, 38) }
-            : {
-                path: 'M0,0 C-2,-14 -11,-19 -11,-30 A11,11 0 1,1 11,-30 C11,-19 2,-14 0,0 Z',
-                fillColor: pinHex(r), fillOpacity: 1, strokeColor: 'rgba(0,0,0,0.45)', strokeWeight: 1, scale: 1,
-                labelOrigin: new maps.Point(0, -30),
-              },
+          icon: iconFor(r),
           label: { text: String(r.store || ''), color: '#111111', fontSize: '10px', fontWeight: '700', fontFamily: '"IBM Plex Mono", ui-monospace, monospace' },
         });
+        markerByK[i] = marker;
         marker.addListener('click', () => {
           showDetail(r, i);
           side.querySelectorAll('.gmap-item.active').forEach(el => el.classList.remove('active'));
