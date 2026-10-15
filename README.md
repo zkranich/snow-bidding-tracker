@@ -235,3 +235,7 @@ The MyPlace bid request also fills Loader / snow relocation at a fixed $500/hr.
 ### Map search
 
 The Site map has a Search box: type a 26/27 vendor (pick from the list), store, customer or address to show only matching pins/sites; a vendor match shows "Vendor — N sites".
+
+### Map tab
+
+The site map is now its own **Map** tab (next to Contracted Sites). Clicking a pin or a site in the right-hand column opens that site's details in the column (status, PM, 26/27 vendor, region, contract parameters, Open in Google Maps / Open in Bidding) instead of a popup. The Bidding "Site map" chip jumps to the tab.

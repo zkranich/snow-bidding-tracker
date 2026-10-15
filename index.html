@@ -262,6 +262,32 @@ button{ font-family:inherit; }
 .gmap-item-name{ font-size:13px; font-weight:600; line-height:1.35; }
 .gmap-item-vs{ font-size:11px; color:var(--ink-muted); margin-top:3px; }
 .gmap-item-addr{ font-size:11px; color:var(--ink-faint); margin-top:2px; }
+.gmap-side{ width:340px; }
+.gmap-listpane{ display:flex; flex-direction:column; min-height:0; }
+.gmap-detail{ padding:0 0 16px; }
+.gmap-detail[hidden], .gmap-listpane[hidden]{ display:none; }
+.gd-top{ position:sticky; top:0; background:var(--surface); z-index:1; padding:10px 14px; border-bottom:1px solid var(--border-soft); display:flex; align-items:center; gap:8px; }
+.gd-back{ border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); border-radius:6px; font:inherit; font-size:12px; font-weight:600; padding:4px 9px; cursor:pointer; }
+.gd-back:hover{ background:var(--accent-soft); }
+.gd-store{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:12px; color:var(--ink-faint); }
+.gd-body{ padding:12px 14px 0; }
+.gd-name{ font-size:15px; font-weight:700; line-height:1.3; margin:0 0 6px; }
+.gd-pills{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.gd-pill{ font-size:11px; padding:2px 8px; border-radius:999px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink-muted); }
+.gd-grid{ display:grid; grid-template-columns:92px 1fr; gap:5px 10px; font-size:12.5px; margin-bottom:12px; }
+.gd-grid dt{ color:var(--ink-faint); font-size:11px; text-transform:uppercase; letter-spacing:.03em; padding-top:1px; margin:0; }
+.gd-grid dd{ margin:0; word-break:break-word; }
+.gd-sec{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-muted); margin:12px 0 5px; }
+.gd-rates{ width:100%; border-collapse:collapse; font-size:12.5px; }
+.gd-rates th{ text-align:right; font-size:10.5px; font-weight:600; color:var(--ink-faint); padding:2px 4px; }
+.gd-rates th:first-child, .gd-rates td:first-child{ text-align:left; }
+.gd-rates td{ padding:3px 4px; border-top:1px solid var(--border-soft); text-align:right; font-variant-numeric:tabular-nums; }
+.gd-actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+.gd-actions a, .gd-actions button{ font:inherit; font-size:12px; font-weight:600; padding:6px 10px; border-radius:6px; border:1px solid var(--border); background:var(--surface-alt); color:var(--accent-ink); cursor:pointer; text-decoration:none; }
+.gd-actions a:hover, .gd-actions button:hover{ background:var(--accent-soft); }
+#view-map{ max-width:1280px; margin:14px auto 28px; padding:0 20px; }
+#view-map .map-modal{ max-width:none; width:100%; max-height:none; overflow:visible; box-shadow:none; }
+#view-map .map-close-btn{ display:none; }
 @media (max-width:700px){ .gmap-shell{ flex-direction:column; height:auto; } .gmap-box{ height:55vh; min-height:300px; flex:none; } .gmap-side{ width:auto; border-left:none; border-top:1px solid var(--border-soft); max-height:260px; } }
 
 /* ---------- KPI strip ---------- */
@@ -813,6 +839,7 @@ td.map-cell{ width:60px; text-align:center; }
   <button class="main-tab active" id="tab-bidding" type="button" data-view="bidding">Bidding</button>
   <button class="main-tab" id="tab-compliance" type="button" data-view="compliance">Vendors</button>
   <button class="main-tab" id="tab-sites" type="button" data-view="sites">Contracted Sites</button>
+  <button class="main-tab" id="tab-map" type="button" data-view="map">Map</button>
   <button class="main-tab" id="tab-contracted" type="button" data-view="contracted">Service</button>
   <button class="main-tab" id="tab-billing" type="button" data-view="billing">Billing</button>
   <button class="main-tab" id="tab-projections" type="button" data-view="projections">Projections</button>
@@ -859,7 +886,7 @@ td.map-cell{ width:60px; text-align:center; }
   </div>
 </div>
 
-<div class="map-modal-overlay" id="map-modal-overlay" hidden>
+<div id="view-map" hidden>
   <div class="map-modal">
     <div class="map-modal-head">
       <div>
@@ -3122,6 +3149,36 @@ td.map-cell{ width:60px; text-align:center; }
     }
     return null;
   }
+  function mapSiteDetailHtml(r){
+    const link = gmapLink(r.address || '');
+    const cs = effectiveCustomerStatus(r), vs = effectiveVendorStatus(r), v26 = effectiveVendor2627(r), reg = effectiveRegion(r);
+    const dash = '<span style="color:var(--ink-faint)">&mdash;</span>';
+    const val = x => (x === null || x === undefined || x === '') ? dash : escapeHtml(String(x));
+    const cStart = effectiveContractValue(r, 'contractStart'), cEnd = effectiveContractValue(r, 'contractEnd');
+    const fields = (typeof contractFieldsForRow === 'function') ? contractFieldsForRow(r) : [];
+    const rateRows = fields.map(([k, vk, label]) => {
+      const f = effectiveContractValue(r, k), v = effectiveContractValue(r, vk);
+      const has = x => x !== null && x !== undefined && x !== '';
+      if (!has(f) && !has(v)) return '';
+      return `<tr><td>${escapeHtml(label)}</td><td>${has(f) ? fmtMoney(f) : dash}</td><td>${has(v) ? fmtMoney(v) : dash}</td></tr>`;
+    }).join('');
+    return `<div class="gd-top"><button type="button" class="gd-back">&larr; All sites</button><span class="gd-store">${escapeHtml(r.store || '')}</span></div>
+      <div class="gd-body">
+        <div class="gd-name">${escapeHtml(r.customer || r.store || '')}</div>
+        <div class="gd-pills">${pinDotHtml(r)}<span class="gd-pill">Customer: ${escapeHtml(cs || 'no status')}</span><span class="gd-pill">Vendor: ${escapeHtml(vs || 'no vendor status yet')}</span>${effectiveLost(r) ? '<span class="gd-pill">LOST</span>' : ''}</div>
+        <dl class="gd-grid">
+          <dt>Address</dt><dd>${val(r.address)}</dd>
+          <dt>PM</dt><dd>${val(r.pm)}</dd>
+          <dt>26/27 Vendor</dt><dd>${val(v26)}</dd>
+          <dt>Region</dt><dd>${val(reg)}</dd>
+          <dt>Sq ft</dt><dd>${val(r.sf)}</dd>
+          ${r.customerEmail ? `<dt>Contact</dt><dd>${escapeHtml(r.customerEmail)}</dd>` : ''}
+          ${(cStart || cEnd) ? `<dt>Contract</dt><dd>${val(cStart)} &ndash; ${val(cEnd)}</dd>` : ''}
+        </dl>
+        ${rateRows ? `<div class="gd-sec">Contract parameters</div><table class="gd-rates"><thead><tr><th>Rate</th><th>FDI</th><th>Vendor</th></tr></thead><tbody>${rateRows}</tbody></table>` : ''}
+        <div class="gd-actions">${link ? `<a href="${link}" target="_blank" rel="noopener">Open in Google Maps &rarr;</a>` : ''}<button type="button" class="gd-bidding">Open in Bidding</button></div>
+      </div>`;
+  }
   let gmapRenderToken = 0;
   async function renderGoogleMap(qualifying, svgWrap){
     const token = ++gmapRenderToken;
@@ -3141,11 +3198,28 @@ td.map-cell{ width:60px; text-align:center; }
       const box = document.createElement('div'); box.id = 'gmap-box'; box.className = 'gmap-box';
       const side = document.createElement('div'); side.className = 'gmap-side';
       const sorted = qualifying.slice().sort((a,b) => String(a.store||'').localeCompare(String(b.store||'')));
-      side.innerHTML = '<div class="gmap-side-hdr">Job Locations<span id="gmap-side-count"></span></div>' + sorted.map((r, k) => {
+      side.innerHTML = '<div class="gmap-listpane"><div class="gmap-side-hdr">Job Locations<span id="gmap-side-count"></span></div>' + sorted.map((r, k) => {
         const vsx = effectiveVendorStatus(r);
         return `<div class="gmap-item nopin" data-k="${k}"><div class="gmap-item-store">${pinDotHtml(r)}${escapeHtml(r.store || '')}</div><div class="gmap-item-name">${escapeHtml(r.customer || '')}</div><div class="gmap-item-vs">${escapeHtml(vsx || 'no vendor status yet')}${r.pm ? ' &middot; PM ' + escapeHtml(pmShort(r.pm)) : ''}</div><div class="gmap-item-addr">${escapeHtml(r.address || 'no address on file')}</div></div>`;
-      }).join('');
+      }).join('') + '</div><div class="gmap-detail" hidden></div>';
       shell.appendChild(box); shell.appendChild(side); svgWrap.appendChild(shell);
+      const listPane = side.querySelector('.gmap-listpane'), detailPane = side.querySelector('.gmap-detail');
+      // Site details open in this right-hand column (instead of a popup on the map).
+      const showList = (k) => {
+        detailPane.hidden = true; listPane.hidden = false;
+        const row = k != null ? side.querySelector(`.gmap-item[data-k="${k}"]`) : null;
+        if (row) row.scrollIntoView({ block: 'nearest' }); else side.scrollTop = 0;
+      };
+      const showDetail = (r, k) => {
+        detailPane.innerHTML = mapSiteDetailHtml(r);
+        listPane.hidden = true; detailPane.hidden = false; side.scrollTop = 0;
+        const back = detailPane.querySelector('.gd-back'); if (back) back.onclick = () => showList(k);
+        const go = detailPane.querySelector('.gd-bidding');
+        if (go) go.onclick = () => {
+          if (window.__showView) window.__showView('bidding');
+          const se = document.getElementById('search'); if (se){ se.value = r.store || ''; se.dispatchEvent(new Event('input', { bubbles: true })); se.scrollIntoView({ block: 'center' }); }
+        };
+      };
       const focusByK = {};
       side.addEventListener('click', ev => { const it = ev.target.closest('.gmap-item'); if (it && focusByK[it.dataset.k]) focusByK[it.dataset.k](); });
       if (zoomControls) zoomControls.hidden = true;
@@ -3181,9 +3255,7 @@ td.map-cell{ width:60px; text-align:center; }
           label: { text: String(r.store || ''), color: '#111111', fontSize: '10px', fontWeight: '700', fontFamily: '"IBM Plex Mono", ui-monospace, monospace' },
         });
         marker.addListener('click', () => {
-          const link = gmapLink(r.address || '');
-          info.setContent(`<div style="font:13px system-ui,sans-serif;color:#1c2422;max-width:240px;"><b>${escapeHtml(r.store || '')}</b> &middot; ${escapeHtml(r.customer || '')}<br>${escapeHtml(r.address || '')}<br><span style="color:#5b6663">${escapeHtml(vs || 'no vendor status yet')}</span><div style="margin-top:6px;font-size:12px;line-height:1.5;">Customer: ${escapeHtml(effectiveCustomerStatus(r) || '\u2014')}<br>PM: ${escapeHtml(r.pm || 'unassigned')}<br>26/27 Vendor: ${escapeHtml(effectiveVendor2627(r) || 'none yet')}</div>${link ? `<br><a href="${link}" target="_blank" rel="noopener">Open in Google Maps &rarr;</a>` : ''}</div>`);
-          info.open({ map, anchor: marker });
+          showDetail(r, i);
           side.querySelectorAll('.gmap-item.active').forEach(el => el.classList.remove('active'));
           const row = side.querySelector(`.gmap-item[data-k="${i}"]`);
           if (row){ row.classList.add('active'); row.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
@@ -3214,10 +3286,8 @@ td.map-cell{ width:60px; text-align:center; }
   }
 
   (function initMapModal(){
-    const overlay = document.getElementById('map-modal-overlay');
     const openBtn = document.getElementById('open-map-btn');
-    const closeBtn = document.getElementById('map-modal-close');
-    if (!overlay || !openBtn) return;
+    if (!document.getElementById('view-map')) return;
     const sc = document.getElementById('map-scope'), pf = document.getElementById('map-pm'), vf = document.getElementById('map-vstatus');
     PM_LIST.forEach(p => pf.insertAdjacentHTML('beforeend', `<option value="${p.name}">${p.name}</option>`));
     pf.insertAdjacentHTML('beforeend', '<option value="__NONE__">(unassigned)</option>');
@@ -3228,12 +3298,8 @@ td.map-cell{ width:60px; text-align:center; }
     sc.addEventListener('change', () => { mapScope = sc.value; renderMap(); });
     pf.addEventListener('change', () => { mapPm = pf.value; renderMap(); });
     vf.addEventListener('change', () => { mapVstatus = vf.value; renderMap(); });
-    function openModal(){ renderMap(); overlay.hidden = false; }
-    function closeModal(){ overlay.hidden = true; }
-    openBtn.addEventListener('click', openModal);
-    closeBtn.addEventListener('click', closeModal);
-    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !overlay.hidden) closeModal(); });
+    // The map is now its own tab (next to Contracted Sites); the old "Site map" chip on Bidding just jumps to it.
+    if (openBtn) openBtn.addEventListener('click', () => { if (window.__showView) window.__showView('map'); });
   })();
 
   function escapeHtml(s){
@@ -6024,9 +6090,9 @@ td.map-cell{ width:60px; text-align:center; }
     document.querySelectorAll('#proj-assume input').forEach(el => el.addEventListener('input', projReadInputs));
     document.getElementById('proj-reset').addEventListener('click', () => { projAssume = projClone(PROJ_DEFAULTS); projSave(); projSyncInputs(); renderProjections(); });
     function showView(v){
-      ['bidding', 'vendor', 'compliance', 'sites', 'contracted', 'billing', 'projections'].forEach(n => { const el = document.getElementById('view-' + n); if (el) el.hidden = n !== v; });
+      ['bidding', 'vendor', 'compliance', 'sites', 'map', 'contracted', 'billing', 'projections'].forEach(n => { const el = document.getElementById('view-' + n); if (el) el.hidden = n !== v; });
       const main = (v === 'bidding' || v === 'vendor') ? 'bidding' : v;
-      ['bidding', 'compliance', 'sites', 'contracted', 'billing', 'projections'].forEach(n => document.getElementById('tab-' + n).classList.toggle('active', n === main));
+      ['bidding', 'compliance', 'sites', 'map', 'contracted', 'billing', 'projections'].forEach(n => document.getElementById('tab-' + n).classList.toggle('active', n === main));
       const sub = document.getElementById('bid-subtabs'); sub.hidden = !(v === 'bidding' || v === 'vendor');
       document.getElementById('sub-bidding').classList.toggle('active', v === 'bidding');
       document.getElementById('tab-vendor').classList.toggle('active', v === 'vendor');
@@ -6038,6 +6104,7 @@ td.map-cell{ width:60px; text-align:center; }
       if (v === 'contracted'){ ctPickStorm(); ctRender(); ctLoad(true); wxRender(); if (!wxBusy && (wxState === 'idle' || Date.now() - wxAt > 30 * 60000)) wxRefresh(); }
       if (v === 'billing'){ blRender(); ctLoad(false).then(blRender).catch(() => {}); }
       if (v === 'projections') renderProjections();
+      if (v === 'map') renderMap();
       window.__showView = showView;
     }
     window.__showView = showView;
@@ -6045,6 +6112,7 @@ td.map-cell{ width:60px; text-align:center; }
     document.getElementById('sub-bidding').addEventListener('click', () => showView('bidding'));
     document.getElementById('tab-projections').addEventListener('click', () => showView('projections'));
     document.getElementById('tab-sites').addEventListener('click', () => showView('sites'));
+    document.getElementById('tab-map').addEventListener('click', () => showView('map'));
     document.getElementById('tab-contracted').addEventListener('click', () => showView('contracted'));
     document.getElementById('tab-billing').addEventListener('click', () => showView('billing'));
     document.getElementById('tab-vendor').addEventListener('click', () => showView('vendor'));
