@@ -3906,6 +3906,8 @@ td.map-cell{ width:60px; text-align:center; }
   const DEFAULT_CONTRACT_START = '2026-11-01';
   const DEFAULT_CONTRACT_END = '2027-03-31';
   const SERVICE_PROVIDER_NAME = 'Farmer Development, LLC';
+  // Vendor contact printed on every MyPlace bid request.
+  const MP_VENDOR_CONTACT = { name: 'Zak Kranich', title: 'Account Manager', phone: '(517) 719-6048', afterHours: '(517) 719-6048', email: 'snow@farmerdevelopment.com' };
 
   function parseISODate(s){
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || '').trim());
@@ -4196,13 +4198,19 @@ td.map-cell{ width:60px; text-align:center; }
         setPdfText(form, 'pm_contact', r.customer || '');
         setPdfText(form, 'season_dates', `${term.beginFull} - ${term.endFull}`);
         setPdfText(form, 'vendor_company', SERVICE_PROVIDER_NAME);
-        if (pmObj){ setPdfText(form, 'vendor_contact_phone', pmObj.name); setPdfText(form, 'vendor_email', pmObj.email); }
+        // Vendor block is always FDI's snow contact (Zak), regardless of the store's PM.
+        setPdfText(form, 'vendor_contact_phone', `${MP_VENDOR_CONTACT.name} ${MP_VENDOR_CONTACT.phone}`);
+        setPdfText(form, 'vendor_email', MP_VENDOR_CONTACT.email);
+        setPdfText(form, 'vendor_after_hours', MP_VENDOR_CONTACT.afterHours);
+        setPdfText(form, 'vendor_printed_name_title', `${MP_VENDOR_CONTACT.name} - ${MP_VENDOR_CONTACT.title}`);
+        { const d = new Date(); setPdfText(form, 'vendor_sign_date', `${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}-${d.getFullYear()}`); }
         // Snow plowing row, by depth tier (MyPlace tiers: below 2 / 2-<5 / 5-<8 / 8-<12 / 12+)
         [['a1_plow_below2','mp0_2'],['a1_plow_2to5','mp2_499'],['a1_plow_5to8','mp5_799'],['a1_plow_8to12','mp8_1199'],['a1_plow_12plus','mp12plus']]
           .forEach(([f, k]) => setPdfText(form, f, moneyForPdf(effectiveContractValue(r, k))));
         setPdfText(form, 'a2_salt', moneyForPdf(effectiveContractValue(r, 'deicer')));
         // Snow moving / relocation is always $500 per hour (loader line, billed per hour)
         setPdfText(form, 'a2_loader', moneyForPdf(MP_SNOW_MOVING_RATE));
+        setPdfText(form, 'a2_dumptruck', moneyForPdf(MP_SNOW_MOVING_RATE));
         // Option B flat seasonal (Nov-Mar): 12 pushes + 12 salts, spread over the season's months
         const seasonTotal = Number(effectiveContractValue(r, 'seasonal'));
         if (seasonTotal > 0){
@@ -4223,7 +4231,6 @@ td.map-cell{ width:60px; text-align:center; }
             const { x, y, w, h } = MYPLACE_TEMPLATE.sigBox;
             const sc = Math.min(w / sigPng.width, h / sigPng.height);
             sigPage.drawImage(sigPng, { x, y: y + (h - sigPng.height * sc) / 2, width: sigPng.width * sc, height: sigPng.height * sc });
-            setPdfText(form, 'vendor_sign_date', new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }));
           } catch(e){ console.warn('could not stamp saved signature', e); }
         }
         const outBytes = await pdfDoc.save();
