@@ -256,3 +256,7 @@ Every edit on every tab writes to the "26-27 Snow Bidding Sheet" the moment you 
 ## Vendor search + quick-add interested vendor
 - **Vendor search (Bidding tab):** a "Search vendor…" box sits right after the Vendor Status filter. Type part of a name (or pick from the list) to see every site where that vendor is the 26/27 vendor, the 25/26 vendor, or one of the three interested vendors. It combines with the other filters and clears with the KPI "clear" tile.
 - **Quick add (site detail → Vendors Interested):** type or pick a vendor in the "Quick add" box and press Enter. Vendors come from the Vendor Tracking List (email + phone fill in automatically) plus anyone already used on another site. It goes into the first empty slot of the 3 and saves to Smartsheet right away. Duplicates and a full set of 3 are refused with a message.
+
+## New service dialog (Contracted tab)
+- **Contract parameters with several stores:** the list now includes every contract parameter found on the selected stores (e.g. "Plow — 2–4"", "Salt — Deicer"), each with how many stores have it. Untick "Per each store's contract" and tick the parameters you want: each store gets the ones its own contract has, at its own rate, and stores without any ticked parameter are skipped. A single store still shows its own checklist with editable amounts.
+- **Multiple service dates:** "+ Add date" adds more dates (each defaults to the next day, with × to remove). Every date creates its own entry for every store.

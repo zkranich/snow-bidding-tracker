@@ -405,6 +405,10 @@ table.ct-table select.st-Completed{ border-color:#2f9e6e; } table.ct-table selec
   flex:1 1 220px; min-width:160px; background:var(--surface); border:1px solid var(--border);
   border-radius:8px; padding:8px 11px; font-size:13px; color:var(--ink);
 }
+.ct-dates{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+#ct-f-more-dates{ display:contents; }
+.ct-dates .ct-extra-date{ display:inline-flex; align-items:center; gap:3px; }
+.ct-dates .ct-extra-date button{ border:none; background:none; cursor:pointer; font-size:16px; color:var(--ink-faint); line-height:1; }
 .iv-quick{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:8px; }
 .iv-quick-input{ flex:1 1 240px; min-width:180px; font:inherit; font-size:12.5px; border:1px solid var(--border); border-radius:6px; padding:6px 9px; background:#fff; color:#000; }
 .iv-quick-btn{ font:inherit; font-size:12.5px; font-weight:600; border:1px solid var(--border); border-radius:6px; padding:6px 11px; background:var(--surface-alt,#eef1ef); cursor:pointer; }
@@ -1199,7 +1203,7 @@ td.map-cell{ width:60px; text-align:center; }
     <p class="as-sub">Creates the service and logs it under each site’s Service history (saved to the 26/27 Snow PBR Tracker).</p>
     <div class="as-grid">
       <div class="full"><label for="ct-f-store">Store *</label><select id="ct-f-store"></select></div>
-      <div><label for="ct-f-date">Service date</label><input id="ct-f-date" type="date"></div>
+      <div class="full"><label for="ct-f-date">Service date(s)</label><div class="ct-dates"><input id="ct-f-date" type="date"><span id="ct-f-more-dates"></span><button type="button" id="ct-f-add-date" class="ct-btn" title="Log the same service on more than one date — each date gets its own entry for every store">&#43; Add date</button></div></div>
       <div class="full"><label>Service</label><div id="ct-f-service" class="ct-checks"></div></div>
       <div class="full"><div id="ct-f-contract" class="ct-contract-hint"></div></div>
       <div id="ct-f-amts-fdi"><label for="ct-f-fdi">FDI Amount ($)</label><input id="ct-f-fdi" inputmode="decimal" placeholder="from contract"></div>
@@ -4650,7 +4654,7 @@ td.map-cell{ width:60px; text-align:center; }
       ${r.sfIssue?`<div><div class="k">SF as entered</div><div class="v">${escapeHtml(r.sf)}</div></div>`:''}
       ${contracted ? serviceHistoryHtml(r) : ''}
       ${contractParamsHtml(r)}
-      ${contracted?'':interestedVendorsHtml(r)}
+      ${interestedVendorsHtml(r)}
       ${overheadMapHtml(r)}
     <div class="contract-params"><div class="k">Owner Contracts</div><div class="v">
         <div class="owner-contract-list" data-rowid="${r.rowId ?? ''}">${ownerContractListHtml(r)}</div>
@@ -6033,10 +6037,15 @@ td.map-cell{ width:60px; text-align:center; }
       hint.innerHTML = c.items.length ? `Services in <b>${escapeHtml(sites[0].store)}</b>&rsquo;s contract &mdash; tick every one that applies to this service (amounts are what FDI bills).` : `No contract rates are entered for <b>${escapeHtml(sites[0].store)}</b> yet &mdash; tick what applies.`;
     } else {
       ctNewMode = 'multi';
-      const list = [{ label: 'Per each store’s contract', kind: 'auto', money: '' }, { label: 'Plow', kind: 'plow', money: '' }, { label: 'Salt', kind: 'salt', money: '' }].concat(CT_EXTRA_ITEMS);
+      // Contract parameters that exist on any selected store (each store bills at its own rate for a ticked parameter).
+      const union = new Map();
+      sites.forEach(r => ctContractInfo(r).items.forEach(it => { const u = union.get(it.label) || { label: it.label, kind: it.kind, money: '', multiParam: true, n: 0 }; u.n++; union.set(it.label, u); }));
+      const order = { plow: 0, salt: 1, seasonal: 2 };
+      const params = [...union.values()].sort((a, b) => (order[a.kind] - order[b.kind]) || a.label.localeCompare(b.label, undefined, { numeric: true }));
+      const list = [{ label: 'Per each store’s contract', kind: 'auto', money: '' }, { label: 'Plow', kind: 'plow', money: '' }, { label: 'Salt', kind: 'salt', money: '' }].concat(params, CT_EXTRA_ITEMS);
       box._items = list;
-      box.innerHTML = list.map((it, i) => chk('i' + i, it.label, '', i === 0)).join('');
-      hint.innerHTML = sites.length ? `${sites.length} stores selected. &ldquo;Per each store&rsquo;s contract&rdquo; gives each one the service its own contract covers; tick specific services instead to apply them to every store. Pick a single store to choose individual contract parameters.` : 'No stores to request — check the filters.';
+      box.innerHTML = list.map((it, i) => chk('i' + i, it.label, it.multiParam ? `${it.n} store${it.n === 1 ? '' : 's'}` : '', i === 0)).join('');
+      hint.innerHTML = sites.length ? `${sites.length} stores selected. &ldquo;Per each store&rsquo;s contract&rdquo; gives each one the service its own contract covers. To pick specific contract parameters (rates shown in the list exist on at least one selected store), untick it and tick the parameters &mdash; each store gets the ones its contract has, billed at its own rate; stores without any ticked parameter are skipped. Pick a single store to edit the amounts.` : 'No stores to request — check the filters.';
     }
     ctSyncAmts();
   }
@@ -6080,6 +6089,7 @@ td.map-cell{ width:60px; text-align:center; }
       + sites.map(r => `<option value="${escapeHtml(normStore(r.store))}">${escapeHtml(r.store)} — ${escapeHtml(r.address || '')}</option>`).join('');
     if (pre) st.value = pre;
     document.getElementById('ct-f-date').value = ctToday();
+    { const mo = document.getElementById('ct-f-more-dates'); if (mo) mo.innerHTML = ''; }
     ctRefreshNewService();
     const m = document.getElementById('ct-f-msg'); m.textContent = ''; m.classList.remove('bad');
     document.getElementById('ct-f-save').disabled = false;
@@ -6087,33 +6097,43 @@ td.map-cell{ width:60px; text-align:center; }
   }
   function ctSubmitNewStorm(ev){
     if (ev) ev.preventDefault();
-    const date = document.getElementById('ct-f-date').value || ctToday(); let name = 'Service ' + date;
+    const dates = [];
+    [document.getElementById('ct-f-date').value || ctToday()].concat(Array.from(document.querySelectorAll('#ct-f-more-dates input[type=date]')).map(i => i.value)).forEach(d => { if (d && !dates.includes(d)) dates.push(d); });
     const msg = document.getElementById('ct-f-msg');
     const sites = ctNewSites();
     if (!sites.length){ msg.textContent = 'No store to request — check the filters.'; msg.classList.add('bad'); return; }
     const picked = ctPickedItems();
     if (!picked.length){ msg.textContent = 'Tick at least one service above, then click Create service.'; msg.classList.add('bad'); const sv = document.getElementById('ct-f-service'); sv.scrollIntoView && sv.scrollIntoView({ block: 'center' }); return; }
-    const auto = picked.some(i => i.kind === 'auto'); const specific = picked.filter(i => i.kind !== 'auto');
-    // a second service for the same store on the same day gets its own entry: "Service <date> (2)", etc.
-    { const base = name; let n = 2; while (sites.some(r => ctReqFor(r, name))) name = `${base} (${n++})`; }
-    let made = 0;
-    sites.forEach(r => {
-      if (ctReqFor(r, name)) return;
-      let service, serviceItems;
-      if (auto && !specific.length){ service = ctContractInfo(r).service || 'Plow + Salt'; serviceItems = ''; }
-      else { service = ctServiceFromItems(specific); serviceItems = specific.map(i => i.label).join('; '); }
-      // combined cost of the ticked contract parameters, saved with the service (editable afterwards in Service history)
-      let { fdiAmount, vendorCost } = ctAmountsFor(r, picked); let workOrder = '';
-      if (ctNewMode === 'single' && sites.length === 1){
-        const num = id => { const n = shNum(document.getElementById(id).value); return n === null ? '' : String(n); };
-        fdiAmount = num('ct-f-fdi'); vendorCost = num('ct-f-ven'); workOrder = document.getElementById('ct-f-wo').value.trim();
-      }
-      ctNewRequest(r, name, date, { service, serviceItems, fdiAmount, vendorCost, workOrder }); made++;
+    // a ticked contract parameter (multi-store) resolves to each store's own matching item (and rate); stores without it are skipped
+    const resolveFor = r => { const c = ctContractInfo(r); const out = []; picked.forEach(i => { if (i.multiParam){ const m = c.items.find(x => x.label === i.label); if (m) out.push(m); } else out.push(i); }); return out; };
+    let made = 0, firstName = '', name = '';
+    // one entry per store per date; a second service for the same store on the same day gets "Service <date> (2)", etc.
+    dates.forEach(date => {
+      name = 'Service ' + date;
+      { const base = name; let n = 2; while (sites.some(r => ctReqFor(r, name))) name = `${base} (${n++})`; }
+      let madeHere = 0;
+      sites.forEach(r => {
+        if (ctReqFor(r, name)) return;
+        const mine = resolveFor(r); if (!mine.length) return;
+        const auto = mine.some(i => i.kind === 'auto'); const specific = mine.filter(i => i.kind !== 'auto');
+        let service, serviceItems;
+        if (auto && !specific.length){ service = ctContractInfo(r).service || 'Plow + Salt'; serviceItems = ''; }
+        else { service = ctServiceFromItems(specific); serviceItems = specific.map(i => i.label).join('; '); }
+        // combined cost of the ticked contract parameters, saved with the service (editable afterwards in Service history)
+        let { fdiAmount, vendorCost } = ctAmountsFor(r, mine); let workOrder = '';
+        if (ctNewMode === 'single' && sites.length === 1){
+          const num = id => { const n = shNum(document.getElementById(id).value); return n === null ? '' : String(n); };
+          fdiAmount = num('ct-f-fdi'); vendorCost = num('ct-f-ven'); workOrder = document.getElementById('ct-f-wo').value.trim();
+        }
+        ctNewRequest(r, name, date, { service, serviceItems, fdiAmount, vendorCost, workOrder }); made++; madeHere++;
+      });
+      if (madeHere && !firstName) firstName = name;
     });
-    ctStorm = name; ctSel.clear(); ctStatusFilter = '';
+    if (!made){ msg.textContent = 'None of the selected stores have those contract parameters — tick a different parameter, or Plow / Salt / Per each store’s contract.'; msg.classList.add('bad'); return; }
+    name = firstName; ctStorm = name; ctSel.clear(); ctStatusFilter = '';
     document.getElementById('ct-back').hidden = true;
     ctRender(); ctFlush().then(ctRender);
-    window.__lastStorm = { name, made, skipped: sites.length - made };
+    window.__lastStorm = { name, made, dates: dates.length, skipped: sites.length * dates.length - made };
   }
 
   // ----- Email vendors (one email per vendor listing that vendor's sites for the active storm)
@@ -6501,6 +6521,16 @@ td.map-cell{ width:60px; text-align:center; }
     document.getElementById('ct-email-vendors').addEventListener('click', ctOpenVendors);
     document.getElementById('ct-form').addEventListener('submit', ctSubmitNewStorm);
     document.getElementById('ct-f-store').addEventListener('change', ctRefreshNewService);
+    document.getElementById('ct-f-add-date').addEventListener('click', e => {
+      e.preventDefault();
+      const wrap = document.createElement('span'); wrap.className = 'ct-extra-date';
+      const inp = document.createElement('input'); inp.type = 'date';
+      const main = document.getElementById('ct-f-date').value || ctToday(); const all = [main].concat(Array.from(document.querySelectorAll('#ct-f-more-dates input')).map(i => i.value)).filter(Boolean).sort();
+      const d = new Date((all[all.length - 1] || main) + 'T12:00:00'); d.setDate(d.getDate() + 1);
+      inp.value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      const x = document.createElement('button'); x.type = 'button'; x.title = 'Remove this date'; x.innerHTML = '&times;'; x.addEventListener('click', () => wrap.remove());
+      wrap.append(inp, x); document.getElementById('ct-f-more-dates').appendChild(wrap); inp.focus();
+    });
     document.getElementById('ct-f-service').addEventListener('change', ctSyncAmts);
     document.getElementById('ct-f-fdi').addEventListener('input', () => { ctAmtTouched.fdi = true; });
     document.getElementById('ct-f-ven').addEventListener('input', () => { ctAmtTouched.ven = true; });
