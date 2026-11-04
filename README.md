@@ -287,3 +287,6 @@ The Create Vendor Subcontract button (and its contract-type dropdown) shows when
 - **Delete selected requests** (appears when sites are checked) removes the checked sites' requests for this service.
 - **Delete service…** (top bar) removes every request in the selected service.
 All ask first and say how many will go; ones already in billing are called out; ones on an owner invoice are left alone (Undo them in Billing first). Needs the updated worker.js.
+
+## Service tab: requests only
+The Service tab now lists only sites that have a service request for the selected service. Use **+ New service** to create requests for any site (or all sites). Tick **Show sites without a request** to bring back the full contracted-site roster (remembered per browser).

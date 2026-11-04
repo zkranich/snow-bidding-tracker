@@ -1201,6 +1201,7 @@ td.map-cell{ width:60px; text-align:center; }
       <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">PM <select id="ct-pm"><option value="">All PMs</option></select></label>
       <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Region <select id="ct-region"><option value="">All regions</option></select></label>
       <input type="search" id="ct-search" placeholder="Search store, address, customer, vendor, PM">
+      <label style="font-size:12px;color:var(--ink-muted);display:inline-flex;align-items:center;gap:5px;cursor:pointer" title="Off = the table lists only sites that have a request for the selected service"><input type="checkbox" id="ct-show-all"> Show sites without a request</label>
       <button class="ct-btn primary" id="ct-new-storm" type="button">&#43; New service</button>
       <button class="ct-btn" id="ct-email-vendors" type="button">&#9993; Email vendors</button>
       <button class="ct-btn" id="ct-del-storm" type="button" style="color:#c0392b" title="Delete every request in the selected service">&#128465; Delete service&hellip;</button>
@@ -6192,11 +6193,13 @@ td.map-cell{ width:60px; text-align:center; }
       return; }
     b.hidden = true;
   }
+  let ctShowAll = false; try { ctShowAll = localStorage.getItem('fdiCtShowAllV1') === '1'; } catch(e){}
   function ctRender(){
     const stormSel = document.getElementById('ct-storm');
     const storms = ctStorms();
     stormSel.innerHTML = storms.length ? storms.map(s => `<option value="${escapeHtml(s.name)}"${s.name === ctStorm ? ' selected' : ''}>${escapeHtml(s.name)}${s.date ? ' (' + escapeHtml(s.date) + ')' : ''}</option>`).join('') : '<option value="">— no storms yet —</option>';
     document.getElementById('ct-scope').value = ctScope;
+    { const sa = document.getElementById('ct-show-all'); if (sa) sa.checked = ctShowAll; }
     const sites = ctVisibleSites();
     const allEligible = rows.filter(ctEligible);
     // KPIs for the active storm across ALL eligible sites (ignores filters/search)
@@ -6204,13 +6207,14 @@ td.map-cell{ width:60px; text-align:center; }
     allEligible.forEach(r => { const q = ctStorm ? ctReqFor(r, ctStorm) : null; if (q && counts[q.status] !== undefined) counts[q.status]++; else if (!q) none++; });
     const kp = [['', allEligible.length, 'Contracted sites']].concat(CT_STATUSES.filter(s => s !== 'Cancelled').map(s => [s, counts[s], s])).concat([['__NONE__', none, 'No request']]);
     document.getElementById('ct-kpis').innerHTML = kp.map(([k, n, l]) => `<div class="ct-kpi s-${escapeHtml(k.replace(/\s+/g, ''))}${ctStatusFilter === k && k ? ' on' : ''}" data-f="${escapeHtml(k)}"><div class="n">${n}</div><div class="l">${escapeHtml(l)}</div></div>`).join('');
-    const shown = sites.filter(r => { if (!ctStatusFilter) return true; const q = ctStorm ? ctReqFor(r, ctStorm) : null; return ctStatusFilter === '__NONE__' ? !q : (q && q.status === ctStatusFilter); });
-    document.getElementById('ct-count').textContent = `${shown.length} of ${allEligible.length} contracted sites`;
+    const reqOnly = !ctShowAll && ctStatusFilter !== '__NONE__';
+    const shown = sites.filter(r => { const q = ctStorm ? ctReqFor(r, ctStorm) : null; if (reqOnly && !q) return false; if (!ctStatusFilter) return true; return ctStatusFilter === '__NONE__' ? !q : (q && q.status === ctStatusFilter); });
+    document.getElementById('ct-count').textContent = reqOnly ? `${shown.length} service request${shown.length === 1 ? '' : 's'} · ${allEligible.length} contracted sites` : `${shown.length} of ${allEligible.length} contracted sites`;
     const tb = document.getElementById('ct-tbody');
     if (!allEligible.length){
       tb.innerHTML = `<tr><td colspan="13" class="ct-empty">No sites have reached this stage yet. Sites show up here once Customer Status is <b>Contract Accepted</b> and the vendor contract is signed. (Change the stage under &ldquo;Sites&rdquo; above.)</td></tr>`;
     } else if (!shown.length){
-      tb.innerHTML = `<tr><td colspan="13" class="ct-empty">No sites match these filters.</td></tr>`;
+      tb.innerHTML = `<tr><td colspan="13" class="ct-empty">${reqOnly ? (ctStorm ? 'No service requests match these filters.' : 'No services yet.') + ' Click <b>+ New service</b> to create one, or tick <b>Show sites without a request</b>.' : 'No sites match these filters.'}</td></tr>`;
     } else {
       tb.innerHTML = shown.map(r => {
         const q = ctStorm ? ctReqFor(r, ctStorm) : null;
@@ -6354,7 +6358,7 @@ td.map-cell{ width:60px; text-align:center; }
     sites.sort((a, b) => String(a.store).localeCompare(String(b.store), undefined, { numeric: true }));
     const checked = pre ? [] : rows.filter(r => ctEligible(r) && ctSel.has(normStore(r.store)));
     const st = document.getElementById('ct-f-store');
-    st.innerHTML = `<option value="__shown"${checked.length ? '' : ' selected'}>All ${sites.length} site${sites.length === 1 ? '' : 's'} currently shown</option>`
+    st.innerHTML = `<option value="__shown"${checked.length ? '' : ' selected'}>All ${sites.length} contracted site${sites.length === 1 ? '' : 's'}${(document.getElementById('ct-pm').value || document.getElementById('ct-region').value || document.getElementById('ct-search').value.trim()) ? ' (matching the filters)' : ''}</option>`
       + (checked.length ? `<option value="__checked" selected>Only the ${checked.length} checked site${checked.length === 1 ? '' : 's'}</option>` : '')
       + sites.map(r => `<option value="${escapeHtml(normStore(r.store))}">${escapeHtml(r.store)} — ${escapeHtml(r.address || '')}</option>`).join('');
     if (pre) st.value = pre;
@@ -6795,6 +6799,7 @@ td.map-cell{ width:60px; text-align:center; }
     document.getElementById('ct-storm').addEventListener('change', e => { ctStorm = e.target.value; ctStatusFilter = ''; ctRender(); });
     ['ct-pm', 'ct-region'].forEach(id => document.getElementById(id).addEventListener('change', ctRender));
     document.getElementById('ct-search').addEventListener('input', ctRender);
+    document.getElementById('ct-show-all').addEventListener('change', e => { ctShowAll = e.target.checked; try { localStorage.setItem('fdiCtShowAllV1', ctShowAll ? '1' : '0'); } catch(x){} ctRender(); });
     document.getElementById('ct-kpis').addEventListener('click', e => { const k = e.target.closest('.ct-kpi'); if (!k) return; const f = k.dataset.f; ctStatusFilter = (ctStatusFilter === f) ? '' : f; ctRender(); });
     document.getElementById('ct-new-storm').addEventListener('click', () => ctOpenNewStorm());
     document.addEventListener('change', e => {
