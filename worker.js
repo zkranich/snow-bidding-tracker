@@ -66,6 +66,8 @@ const DISPATCH_COLS = {
   projectNo: 8707827574804356,    // Project Number (S26000...)
   pushedAt: 3907393630801796,     // Pushed to Billing (date)
   vendorInvoice: 5844323083784068, // Vendor Invoice Number
+  ownerInvoice: 3357743823753092,  // Owner Invoice Number (FDI's invoice to the owner)
+  ownerInvoiceDate: 7861343451123588, // Owner Invoice Date
   forecast: 436838864818052,
   actual: 4940438492188548,
   pushes: 2688638678503300,
@@ -551,6 +553,20 @@ export default {
           body: JSON.stringify([{ id: rowId, cells: [{ columnId, value: value === null || value === undefined ? '' : value }] }]),
         });
         const data = await resp.json();
+        return json(data, resp.ok && data.resultCode === 0 ? 200 : 502, headers);
+      }
+
+      // POST /dispatch-delete  { rowId } — remove one service row from the PBR Tracker
+      if (url.pathname === '/dispatch-delete' && request.method === 'POST') {
+        let body;
+        try { body = await request.json(); } catch (e) { return json({ error: 'body must be JSON' }, 400, headers); }
+        const rowId = body && body.rowId;
+        if (!rowId || !/^\d+$/.test(String(rowId))) return json({ error: 'rowId is required' }, 400, headers);
+        const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${DISPATCH_SHEET_ID}/rows?ids=${encodeURIComponent(String(rowId))}&ignoreRowsNotFound=true`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${env.SMARTSHEET_TOKEN}` },
+        });
+        const data = await resp.json().catch(() => ({}));
         return json(data, resp.ok && data.resultCode === 0 ? 200 : 502, headers);
       }
 

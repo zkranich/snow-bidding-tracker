@@ -127,6 +127,7 @@ button{ font-family:inherit; }
 }
 .contract-btn:hover{ background:#1e3785; color:#d8ecff; }
 .contract-btn:disabled{ opacity:.6; cursor:wait; }
+.vsub-wrap{ display:contents; } .vsub-wrap[hidden], .vsub-hint[hidden]{ display:none !important; }
 .contract-kind-select{ font:inherit; font-size:12px; padding:5px 6px; border:1px solid #c5cfe3; border-radius:6px; background:#fff; color:#1c2422; }
 .contract-kind-select.is-placeholder{ color:#8b948f; }
 .contract-kind-select option{ color:#1c2422; }
@@ -343,6 +344,45 @@ button{ font-family:inherit; }
 .dq-item .detail{ font-size:11.5px; color:var(--ink-faint); margin-top:5px; }
 
 
+/* Contracted Sites: revenue / profit / margin */
+td.sc-cust select.dm-select, td.sc-reg select.region-select{ max-width:170px; }
+table.sc-table th.sc-num, table.sc-table td.sc-num{ text-align:right; white-space:nowrap; }
+table.sc-table .sc-neg{ color:#c0392b; font-weight:600; }
+table.sc-table tr.sc-total td{ font-weight:700; border-top:2px solid var(--border); background:var(--surface-alt); cursor:default; }
+table.sc-table tr.sc-total:hover{ background:var(--surface-alt); }
+table.sc-table .sc-flag{ color:var(--ink-muted); cursor:help; }
+/* Service history: per-row Push to billing */
+button.sh-push-one{ background:#d7f3e1 !important; color:#14532d !important; border:1px solid #8fd1a8 !important; font-weight:600; }
+button.sh-push-one:hover:not(:disabled){ background:#c3ecd2 !important; }
+button.sh-push-one:disabled{ opacity:.55; cursor:not-allowed; }
+/* ---------- Owner invoice ---------- */
+.inv-card{ border:1px solid var(--border); border-radius:9px; padding:10px 12px; margin-bottom:10px; background:var(--surface-alt); }
+.inv-card .inv-h{ font-size:13px; font-weight:700; margin-bottom:8px; } .inv-card .inv-h span{ font-weight:400; color:var(--ink-muted); }
+.inv-card textarea{ width:100%; box-sizing:border-box; background:var(--surface); color:var(--ink); border:1px solid var(--border); border-radius:7px; padding:7px 9px; font-size:13px; font-family:inherit; resize:vertical; }
+.inv-card input{ background:var(--surface) !important; }
+.bl-inv-print{ padding:3px 9px; font-size:12px; }
+#inv-view{ position:fixed; inset:0; z-index:80; background:#5b6470; overflow:auto; padding:0 0 40px; }
+#inv-view[hidden]{ display:none; }
+.inv-toolbar{ position:sticky; top:0; z-index:2; display:flex; gap:10px; align-items:center; padding:10px 16px; background:#1e2530; color:#fff; font-size:13px; }
+.inv-toolbar .sp{ flex:1; } .inv-toolbar button{ border:0; border-radius:7px; padding:8px 14px; font-size:13px; cursor:pointer; font-family:inherit; background:#3a4556; color:#fff; } .inv-toolbar button.primary{ background:#2f9e92; }
+.inv-page{ background:#fff; color:#111; width:816px; max-width:calc(100% - 24px); box-sizing:border-box; min-height:1000px; margin:18px auto 0; padding:44px 50px 40px; box-shadow:0 4px 20px rgba(0,0,0,.4); font-family:Helvetica,Arial,sans-serif; font-size:13px; position:relative; }
+.inv-top{ display:flex; justify-content:space-between; align-items:flex-start; } .inv-co{ font-size:11px; line-height:1.55; } .inv-co b{ font-size:14px; display:block; margin-bottom:2px; } .inv-logo{ width:180px; height:auto; }
+.inv-title{ color:#4a90b8; font-size:21px; margin:26px 0 14px; letter-spacing:.02em; }
+.inv-lbl{ color:#8a8f96; font-size:11px; text-transform:uppercase; margin-bottom:3px; }
+.inv-row{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:22px; } .inv-row .v{ white-space:pre-line; line-height:1.45; }
+.inv-meta{ display:grid; grid-template-columns:auto 1fr; gap:4px 18px; align-content:start; } .inv-meta .k{ color:#8a8f96; font-size:11px; text-transform:uppercase; } .inv-meta .val{ font-size:13px; }
+.inv-table{ width:100%; min-width:0; border-collapse:collapse; margin-top:6px; } .inv-table th{ background:#dbe8f1; color:#4a90b8; font-weight:400; font-size:11px; text-transform:uppercase; padding:7px 8px; } .inv-table th.l{ text-align:left; } .inv-table th.r{ text-align:right; }
+.inv-table td{ padding:9px 8px; border-bottom:1px dotted #bbb; vertical-align:top; } .inv-table td.r{ text-align:right; white-space:nowrap; } .inv-table .sub{ color:#666; font-size:11.5px; margin-top:2px; }
+.inv-bal{ display:flex; justify-content:flex-end; gap:40px; margin-top:22px; font-size:13px; } .inv-bal .k{ color:#8a8f96; text-transform:uppercase; font-size:11px; align-self:center; } .inv-bal .t{ font-weight:700; font-size:16px; }
+@media print{
+  body.inv-printing > *:not(#inv-view){ display:none !important; }
+  body.inv-printing{ background:#fff !important; }
+  body.inv-printing #inv-view{ position:static; display:block; background:#fff; overflow:visible; padding:0; }
+  .inv-toolbar{ display:none !important; }
+  .inv-page{ box-shadow:none; margin:0; width:auto; max-width:none; min-height:0; padding:0; page-break-after:always; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .inv-page:last-child{ page-break-after:auto; }
+  @page{ margin:0.5in; }
+}
 /* ---------- Add store dialog ---------- */
 .as-back{ position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:60; display:flex; align-items:flex-start; justify-content:center; padding:6vh 16px; overflow:auto; }
 .as-back[hidden]{ display:none; }
@@ -981,9 +1021,7 @@ td.map-cell{ width:60px; text-align:center; }
   </select>
   <input type="search" id="search-vendor" class="vendor-search" list="vendor-search-list" placeholder="Search vendor&hellip;" title="Find every site a vendor is on — matches the 26/27 vendor, the 25/26 vendor, or any vendor interested in the site" autocomplete="off">
   <datalist id="vendor-search-list"></datalist>
-  <button class="chip-toggle" id="toggle-flagged">&#9888; Flagged only</button>
   <button class="chip-toggle" id="toggle-novendor">No vendor on file</button>
-  <button class="chip-toggle" id="toggle-followup" title="Sites where a vendor was emailed 3+ days ago and hasn't sent an estimate or quote">&#9200; Vendor follow-up <span id="followup-count"></span></button>
   <button class="chip-toggle" id="toggle-lost">Lost only</button>
   <button class="chip-toggle" id="add-store-btn" title="Add a new site to the Bidding sheet">&#43; Add store</button>
   <button class="chip-toggle" id="open-map-btn">&#128506; Site map</button>
@@ -1109,7 +1147,7 @@ td.map-cell{ width:60px; text-align:center; }
     </div>
     <div class="table-wrap" style="margin-top:10px">
       <table class="sc-table">
-        <thead><tr><th>Store #</th><th>Address</th><th>Customer</th><th>Region</th><th>PM</th><th>26/27 Vendor</th><th>Contract term</th><th>Vendor compliance</th><th>Services completed</th></tr></thead>
+        <thead><tr><th>Store #</th><th>Address</th><th>Customer</th><th>Region</th><th>PM</th><th>26/27 Vendor</th><th>Contract term</th><th>Vendor compliance</th><th>Services completed</th><th class="sc-num">Revenue</th><th class="sc-num">Profit</th><th class="sc-num">Margin</th></tr></thead>
         <tbody id="sc-tbody"></tbody>
       </table>
     </div>
@@ -1123,7 +1161,8 @@ td.map-cell{ width:60px; text-align:center; }
       <button type="button" class="sub-tab active" id="bl-tab-owner">Owner billing</button>
       <button type="button" class="sub-tab" id="bl-tab-sub">Sub billing</button>
       <span id="bl-note" style="font-size:12px;color:var(--ink-muted)"></span>
-      <button type="button" class="ct-btn" id="bl-csv" style="margin-left:auto">Download CSV</button>
+      <button type="button" class="ct-btn primary" id="bl-invoice" style="margin-left:auto" disabled>Create invoice</button>
+      <button type="button" class="ct-btn" id="bl-csv">Download CSV</button>
     </div>
     <div id="bl-body" style="margin-top:12px"></div>
   </div>
@@ -1164,6 +1203,7 @@ td.map-cell{ width:60px; text-align:center; }
       <input type="search" id="ct-search" placeholder="Search store, address, customer, vendor, PM">
       <button class="ct-btn primary" id="ct-new-storm" type="button">&#43; New service</button>
       <button class="ct-btn" id="ct-email-vendors" type="button">&#9993; Email vendors</button>
+      <button class="ct-btn" id="ct-del-storm" type="button" style="color:#c0392b" title="Delete every request in the selected service">&#128465; Delete service&hellip;</button>
       <span class="vc-count" id="ct-count"></span>
     </div>
     <div class="ct-banner" id="ct-banner" hidden></div>
@@ -1171,13 +1211,14 @@ td.map-cell{ width:60px; text-align:center; }
       <span><b id="ct-bulk-n">0</b> selected</span>
       <select id="ct-bulk-status"><option value="">Set status to&hellip;</option></select>
       <button class="ct-btn" id="ct-bulk-request" type="button">Create requests for this service</button>
+      <button class="ct-btn" id="ct-bulk-delete" type="button" style="color:#c0392b" title="Delete the checked sites' requests for this service">Delete selected requests</button>
       <button class="ct-btn" id="ct-bulk-clear" type="button">Clear</button>
     </div>
     <div class="table-wrap" style="margin-top:10px">
       <table class="ct-table">
         <thead><tr>
           <th class="select-col"><input type="checkbox" id="ct-select-all" title="Select all shown"></th>
-          <th>Store #</th><th>Address</th><th>PM</th><th>Vendor</th><th>Status</th><th>Service</th><th>Snow (in)</th><th>Pushes</th><th>Salt</th><th>Notes</th><th>Season</th>
+          <th>Store #</th><th>Address</th><th>PM</th><th>Vendor</th><th>Status</th><th>Service</th><th>Snow (in)</th><th>Pushes</th><th>Salt</th><th>Notes</th><th>Season</th><th></th>
         </tr></thead>
         <tbody id="ct-tbody"></tbody>
       </table>
@@ -1197,6 +1238,30 @@ td.map-cell{ width:60px; text-align:center; }
     <div class="as-actions"><button type="submit" class="primary" id="dm-f-save">Add &amp; assign</button><button type="button" id="dm-f-cancel">Cancel</button><span class="as-msg" id="dm-f-msg"></span></div>
   </form>
 </div>
+<div class="as-back" id="inv-back" hidden>
+  <div class="as-card wide" style="max-width:640px">
+    <h3>Create invoice</h3>
+    <p class="as-sub" id="inv-sub"></p>
+    <div class="as-grid" style="margin-bottom:10px"><div><label for="inv-date">Invoice date</label><input id="inv-date" type="date"></div><div><label>Terms</label><input value="Net 30" disabled></div></div>
+    <div id="inv-list"></div>
+    <div class="as-actions"><button type="button" class="primary" id="inv-make">Create invoice</button><button type="button" id="inv-cancel">Cancel</button><span class="as-msg" id="inv-msg"></span></div>
+  </div>
+</div>
+<div id="inv-view" hidden></div>
+<div class="as-back" id="txt-back" hidden style="z-index:90">
+  <form class="as-card" id="txt-form" style="max-width:420px" autocomplete="off">
+    <h3 id="txt-title"></h3>
+    <div class="as-grid"><div class="full"><label for="txt-input" id="txt-label"></label><input id="txt-input"></div></div>
+    <div class="as-actions"><button type="submit" class="primary" id="txt-ok">OK</button><button type="button" id="txt-cancel">Cancel</button><span class="as-msg" id="txt-msg"></span></div>
+  </form>
+</div>
+<div class="as-back" id="ask-back" hidden style="z-index:90">
+  <div class="as-card" style="max-width:440px">
+    <h3 id="ask-title"></h3>
+    <div id="ask-body" style="font-size:13px;line-height:1.5;margin:8px 0 4px"></div>
+    <div class="as-actions"><button type="button" id="ask-ok" style="background:#c0392b;border-color:#c0392b;color:#fff">Delete</button><button type="button" id="ask-cancel">Cancel</button></div>
+  </div>
+</div>
 <div class="as-back" id="ct-back" hidden>
   <form class="as-card" id="ct-form" autocomplete="off">
     <h3>New service</h3>
@@ -1209,6 +1274,7 @@ td.map-cell{ width:60px; text-align:center; }
       <div id="ct-f-amts-fdi"><label for="ct-f-fdi">FDI Amount ($)</label><input id="ct-f-fdi" inputmode="decimal" placeholder="from contract"></div>
       <div id="ct-f-amts-ven"><label for="ct-f-ven">Vendor Cost ($)</label><input id="ct-f-ven" inputmode="decimal" placeholder="enter if known"></div>
       <div id="ct-f-amts-wo"><label for="ct-f-wo">Work Order #</label><input id="ct-f-wo" placeholder="optional"></div>
+      <div id="ct-f-amts-vi"><label for="ct-f-vi">Vendor Invoice #</label><input id="ct-f-vi" placeholder="optional — if the vendor already invoiced"></div>
     </div>
     <div class="as-actions"><button type="submit" class="primary" id="ct-f-save">Create service</button><button type="button" id="ct-f-cancel">Cancel</button><span class="as-msg" id="ct-f-msg"></span></div>
   </form>
@@ -2057,12 +2123,23 @@ td.map-cell{ width:60px; text-align:center; }
     return `<input type="date" class="cp-date-input" data-rowid="${r.rowId ?? ''}" data-field="${field}" value="${val ? escapeHtml(val) : ''}" ${canEdit?'':'disabled title="No Smartsheet row id on file — can\'t save"'}>`;
   }
 
+  // show the Create Vendor Subcontract button only while the site has a 26/27 vendor
+  // ...and the vendor's status isn't "Compliance Received" (that vendor is already done)
+  function vsubState(r){
+    if (!effectiveVendor2627(r).trim()) return { ok: false, msg: 'Pick a 26/27 vendor below to create a vendor subcontract.' };
+    if (effectiveVendorStatus(r) === 'Compliance Received') return { ok: false, msg: 'Vendor compliance already received — no vendor subcontract needed.' };
+    return { ok: true, msg: '' };
+  }
+  function updateVsub(r){
+    const idx = rows.indexOf(r), st = vsubState(r);
+    document.querySelectorAll(`.detail-row[data-idx="${idx}"]`).forEach(d => { d.querySelectorAll('.vsub-wrap').forEach(w => { w.hidden = !st.ok; }); d.querySelectorAll('.vsub-hint').forEach(w => { w.hidden = st.ok; w.textContent = st.msg; }); });
+  }
   async function stageVendorChange(r, inputEl, rawValue){
     if (r.rowId == null) return;
     const trimmed = String(rawValue).trim();
     if (trimmed === effectiveVendor2627(r)) return;
     r.vendor2627 = trimmed;
-    updateVendorLine(r);
+    updateVendorLine(r); updateVsub(r);
     await syncFieldToSmartsheet(r.rowId, 'vendor2627', trimmed);
   }
 
@@ -2081,6 +2158,46 @@ td.map-cell{ width:60px; text-align:center; }
     cell.innerHTML = v ? escapeHtml(v) : '<span style="color:var(--ink-faint)">&mdash;</span>';
   }
 
+  // small "type a value" dialog (used for adding a region)
+  function fdiAskText(o){
+    return new Promise(res => {
+      const back = document.getElementById('txt-back'), form = document.getElementById('txt-form'), inp = document.getElementById('txt-input'), msg = document.getElementById('txt-msg');
+      document.getElementById('txt-title').textContent = o.title || ''; document.getElementById('txt-label').textContent = o.label || ''; document.getElementById('txt-ok').textContent = o.okLabel || 'OK';
+      inp.value = o.value || ''; inp.placeholder = o.placeholder || ''; msg.textContent = ''; msg.classList.remove('bad');
+      const done = v => { back.hidden = true; form.onsubmit = null; document.getElementById('txt-cancel').onclick = null; res(v); };
+      form.onsubmit = ev => { ev.preventDefault(); const v = inp.value.trim().replace(/\s+/g, ' '); const err = o.validate ? o.validate(v) : (v ? '' : 'Type a value first.'); if (err){ msg.textContent = err; msg.classList.add('bad'); return; } done(v); };
+      document.getElementById('txt-cancel').onclick = () => done(null);
+      back.hidden = false; setTimeout(() => inp.focus(), 30);
+    });
+  }
+  // ----- regions: the list grows from the sheet itself plus anything added here
+  const REGION_KEY = 'fdiExtraRegionsV1';
+  const regionsExtraLoad = () => { try { return JSON.parse(localStorage.getItem(REGION_KEY) || '[]') || []; } catch(e){ return []; } };
+  function regionsRebuildFilters(){
+    ['filter-region', 'ct-region', 'sc-region'].forEach(id => {
+      const sel = document.getElementById(id); if (!sel) return;
+      const have = new Set(Array.from(sel.options).map(o => o.value)); const none = Array.from(sel.options).find(o => o.value === '__NONE__');
+      regions.forEach(rg => { if (have.has(rg)) return; const o = document.createElement('option'); o.value = rg; o.textContent = id === 'filter-region' ? `${rg} (${rows.filter(r => effectiveRegion(r) === rg).length})` : rg; if (none) sel.insertBefore(o, none); else sel.appendChild(o); });
+    });
+  }
+  function regionsAddName(name){
+    name = String(name || '').trim(); if (!name) return false;
+    if (regions.some(x => x.toLowerCase() === name.toLowerCase())) return false;
+    regions.push(name); regions.sort(); return true;
+  }
+  function regionsSync(){
+    let ch = false; rows.forEach(r => { if (regionsAddName(effectiveRegion(r))) ch = true; }); regionsExtraLoad().forEach(n => { if (regionsAddName(n)) ch = true; });
+    if (ch) regionsRebuildFilters();
+  }
+  async function regionChosen(r, sel){
+    if (sel.value !== '__newregion__') return stageRegionChange(r, sel, sel.value);
+    const name = await fdiAskText({ title: 'Add a region', label: 'Region name', placeholder: 'e.g. Cincinnati', okLabel: 'Add and use here',
+      validate: v => !v ? 'Type the region name.' : (v.length > 60 ? 'That name is too long.' : '') });
+    if (!name) return;
+    const exist = regions.find(x => x.toLowerCase() === name.toLowerCase()); const final = exist || name;
+    if (!exist){ regionsAddName(final); try { const l = regionsExtraLoad(); l.push(final); localStorage.setItem(REGION_KEY, JSON.stringify(l)); } catch(e){} regionsRebuildFilters(); }
+    return stageRegionChange(r, sel, final);
+  }
   async function stageRegionChange(r, selectEl, rawValue){
     if (r.rowId == null) return;
     const trimmed = String(rawValue).trim();
@@ -2206,7 +2323,7 @@ td.map-cell{ width:60px; text-align:center; }
     const ov = kind === 'lost' ? !!r.lost : (r[kind] || null);
     if (nv === ov) return;
     r[kind] = nv;
-    renderKeepOpen();
+    renderKeepOpen(); if (kind === 'vendorStatus') { try { updateVsub(r); } catch(e){} }
     await syncFieldToSmartsheet(r.rowId, kind, nv);
   }
 
@@ -3748,7 +3865,7 @@ td.map-cell{ width:60px; text-align:center; }
     const val = effectiveRegion(r);
     const disabledAttr = canEdit ? '' : 'disabled title="No Smartsheet row id on file — can\'t sync"';
     const options = [`<option value="">&mdash; no region &mdash;</option>`]
-      .concat(regions.map(rg => `<option value="${escapeHtml(rg)}"${rg===val?' selected':''}>${escapeHtml(rg)}</option>`));
+      .concat(regions.map(rg => `<option value="${escapeHtml(rg)}"${rg===val?' selected':''}>${escapeHtml(rg)}</option>`), ['<option value="__newregion__">&#43; Add region&hellip;</option>']);
     // If the row's current region isn't in the known list (an off-picklist
     // value, flagged elsewhere as "region renamed"), keep it selectable so
     // picking it doesn't look like data loss until the user changes it.
@@ -4634,14 +4751,17 @@ td.map-cell{ width:60px; text-align:center; }
     const r = rows[idx];
     let contracted = false; try { contracted = ctEligible(r); } catch(e){}
     const innerHtml = `<div class="detail-grid">
-      ${contracted?'':`      <div style="grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-        ${contractKind(r.store)?`<button type="button" class="contract-btn" data-idx="${idx}" data-side="owner" title="Generate a filled ${csKind(r.store)?(csKind(r.store)==='owned'?'Owned':'Managed'):(contractKind(r.store)==='myplace'?'MyPlace bid request':'Devon Self Storage')} snowplowing contract PDF for ${escapeHtml(r.store)}">Create Owner Contract</button>`:''}
+      <div style="grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        ${!contracted && contractKind(r.store)?`<button type="button" class="contract-btn" data-idx="${idx}" data-side="owner" title="Generate a filled ${csKind(r.store)?(csKind(r.store)==='owned'?'Owned':'Managed'):(contractKind(r.store)==='myplace'?'MyPlace bid request':'Devon Self Storage')} snowplowing contract PDF for ${escapeHtml(r.store)}">Create Owner Contract</button>`:''}
+        <span class="vsub-wrap"${vsubState(r).ok ? '' : ' hidden'}>
         <button type="button" class="contract-btn" data-idx="${idx}" data-side="vendor" title="Fill the FDI subcontract that matches this store's contract parameters">Create Vendor Subcontract</button>
         <select class="contract-kind-select is-placeholder" data-idx="${idx}" title="Vendor contract type — leave on the grey label to use the auto-picked template">
           <option value="" selected>Vendor Contract Type</option>
           ${Object.entries(SUBCONTRACT_TEMPLATES).map(([k,v])=>`<option value="${k}" data-auto="${k===subcontractKindForRow(r)?'1':''}">${v.label}${k===subcontractKindForRow(r)?' (auto)':''}</option>`).join('')}
         </select>
-      </div>`}
+        </span>
+        <span class="vsub-hint"${vsubState(r).ok ? ' hidden' : ''} style="font-size:12px;color:var(--ink-muted)">${escapeHtml(vsubState(r).msg)}</span>
+      </div>
       <div><div class="k">Region</div><div class="v">${regionSelectHtml(r)}</div></div>
       <div><div class="k">PM</div><div class="v">${pmSelectHtml(r)}</div></div>
       <div><div class="k">Customer (DM)</div><div class="v">${customerSelectHtml(r)}</div></div>
@@ -4691,6 +4811,7 @@ td.map-cell{ width:60px; text-align:center; }
       sel.addEventListener('change', e => {
         e.stopPropagation();
         if (!sel.dataset.rowid) return;
+        if (sel.value === '__newregion__'){ regionChosen(r, sel).then(() => fillDetail(detail, idx, asRow)); return; }
         stageRegionChange(r, sel, sel.value);
       });
     });
@@ -4855,6 +4976,7 @@ td.map-cell{ width:60px; text-align:center; }
 
   function render(){
     try { fillVendorSearchList(); } catch(e){}
+    try { regionsSync(); } catch(e){}
     renderKpis();
     { const pv = document.getElementById('view-projections'); if (pv && !pv.hidden) renderProjections(); }
     { const vv = document.getElementById('view-vendor'); if (vv && !vv.hidden) renderVendorContracting(); }
@@ -4987,12 +5109,6 @@ td.map-cell{ width:60px; text-align:center; }
   document.getElementById('toggle-lost').addEventListener('click', e => {
     state.lostOnly = !state.lostOnly; e.currentTarget.classList.toggle('active', state.lostOnly); render();
   });
-  document.getElementById('toggle-flagged').addEventListener('click', e => {
-    state.flaggedOnly = !state.flaggedOnly; e.currentTarget.classList.toggle('active', state.flaggedOnly); render();
-  });
-  document.getElementById('toggle-followup').addEventListener('click', e => {
-    state.followupOnly = !state.followupOnly; e.currentTarget.classList.toggle('active', state.followupOnly); render();
-  });
   document.getElementById('toggle-novendor').addEventListener('click', e => {
     state.noVendorOnly = !state.noVendorOnly; e.currentTarget.classList.toggle('active', state.noVendorOnly); render();
   });
@@ -5013,16 +5129,16 @@ td.map-cell{ width:60px; text-align:center; }
     } else if (tile.dataset.kpiToggle){
       const key = tile.dataset.kpiToggle;
       state[key] = !state[key];
-      const btnId = key === 'flaggedOnly' ? 'toggle-flagged' : (key === 'noVendorOnly' ? 'toggle-novendor' : 'toggle-lost');
+      const btnId = key === 'noVendorOnly' ? 'toggle-novendor' : 'toggle-lost';
       document.getElementById(btnId).classList.toggle('active', state[key]);
     } else if (tile.dataset.kpiClear){
       state.customerStatus = ''; custStatusSel.value = '';
       state.vendorStatus = ''; vendStatusSel.value = '';
       state.vendorQ = ''; if (vendSearchEl){ vendSearchEl.value = ''; vendSearchEl.classList.remove('active'); }
       state.lostOnly = false; document.getElementById('toggle-lost').classList.remove('active');
-      state.flaggedOnly = false; document.getElementById('toggle-flagged').classList.remove('active');
+      state.flaggedOnly = false;
       state.noVendorOnly = false; document.getElementById('toggle-novendor').classList.remove('active');
-      state.followupOnly = false; document.getElementById('toggle-followup').classList.remove('active');
+      state.followupOnly = false;
     }
     render();
   });
@@ -5673,7 +5789,7 @@ td.map-cell{ width:60px; text-align:center; }
   // "26/27 Snow PBR Tracker" (via the Worker /dispatch endpoints). Changes are saved in this
   // browser first (outbox) and pushed to Smartsheet, so nothing is lost on a refresh.
   const CT_OUTBOX_KEY = 'fdiDispatchOutboxV1', CT_SCOPE_KEY = 'fdiCtScopeV1';
-  const CT_COLS = {"request":8036663236005764,"storm":718313841528708,"stormDate":5221913468899204,"store":2970113655213956,"address":7473713282584452,"pm":1844213748371332,"vendor":6347813375741828,"status":4096013562056580,"service":8599613189427076,"serviceItems":2241975098838916,"fdiAmount":1416956307345284,"vendorCost":5920555934715780,"workOrder":3668756121030532,"projectNo":8707827574804356,"pushedAt":3907393630801796,"vendorInvoice":5844323083784068,"forecast":436838864818052,"actual":4940438492188548,"pushes":2688638678503300,"salt":7192238305873796,"requestedAt":1562738771660676,"dispatchedAt":6066338399031172,"onSiteAt":3814538585345924,"completedAt":8318138212716420,"issue":999788818239364,"notes":5503388445609860};
+  const CT_COLS = {"request":8036663236005764,"storm":718313841528708,"stormDate":5221913468899204,"store":2970113655213956,"address":7473713282584452,"pm":1844213748371332,"vendor":6347813375741828,"status":4096013562056580,"service":8599613189427076,"serviceItems":2241975098838916,"fdiAmount":1416956307345284,"vendorCost":5920555934715780,"workOrder":3668756121030532,"projectNo":8707827574804356,"pushedAt":3907393630801796,"vendorInvoice":5844323083784068,"ownerInvoice":3357743823753092,"ownerInvoiceDate":7861343451123588,"forecast":436838864818052,"actual":4940438492188548,"pushes":2688638678503300,"salt":7192238305873796,"requestedAt":1562738771660676,"dispatchedAt":6066338399031172,"onSiteAt":3814538585345924,"completedAt":8318138212716420,"issue":999788818239364,"notes":5503388445609860};
   const CT_STATUSES = ['Requested', 'Dispatched', 'On Site', 'Completed', 'Issue', 'Cancelled'];
   const CT_SERVICES = ['Plow', 'Salt', 'Plow + Salt', 'Haul / Stack', 'Other'];
   let ctReqs = [];            // all requests (server rows + not-yet-created local ones)
@@ -5683,9 +5799,9 @@ td.map-cell{ width:60px; text-align:center; }
   const ctSel = new Set();    // normalized store numbers checked in the table
   let ctScope = 'full'; try { ctScope = localStorage.getItem(CT_SCOPE_KEY) || 'full'; } catch(e){}
   let ctLoadedAt = 0;
-  function ctOutLoad(){ try { const o = JSON.parse(localStorage.getItem(CT_OUTBOX_KEY) || '{}') || {}; return { creates: o.creates || [], updates: o.updates || {} }; } catch(e){ return { creates: [], updates: {} }; } }
+  function ctOutLoad(){ try { const o = JSON.parse(localStorage.getItem(CT_OUTBOX_KEY) || '{}') || {}; return { creates: o.creates || [], updates: o.updates || {}, deletes: o.deletes || [] }; } catch(e){ return { creates: [], updates: {}, deletes: [] }; } }
   function ctOutSave(o){ try { localStorage.setItem(CT_OUTBOX_KEY, JSON.stringify(o)); } catch(e){} }
-  function ctPendingCount(){ const o = ctOutLoad(); return o.creates.length + Object.keys(o.updates).length; }
+  function ctPendingCount(){ const o = ctOutLoad(); return o.creates.length + Object.keys(o.updates).length + o.deletes.length; }
   const ctBase = () => SMARTSHEET_WORKER_URL.replace(/\/$/, '');
   const ctHdr = extra => Object.assign({ 'X-Dashboard-Key': DASHBOARD_KEY }, extra || {});
   const ctNow = () => new Date().toISOString();
@@ -5703,6 +5819,7 @@ td.map-cell{ width:60px; text-align:center; }
   }
   function ctApplyOutbox(){
     const ob = ctOutLoad();
+    if (ob.deletes.length){ const gone = new Set(ob.deletes.map(String)); ctReqs = ctReqs.filter(r => r.rowId == null || !gone.has(String(r.rowId))); }
     const byId = new Map(ctReqs.filter(r => r.rowId != null).map(r => [String(r.rowId), r]));
     Object.values(ob.updates).forEach(u => { const r = byId.get(String(u.rowId)); if (r) r[u.field] = u.value == null ? '' : String(u.value); });
     ctReqs = ctReqs.filter(r => r.rowId != null);
@@ -5743,11 +5860,21 @@ td.map-cell{ width:60px; text-align:center; }
         } catch(e){ ctError = 'could not reach the Worker URL'; ctState = 'error'; }
       }
       ob = ctOutLoad();
+      const goneIds = new Set(ob.deletes.map(String));
       for (const u of Object.values(ob.updates)){
+        if (goneIds.has(String(u.rowId))) continue;
         try {
           const resp = await fetch(ctBase() + '/dispatch-update', { method: 'POST', headers: ctHdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ rowId: u.rowId, field: u.field, value: u.value }) });
           if (resp.ok){ const cur = ctOutLoad(); const k = u.rowId + '|' + u.field; if (cur.updates[k] && cur.updates[k].ts === u.ts){ delete cur.updates[k]; ctOutSave(cur); } }
           else { ctError = 'HTTP ' + resp.status; ctState = 'error'; }
+        } catch(e){ ctError = 'could not reach the Worker URL'; ctState = 'error'; }
+      }
+      for (const id of ob.deletes.slice()){
+        try {
+          const resp = await fetch(ctBase() + '/dispatch-delete', { method: 'POST', headers: ctHdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ rowId: id }) });
+          if (resp.ok){ const cur = ctOutLoad(); cur.deletes = cur.deletes.filter(x => String(x) !== String(id)); Object.keys(cur.updates).forEach(k => { if (String(cur.updates[k].rowId) === String(id)) delete cur.updates[k]; }); ctOutSave(cur); }
+          else if (resp.status === 400 || resp.status === 422){ const cur = ctOutLoad(); cur.deletes = cur.deletes.filter(x => String(x) !== String(id)); ctOutSave(cur); ctError = 'could not delete a service (HTTP ' + resp.status + ')'; ctState = 'error'; }
+          else { ctError = 'HTTP ' + resp.status + (resp.status === 404 ? ' (Worker needs the latest worker.js)' : ''); ctState = 'error'; }
         } catch(e){ ctError = 'could not reach the Worker URL'; ctState = 'error'; }
       }
       if (ctPendingCount() === 0 && ctState === 'error' && ctError) { /* keep error text visible until next good load */ }
@@ -5761,6 +5888,16 @@ td.map-cell{ width:60px; text-align:center; }
     if (req.rowId != null){ const k = req.rowId + '|' + field; ob.updates[k] = { rowId: req.rowId, field, value: v, ts: Date.now() }; }
     else { const c = ob.creates.find(x => x.key === req.key); if (c) c.fields[field] = v; }
     ctOutSave(ob);
+  }
+  // remove a service: gone from the page right away, then deleted from the sheet (retried if offline)
+  function ctDeleteService(req){
+    const ob = ctOutLoad();
+    if (req.rowId != null){
+      if (!ob.deletes.some(x => String(x) === String(req.rowId))) ob.deletes.push(req.rowId);
+      Object.keys(ob.updates).forEach(k => { if (String(ob.updates[k].rowId) === String(req.rowId)) delete ob.updates[k]; });
+    } else { ob.creates = ob.creates.filter(c => c.key !== req.key); }
+    ctOutSave(ob);
+    ctReqs = ctReqs.filter(x => x !== req);
   }
   function ctSetStatus(req, status){
     if (req.status === status) return;
@@ -5830,8 +5967,8 @@ td.map-cell{ width:60px; text-align:center; }
     const sum = f => list.reduce((a, q) => a + (shNum(q[f]) || 0), 0);
     const money = (q, f) => `<span class="sh-money">$<input class="sh-in" data-f="${f}" inputmode="decimal" value="${escapeHtml(q[f] || '')}" placeholder="—"${q.pushedAt ? ' readonly title="Already pushed to billing"' : ''}></span>`;
     return `<div class="sh-sum">${list.length} service${list.length === 1 ? '' : 's'} logged &middot; FDI ${shMoney(sum('fdiAmount'))} &middot; Vendor ${shMoney(sum('vendorCost'))}</div>
-      <table class="sh-table"><thead><tr><th>Project #</th><th>Date</th><th>Service</th><th>Vendor</th><th>FDI Amount</th><th>Vendor Cost</th><th>Work Order #</th><th>Notes</th></tr></thead><tbody>`
-      + list.map(q => `<tr data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}"><td class="sh-pn">${escapeHtml(q.projectNo || '')}</td><td>${escapeHtml(shMdy(q.stormDate))}${q.pushedAt ? `<div class="sh-bl"><span class="sh-pushed" title="Pushed to owner + sub billing">Pushed to billing ${escapeHtml(shMdy(q.pushedAt))}</span></div>` : ''}</td><td>${escapeHtml(q.serviceItems || q.service || '')}${q.serviceItems && q.service ? `<div class="sh-items">${escapeHtml(q.service)}</div>` : ''}</td><td>${escapeHtml(q.vendor || '')}</td><td>${money(q, 'fdiAmount')}</td><td>${money(q, 'vendorCost')}</td><td><input class="sh-in sh-wo" data-f="workOrder" value="${escapeHtml(q.workOrder || '')}" placeholder="WO #"></td><td><textarea class="sh-in sh-notes" data-f="notes" rows="1" placeholder="Add a note…">${escapeHtml(q.notes || '')}</textarea></td></tr>`).join('')
+      <table class="sh-table"><thead><tr><th>Project #</th><th>Date</th><th>Service</th><th>Vendor</th><th>FDI Amount</th><th>Vendor Cost</th><th>Work Order #</th><th>Vendor Invoice #</th><th>Notes</th><th>Billing</th><th></th></tr></thead><tbody>`
+      + list.map(q => `<tr data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}"><td class="sh-pn">${escapeHtml(q.projectNo || '')}</td><td>${escapeHtml(shMdy(q.stormDate))}${q.pushedAt ? `<div class="sh-bl"><span class="sh-pushed" title="Pushed to owner + sub billing">Pushed to billing ${escapeHtml(shMdy(q.pushedAt))}</span></div>` : ''}</td><td>${escapeHtml(q.serviceItems || q.service || '')}${q.serviceItems && q.service ? `<div class="sh-items">${escapeHtml(q.service)}</div>` : ''}</td><td>${escapeHtml(q.vendor || '')}</td><td>${money(q, 'fdiAmount')}</td><td>${money(q, 'vendorCost')}</td><td><input class="sh-in sh-wo" data-f="workOrder" value="${escapeHtml(q.workOrder || '')}" placeholder="WO #"></td><td><input class="sh-in sh-vi" data-f="vendorInvoice" value="${escapeHtml(q.vendorInvoice || '')}" placeholder="Invoice #"></td><td><textarea class="sh-in sh-notes" data-f="notes" rows="1" placeholder="Add a note…">${escapeHtml(q.notes || '')}</textarea></td><td>${q.pushedAt ? '<span class="sh-pushed" title="Already in owner + sub billing">&#10003; In billing</span>' : `<button type="button" class="ct-btn sh-push-one" style="white-space:nowrap;padding:5px 10px"${blPending(q) ? '' : ' disabled'} title="${blPending(q) ? 'Send just this service to owner + sub billing' : 'Add an FDI amount or vendor cost first'}">Push to billing</button>`}</td><td><button type="button" class="ct-btn sh-del" title="Delete this service" style="padding:5px 10px;color:#c0392b">Delete</button></td></tr>`).join('')
       + '</tbody></table>' + blPushBarHtml(r, list);
   }
   // ----- Push to billing: owner billing gets the FDI amount only, sub billing gets the vendor cost only
@@ -5850,6 +5987,47 @@ td.map-cell{ width:60px; text-align:center; }
     const confirming = blConfirm === key;
     return `<div class="sh-pushbar" data-store="${escapeHtml(key)}">${msg}<span class="sh-bl-info">${pend.length} service${pend.length === 1 ? '' : 's'} ready &middot; Owner billing ${shMoney(owner)} (FDI) &middot; Sub billing ${shMoney(sub)} (vendor)</span>${confirming ? '<button type="button" class="ct-btn sh-push-cancel">Cancel</button>' : ''}<button type="button" class="ct-btn primary sh-push sh-push-go">${confirming ? 'Confirm — push to billing ' + shMdy(ctToday()) : 'Push to billing'}</button></div>`;
   }
+  function fdiAsk(title, bodyHtml, okLabel, infoOnly){
+    return new Promise(res => {
+      const b = document.getElementById('ask-back'), ok = document.getElementById('ask-ok'), no = document.getElementById('ask-cancel');
+      document.getElementById('ask-title').textContent = title; document.getElementById('ask-body').innerHTML = bodyHtml; ok.textContent = okLabel || 'OK';
+      no.hidden = !!infoOnly; ok.style.background = infoOnly ? '' : '#c0392b'; ok.style.borderColor = infoOnly ? '' : '#c0392b'; ok.style.color = infoOnly ? '' : '#fff';
+      const done = v => { b.hidden = true; ok.onclick = null; no.onclick = null; res(v); };
+      ok.onclick = () => done(true); no.onclick = () => done(false); b.hidden = false; (infoOnly ? ok : no).focus();
+    });
+  }
+  async function blDeleteOne(q){
+    const key = normStore(q.store);
+    if (q.ownerInvoice){ blMsg[key] = `${q.projectNo || 'This service'} is on owner invoice #${q.ownerInvoice}. Open Billing, click Undo on that line first, then delete it.`; scRefreshHistory(); fdiAsk('Can\u2019t delete yet', `<b>${escapeHtml(q.projectNo || 'This service')}</b> is on owner invoice #${escapeHtml(q.ownerInvoice)}.<br>Open Billing, click Undo on that line, then delete it.`, 'OK', true); return; }
+    const desc = `<b>${escapeHtml(q.projectNo || 'This service')}</b> &mdash; ${escapeHtml(q.store)}<br>${escapeHtml(q.serviceItems || q.service || 'Service')} &middot; ${escapeHtml(shMdy(q.stormDate))}${blAmt(q, 'fdiAmount') ? ' &middot; FDI ' + escapeHtml(shMoney(blAmt(q, 'fdiAmount'))) : ''}${blAmt(q, 'vendorCost') ? ' &middot; Vendor ' + escapeHtml(shMoney(blAmt(q, 'vendorCost'))) : ''}`;
+    const warn = q.pushedAt ? '<br><br><b style="color:#c0392b">This service is already in billing &mdash; deleting it also removes it from Owner and Sub billing.</b>' : '';
+    const yes = await fdiAsk('Delete this service?', desc + warn + '<br><br>It is removed from the 26/27 Snow PBR Tracker for everyone and can&rsquo;t be undone.', 'Yes, delete it');
+    if (!yes) return;
+    ctDeleteService(q); blMsg[key] = `Deleted ${q.projectNo || 'service'}.`;
+    scRefreshHistory(); blRender(); ctRender(); ctFlush().then(() => { ctRenderBanner(); });
+  }
+  // delete several requests at once (a whole service, or the checked sites) after asking
+  async function ctDeleteMany(list, what){
+    const inv = list.filter(q => q.ownerInvoice), ok = list.filter(q => !q.ownerInvoice);
+    if (!ok.length){ await fdiAsk('Nothing to delete', `${list.length ? 'Every one of these is on an owner invoice. Open Billing and click Undo on them first.' : 'There are no requests to delete here.'}`, 'OK', true); return; }
+    const pushed = ok.filter(q => q.pushedAt).length;
+    const n = ok.length, pl = n === 1 ? '' : 's';
+    const body = `<b>${n} service request${pl}</b> &mdash; ${what} &mdash; will be deleted from the 26/27 Snow PBR Tracker for everyone.`
+      + (pushed ? `<br><br><b style="color:#c0392b">${pushed} already in billing &mdash; ${pushed === 1 ? 'it is' : 'they are'} removed from Owner and Sub billing too.</b>` : '')
+      + (inv.length ? `<br><br>${inv.length} on an owner invoice will be left alone.` : '')
+      + '<br><br>This can&rsquo;t be undone.';
+    const yes = await fdiAsk(`Delete ${n} service request${pl}?`, body, `Yes, delete ${n}`);
+    if (!yes) return;
+    ok.forEach(q => ctDeleteService(q)); ctSel.clear(); ctPickStorm();
+    ctRender(); try { scRefreshHistory(); } catch(e){} ctFlush().then(() => { ctRenderBanner(); });
+  }
+  function blPushOne(q){
+    if (!blPending(q)) return;
+    const o = blAmt(q, 'fdiAmount'), sB = blAmt(q, 'vendorCost');
+    ctSetField(q, 'pushedAt', ctToday());
+    blMsg[normStore(q.store)] = `Pushed ${q.projectNo || 'service'}: Owner billing ${shMoney(o)}, Sub billing ${shMoney(sB)}.`;
+    blConfirm = ''; scRefreshHistory(); blRender(); ctFlush().then(() => { ctRenderBanner(); });
+  }
   function blDoPush(r){
     const list = serviceHistoryRows(r).filter(blPending); if (!list.length) return;
     const stamp = ctToday(); let o = 0, sB = 0;
@@ -5867,18 +6045,108 @@ td.map-cell{ width:60px; text-align:center; }
     const owner = blMode === 'owner', f = owner ? 'fdiAmount' : 'vendorCost'; const list = blRows(blMode);
     const total = list.reduce((a, q) => a + blAmt(q, f), 0);
     document.getElementById('bl-note').textContent = `${list.length} line${list.length === 1 ? '' : 's'} · ${shMoney(total)} ${owner ? '(FDI amounts only)' : '(vendor costs only)'}`;
-    if (!list.length){ host.innerHTML = `<div class="sh-empty">Nothing in ${owner ? 'owner' : 'sub'} billing yet. Open a contracted site, fill in its Service history amounts, and click <b>Push to billing</b>.</div>`; return; }
+    if (!list.length){ host.innerHTML = `<div class="sh-empty">Nothing in ${owner ? 'owner' : 'sub'} billing yet. Open a contracted site, fill in its Service history amounts, and click <b>Push to billing</b>.</div>`; invUpdateBtn(); return; }
     const site = q => rows.find(x => normStore(x.store) === normStore(q.store));
-    host.innerHTML = `<table class="sh-table bl-table"><thead><tr><th>Project #</th><th>Store</th><th>${owner ? 'Customer' : 'Vendor'}</th><th>Service date</th><th>Service</th><th>${owner ? 'FDI Amount' : 'Vendor Cost'}</th><th>Work Order #</th>${owner ? '' : '<th>Vendor Invoice #</th>'}<th>Pushed</th><th></th></tr></thead><tbody>`
-      + list.map(q => `<tr data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}"><td class="sh-pn">${escapeHtml(q.projectNo || '')}</td><td>${escapeHtml(q.store)}</td><td>${escapeHtml(owner ? ((site(q) || {}).customer || '') : (q.vendor || ''))}</td><td>${escapeHtml(shMdy(q.stormDate))}</td><td>${escapeHtml(q.serviceItems || q.service || '')}</td><td class="bl-amt">${shMoney(blAmt(q, f))}</td><td>${escapeHtml(q.workOrder || '')}</td>${owner ? '' : `<td><input class="sh-in sh-vi" data-f="vendorInvoice" value="${escapeHtml(q.vendorInvoice || '')}" placeholder="Invoice #"></td>`}<td>${escapeHtml(shMdy(q.pushedAt))}</td><td><button type="button" class="ct-btn bl-undo" title="Remove from billing so it can be edited and pushed again">Undo</button></td></tr>`).join('')
-      + `</tbody><tfoot><tr><td colspan="5" style="text-align:right;font-weight:700">Total</td><td class="bl-amt" style="font-weight:700">${shMoney(total)}</td><td colspan="${owner ? 3 : 4}"></td></tr></tfoot></table>`;
+    const open = list.filter(q => !q.ownerInvoice);
+    const allOn = owner && open.length && open.every(q => blSel.has(blKey(q)));
+    host.innerHTML = `<table class="sh-table bl-table"><thead><tr>${owner ? `<th style="width:28px"><input type="checkbox" class="bl-chk-all" title="Tick every service that has no invoice yet"${allOn ? ' checked' : ''}></th>` : ''}<th>Project #</th><th>Store</th><th>${owner ? 'Customer' : 'Vendor'}</th><th>Service date</th><th>Service</th><th>${owner ? 'FDI Amount' : 'Vendor Cost'}</th><th>Work Order #</th>${owner ? '<th>Invoice #</th>' : '<th>Vendor Invoice #</th>'}<th>Pushed</th><th></th></tr></thead><tbody>`
+      + list.map(q => `<tr data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}">${owner ? `<td><input type="checkbox" class="bl-chk"${q.ownerInvoice ? ' disabled' : (blSel.has(blKey(q)) ? ' checked' : '')}></td>` : ''}<td class="sh-pn">${escapeHtml(q.projectNo || '')}</td><td>${escapeHtml(q.store)}</td><td>${escapeHtml(owner ? ((site(q) || {}).customer || '') : (q.vendor || ''))}</td><td>${escapeHtml(shMdy(q.stormDate))}</td><td>${escapeHtml(q.serviceItems || q.service || '')}</td><td class="bl-amt">${shMoney(blAmt(q, f))}</td><td>${escapeHtml(q.workOrder || '')}</td>${owner ? `<td>${q.ownerInvoice ? `<button type="button" class="ct-btn bl-inv-print" data-no="${escapeHtml(q.ownerInvoice)}" title="Open / print this invoice">#${escapeHtml(q.ownerInvoice)}</button><div class="sh-items">${escapeHtml(shMdy(q.ownerInvoiceDate))}</div>` : '<span style="color:var(--ink-muted)">—</span>'}</td>` : `<td><input class="sh-in sh-vi" data-f="vendorInvoice" value="${escapeHtml(q.vendorInvoice || '')}" placeholder="Invoice #"></td>`}<td>${escapeHtml(shMdy(q.pushedAt))}</td><td><button type="button" class="ct-btn bl-undo" title="Remove from billing so it can be edited and pushed again">Undo</button></td></tr>`).join('')
+      + `</tbody><tfoot><tr><td colspan="${owner ? 6 : 5}" style="text-align:right;font-weight:700">Total</td><td class="bl-amt" style="font-weight:700">${shMoney(total)}</td><td colspan="4"></td></tr></tfoot></table>`;
+    invUpdateBtn();
+  }
+  // ----- Owner invoices: tick services on the Owner billing list, then Create invoice (one invoice per store)
+  const INV_LOGO = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEBLAEsAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZjwCyBOmACZjs+EJ+/+EAdEV4aWYAAE1NACoAAAAIAAQBGgAFAAAAAQAAAD4BGwAFAAAAAQAAAEYBKAADAAAAAQACAACHaQAEAAAAAQAAAE4AAAAAAAABLAAAAAEAAAEsAAAAAQACoAIABAAAAAEAAAhKoAMABAAAAAEAAASwAAAAAP/iB+hJQ0NfUFJPRklMRQABAQAAB9hhcHBsAiAAAG1udHJSR0IgWFlaIAfZAAIAGQALABoAC2Fjc3BBUFBMAAAAAGFwcGwAAAAAAAAAAAAAAAAAAAAAAAD21gABAAAAANMtYXBwbAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC2Rlc2MAAAEIAAAAb2RzY20AAAF4AAAFnGNwcnQAAAcUAAAAOHd0cHQAAAdMAAAAFHJYWVoAAAdgAAAAFGdYWVoAAAd0AAAAFGJYWVoAAAeIAAAAFHJUUkMAAAecAAAADmNoYWQAAAesAAAALGJUUkMAAAecAAAADmdUUkMAAAecAAAADmRlc2MAAAAAAAAAFEdlbmVyaWMgUkdCIFByb2ZpbGUAAAAAAAAAAAAAABRHZW5lcmljIFJHQiBQcm9maWxlAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABtbHVjAAAAAAAAAB8AAAAMc2tTSwAAACgAAAGEZGFESwAAAC4AAAGsY2FFUwAAACQAAAHadmlWTgAAACQAAAH+cHRCUgAAACYAAAIidWtVQQAAACoAAAJIZnJGVQAAACgAAAJyaHVIVQAAACgAAAKaemhUVwAAABYAAALCbmJOTwAAACYAAALYY3NDWgAAACIAAAL+aGVJTAAAAB4AAAMgaXRJVAAAACgAAAM+cm9STwAAACQAAANmZGVERQAAACwAAAOKa29LUgAAABYAAAO2c3ZTRQAAACYAAALYemhDTgAAABYAAAPMamFKUAAAABoAAAPiZWxHUgAAACIAAAP8cHRQTwAAACYAAAQebmxOTAAAACgAAAREZXNFUwAAACYAAAQedGhUSAAAACQAAARsdHJUUgAAACIAAASQZmlGSQAAACgAAASyaHJIUgAAACgAAATacGxQTAAAACwAAAUCcnVSVQAAACIAAAUuYXJFRwAAACYAAAVQZW5VUwAAACYAAAV2AFYBYQBlAG8AYgBlAGMAbgD9ACAAUgBHAEIAIABwAHIAbwBmAGkAbABHAGUAbgBlAHIAZQBsACAAUgBHAEIALQBiAGUAcwBrAHIAaQB2AGUAbABzAGUAUABlAHIAZgBpAGwAIABSAEcAQgAgAGcAZQBuAOgAcgBpAGMAQx6lAHUAIABoAOwAbgBoACAAUgBHAEIAIABDAGgAdQBuAGcAUABlAHIAZgBpAGwAIABSAEcAQgAgAEcAZQBuAOkAcgBpAGMAbwQXBDAEMwQwBDsETAQ9BDgEOQAgBD8EQAQ+BEQEMAQ5BDsAIABSAEcAQgBQAHIAbwBmAGkAbAAgAGcA6QBuAOkAcgBpAHEAdQBlACAAUgBWAEIAwQBsAHQAYQBsAOEAbgBvAHMAIABSAEcAQgAgAHAAcgBvAGYAaQBskBp1KAAgAFIARwBCACCCcl9pY8+P8ABHAGUAbgBlAHIAaQBzAGsAIABSAEcAQgAtAHAAcgBvAGYAaQBsAE8AYgBlAGMAbgD9ACAAUgBHAEIAIABwAHIAbwBmAGkAbAXkBegF1QXkBdkF3AAgAFIARwBCACAF2wXcBdwF2QBQAHIAbwBmAGkAbABvACAAUgBHAEIAIABnAGUAbgBlAHIAaQBjAG8AUAByAG8AZgBpAGwAIABSAEcAQgAgAGcAZQBuAGUAcgBpAGMAQQBsAGwAZwBlAG0AZQBpAG4AZQBzACAAUgBHAEIALQBQAHIAbwBmAGkAbMd8vBgAIABSAEcAQgAg1QS4XNMMx3xmbpAaACAAUgBHAEIAIGPPj/Blh072TgCCLAAgAFIARwBCACAw1zDtMNUwoTCkMOsDkwO1A70DuQO6A8wAIAPAA8EDvwPGA68DuwAgAFIARwBCAFAAZQByAGYAaQBsACAAUgBHAEIAIABnAGUAbgDpAHIAaQBjAG8AQQBsAGcAZQBtAGUAZQBuACAAUgBHAEIALQBwAHIAbwBmAGkAZQBsDkIOGw4jDkQOHw4lDkwAIABSAEcAQgAgDhcOMQ5IDicORA4bAEcAZQBuAGUAbAAgAFIARwBCACAAUAByAG8AZgBpAGwAaQBZAGwAZQBp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';
+  const blSel = new Set();
+  const blKey = q => String(q.rowId != null ? q.rowId : q.key);
+  const invSelected = () => blRows('owner').filter(q => !q.ownerInvoice && blSel.has(blKey(q)));
+  function invUpdateBtn(){
+    const b = document.getElementById('bl-invoice'); if (!b) return;
+    const owner = blMode === 'owner'; b.hidden = !owner; if (!owner) return;
+    const n = invSelected().length; b.disabled = !n; b.textContent = n ? `Create invoice (${n} service${n === 1 ? '' : 's'})` : 'Create invoice';
+    b.title = n ? '' : 'Tick the services you want on the invoice first';
+  }
+  function invNextNo(){
+    let max = 1000; (ctReqs || []).forEach(q => { const t = String(q.ownerInvoice || '').trim(); if (/^\d+$/.test(t)) max = Math.max(max, parseInt(t, 10)); });
+    return max + 1;
+  }
+  const invMemLoad = () => { try { return JSON.parse(localStorage.getItem('fdiInvBillToV1') || '{}') || {}; } catch (e) { return {}; } };
+  const invMemSave = (k, v) => { try { const m = invMemLoad(); m[k] = v; localStorage.setItem('fdiInvBillToV1', JSON.stringify(m)); } catch (e) {} };
+  const invAddDays = (iso, n) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || '')); const d = m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date(); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  const invSite = q => rows.find(x => normStore(x.store) === normStore(q.store)) || {};
+  const invShipDefault = q => [q.store, q.address || invSite(q).address || ''].filter(Boolean).join('\n');
+  const invBillDefault = q => invMemLoad()[normStore(q.store)] || q.store;
+  const invUniq = a => a.filter((x, i) => x && a.indexOf(x) === i);
+  function invBuild(grp, no, dateIso, billTo, shipTo){
+    const lines = grp.map(q => ({ desc: q.serviceItems || q.service || 'Snow service', sub: 'Service date ' + shMdy(q.stormDate) + (q.projectNo ? ' · ' + q.projectNo : ''), amount: blAmt(q, 'fdiAmount') }));
+    return { no, date: dateIso, due: invAddDays(dateIso, 30), billTo, shipTo, lines, total: lines.reduce((a, l) => a + l.amount, 0),
+      workOrder: invUniq(grp.map(q => String(q.workOrder || '').trim())).join(', ') || 'n/a',
+      projectNo: invUniq(grp.map(q => String(q.projectNo || '').trim())).join(', '),
+      projectName: invUniq(grp.map(q => shMdy(q.stormDate))).join(', ') };
+  }
+  const invHtmlText = t => escapeHtml(t || '').replace(/\n/g, '<br>');
+  function invPageHtml(v){
+    return `<div class="inv-page"><div class="inv-top"><div class="inv-co"><b>Farmer Development, Inc.</b>124 Grand Ave<br>Fowlerville, MI 48836<br>(517) 518-4433<br>jfarmer@farmerdevelopment.com<br>www.farmerdevelopment.com</div><img class="inv-logo" src="${INV_LOGO}" alt="Farmer Companies"></div>
+      <div class="inv-title">INVOICE</div>
+      <div class="inv-row"><div><div class="inv-lbl">Bill to</div><div class="v">${invHtmlText(v.billTo)}</div></div><div><div class="inv-lbl">Ship to</div><div class="v">${invHtmlText(v.shipTo)}</div></div>
+        <div class="inv-meta"><span class="k">Invoice</span><span class="val">${escapeHtml(v.no)}</span><span class="k">Date</span><span class="val">${escapeHtml(shMdy(v.date))}</span><span class="k">Terms</span><span class="val">Net 30</span><span class="k">Due date</span><span class="val">${escapeHtml(shMdy(v.due))}</span></div></div>
+      <div class="inv-row"><div><div class="inv-lbl">Work order</div><div class="v">${escapeHtml(v.workOrder)}</div></div><div><div class="inv-lbl">Project number</div><div class="v">${escapeHtml(v.projectNo)}</div></div><div><div class="inv-lbl">Project name</div><div class="v">${escapeHtml(v.projectName)}</div></div></div>
+      <table class="inv-table"><thead><tr><th class="l">Description</th><th class="r">Amount</th></tr></thead><tbody>${v.lines.map(l => `<tr><td>${escapeHtml(l.desc)}<div class="sub">${escapeHtml(l.sub)}</div></td><td class="r">${escapeHtml(shMoney(l.amount).slice(1))}</td></tr>`).join('')}</tbody></table>
+      <div class="inv-bal"><span class="k">Balance due</span><span class="t">${escapeHtml(shMoney(v.total))}</span></div></div>`;
+  }
+  function invShow(list){
+    const host = document.getElementById('inv-view');
+    host.innerHTML = `<div class="inv-toolbar"><b>${list.length === 1 ? 'Invoice #' + escapeHtml(list[0].no) : list.length + ' invoices'}</b><span class="sp"></span><button type="button" class="primary" id="inv-print">Print / Save as PDF</button><button type="button" id="inv-close">Close</button></div>` + list.map(invPageHtml).join('');
+    host.hidden = false; host.scrollTop = 0; document.body.classList.add('inv-printing');
+    document.getElementById('inv-print').onclick = () => window.print();
+    document.getElementById('inv-close').onclick = invCloseView;
+  }
+  function invCloseView(){ const h = document.getElementById('inv-view'); h.hidden = true; h.innerHTML = ''; document.body.classList.remove('inv-printing'); }
+  let invGroups = [];
+  function invOpen(){
+    const sel = invSelected(); if (!sel.length) return;
+    const by = new Map(); sel.forEach(q => { const k = normStore(q.store); if (!by.has(k)) by.set(k, []); by.get(k).push(q); });
+    invGroups = [...by.values()]; let no = invNextNo();
+    document.getElementById('inv-sub').textContent = invGroups.length === 1 ? 'One invoice for the ticked services.' : `${invGroups.length} stores ticked — one invoice per store.`;
+    document.getElementById('inv-list').innerHTML = invGroups.map((g, i) => {
+      const tot = g.reduce((a, q) => a + blAmt(q, 'fdiAmount'), 0);
+      return `<div class="inv-card" data-i="${i}"><div class="inv-h">${escapeHtml(g[0].store)} <span>&middot; ${g.length} service${g.length === 1 ? '' : 's'} &middot; ${shMoney(tot)}</span></div>
+        <div class="as-grid"><div><label>Invoice #</label><input class="inv-no" value="${no++}"></div><div></div>
+        <div><label>Bill to</label><textarea class="inv-bill" rows="4">${escapeHtml(invBillDefault(g[0]))}</textarea></div><div><label>Ship to</label><textarea class="inv-ship" rows="4">${escapeHtml(invShipDefault(g[0]))}</textarea></div></div>
+        <div class="sh-items" style="margin-top:6px">${g.map(q => escapeHtml((q.serviceItems || q.service || '') + ' ' + shMdy(q.stormDate) + ' ' + shMoney(blAmt(q, 'fdiAmount')))).join(' &nbsp;|&nbsp; ')}</div></div>`;
+    }).join('');
+    document.getElementById('inv-date').value = ctToday();
+    const m = document.getElementById('inv-msg'); m.textContent = ''; m.classList.remove('bad');
+    document.getElementById('inv-make').disabled = false; document.getElementById('inv-back').hidden = false;
+  }
+  function invMake(){
+    const msg = document.getElementById('inv-msg'); const date = document.getElementById('inv-date').value || ctToday();
+    const cards = [...document.querySelectorAll('#inv-list .inv-card')];
+    const nos = cards.map(c => c.querySelector('.inv-no').value.trim());
+    const fail = t => { msg.textContent = t; msg.classList.add('bad'); };
+    if (nos.some(n => !n)) return fail('Every invoice needs a number.');
+    if (new Set(nos).size !== nos.length) return fail('Two of these invoices have the same number.');
+    const used = nos.find((n, i) => ctReqs.some(q => String(q.ownerInvoice || '').trim() === n && !invGroups[i].includes(q)));
+    if (used) return fail(`Invoice #${used} is already used on another service — pick a different number.`);
+    const out = cards.map((c, i) => {
+      const g = invGroups[i], no = nos[i], bill = c.querySelector('.inv-bill').value.trim() || g[0].store, ship = c.querySelector('.inv-ship').value.trim() || invShipDefault(g[0]);
+      g.forEach(q => { ctSetField(q, 'ownerInvoice', no); ctSetField(q, 'ownerInvoiceDate', date); blSel.delete(blKey(q)); });
+      invMemSave(normStore(g[0].store), bill);
+      return invBuild(g, no, date, bill, ship);
+    });
+    document.getElementById('inv-back').hidden = true; blRender(); ctFlush().then(() => { ctRenderBanner(); });
+    invShow(out);
+  }
+  function invReprint(no){
+    const lines = ctReqs.filter(q => String(q.ownerInvoice || '').trim() === String(no).trim()); if (!lines.length) return;
+    const by = new Map(); lines.forEach(q => { const k = normStore(q.store); if (!by.has(k)) by.set(k, []); by.get(k).push(q); });
+    invShow([...by.values()].map(g => invBuild(g, String(no), g[0].ownerInvoiceDate || ctToday(), invBillDefault(g[0]), invShipDefault(g[0]))));
   }
   function blCsv(){
     const owner = blMode === 'owner', f = owner ? 'fdiAmount' : 'vendorCost'; const list = blRows(blMode);
     const site = q => rows.find(x => normStore(x.store) === normStore(q.store));
     const esc = v => { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
-    const head = ['Project Number', 'Store', owner ? 'Customer' : 'Vendor', 'Address', 'Service Date', 'Service', owner ? 'FDI Amount' : 'Vendor Cost', 'Work Order Number'].concat(owner ? [] : ['Vendor Invoice Number'], ['Pushed']);
-    const lines = [head.join(',')].concat(list.map(q => [q.projectNo, q.store, owner ? ((site(q) || {}).customer || '') : q.vendor, q.address, shMdy(q.stormDate), q.serviceItems || q.service, blAmt(q, f).toFixed(2), q.workOrder].concat(owner ? [] : [q.vendorInvoice], [shMdy(q.pushedAt)]).map(esc).join(',')));
+    const head = ['Project Number', 'Store', owner ? 'Customer' : 'Vendor', 'Address', 'Service Date', 'Service', owner ? 'FDI Amount' : 'Vendor Cost', 'Work Order Number'].concat(owner ? ['Invoice Number', 'Invoice Date'] : ['Vendor Invoice Number'], ['Pushed']);
+    const lines = [head.join(',')].concat(list.map(q => [q.projectNo, q.store, owner ? ((site(q) || {}).customer || '') : q.vendor, q.address, shMdy(q.stormDate), q.serviceItems || q.service, blAmt(q, f).toFixed(2), q.workOrder].concat(owner ? [q.ownerInvoice, shMdy(q.ownerInvoiceDate)] : [q.vendorInvoice], [shMdy(q.pushedAt)]).map(esc).join(',')));
     const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (owner ? 'Owner Billing' : 'Sub Billing') + ' ' + ctToday() + '.csv';
     document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
@@ -5887,6 +6155,7 @@ td.map-cell{ width:60px; text-align:center; }
     return `<div class="sh-wrap" style="grid-column:1/-1"><div class="k" style="display:flex;align-items:center;gap:10px">Service history <button type="button" class="ct-btn primary sh-new" data-store="${escapeHtml(normStore(r.store))}" style="text-transform:none;letter-spacing:0;background:var(--accent);border-color:var(--accent);color:#fff">Create new service</button></div><div class="v sh-block" data-store="${escapeHtml(normStore(r.store))}">${serviceHistoryInner(r)}</div></div>`;
   }
   function scRefreshHistory(){
+    try { scRefreshFin(); } catch(e){}
     document.querySelectorAll('.sh-block').forEach(el => { const r = rows.find(x => normStore(x.store) === el.dataset.store); if (r) el.innerHTML = serviceHistoryInner(r); });
   }
   function ctEligible(r){
@@ -5939,9 +6208,9 @@ td.map-cell{ width:60px; text-align:center; }
     document.getElementById('ct-count').textContent = `${shown.length} of ${allEligible.length} contracted sites`;
     const tb = document.getElementById('ct-tbody');
     if (!allEligible.length){
-      tb.innerHTML = `<tr><td colspan="12" class="ct-empty">No sites have reached this stage yet. Sites show up here once Customer Status is <b>Contract Accepted</b> and the vendor contract is signed. (Change the stage under &ldquo;Sites&rdquo; above.)</td></tr>`;
+      tb.innerHTML = `<tr><td colspan="13" class="ct-empty">No sites have reached this stage yet. Sites show up here once Customer Status is <b>Contract Accepted</b> and the vendor contract is signed. (Change the stage under &ldquo;Sites&rdquo; above.)</td></tr>`;
     } else if (!shown.length){
-      tb.innerHTML = `<tr><td colspan="12" class="ct-empty">No sites match these filters.</td></tr>`;
+      tb.innerHTML = `<tr><td colspan="13" class="ct-empty">No sites match these filters.</td></tr>`;
     } else {
       tb.innerHTML = shown.map(r => {
         const q = ctStorm ? ctReqFor(r, ctStorm) : null;
@@ -5960,7 +6229,7 @@ td.map-cell{ width:60px; text-align:center; }
           : `<td colspan="6" style="color:var(--ink-faint);font-size:12px">${ctStorm ? `<button type="button" class="ct-btn" data-act="request">Request ${escapeHtml(ctStorm)}</button>` : 'Create a service to start dispatching'}</td>`;
         return `<tr data-store="${escapeHtml(ns)}"><td class="select-col"><input type="checkbox" class="ct-row-sel" ${ctSel.has(ns) ? 'checked' : ''}></td>
           <td><b>${escapeHtml(r.store)}</b></td><td>${escapeHtml(r.address || '')}</td><td>${escapeHtml(pmShort(r.pm))}</td><td>${vend}</td>${cells}
-          <td class="ct-season">${done}/${season.length}</td></tr>`;
+          <td class="ct-season">${done}/${season.length}</td><td>${q ? '<button type="button" class="ct-btn ct-del" data-act="delete" title="Delete this site\'s request for this service" style="padding:4px 9px;color:#c0392b">Delete</button>' : ''}</td></tr>`;
       }).join('');
     }
     const nSel = [...ctSel].length; const bulk = document.getElementById('ct-bulk');
@@ -5968,6 +6237,7 @@ td.map-cell{ width:60px; text-align:center; }
     const all = document.getElementById('ct-select-all');
     if (all){ const ids = shown.map(r => normStore(r.store)); all.checked = ids.length > 0 && ids.every(i => ctSel.has(i)); }
     document.getElementById('ct-email-vendors').disabled = !ctStorm;
+    { const d = document.getElementById('ct-del-storm'); if (d) d.disabled = !ctStorm || !ctReqs.some(q => q.storm === ctStorm); }
     ctRenderBanner();
     const sv = document.getElementById('view-sites'); if (sv && !sv.hidden) scRender();
     try { scRefreshHistory(); } catch(e){}
@@ -5984,7 +6254,7 @@ td.map-cell{ width:60px; text-align:center; }
   }
   function ctNewRequest(r, storm, stormDate, extra){
     const key = 'ct' + Date.now() + Math.random().toString(36).slice(2, 7);
-    const fields = Object.assign({ request: `${storm} | ${r.store}`, storm, stormDate: stormDate || '', store: r.store, address: r.address || '', pm: r.pm || '', vendor: r.vendor2627 || '', status: 'Requested', service: '', serviceItems: '', fdiAmount: '', vendorCost: '', workOrder: '', projectNo: ctNextProjectNo(), pushedAt: '', vendorInvoice: '', forecast: '', actual: '', pushes: '', salt: '', requestedAt: ctNow(), dispatchedAt: '', onSiteAt: '', completedAt: '', issue: '', notes: '' }, extra || {});
+    const fields = Object.assign({ request: `${storm} | ${r.store}`, storm, stormDate: stormDate || '', store: r.store, address: r.address || '', pm: r.pm || '', vendor: r.vendor2627 || '', status: 'Requested', service: '', serviceItems: '', fdiAmount: '', vendorCost: '', workOrder: '', projectNo: ctNextProjectNo(), pushedAt: '', vendorInvoice: '', ownerInvoice: '', ownerInvoiceDate: '', forecast: '', actual: '', pushes: '', salt: '', requestedAt: ctNow(), dispatchedAt: '', onSiteAt: '', completedAt: '', issue: '', notes: '' }, extra || {});
     const ob = ctOutLoad(); ob.creates.push({ key, fields }); ctOutSave(ob);
     const q = Object.assign({ rowId: null, key }, fields); ctReqs.push(q); return q;
   }
@@ -6026,7 +6296,7 @@ td.map-cell{ width:60px; text-align:center; }
   let ctNewMode = 'multi';   // 'single' (checklist of this store's contract parameters) | 'multi'
   function ctRefreshNewService(){
     const sites = ctNewSites(); const box = document.getElementById('ct-f-service'); const hint = document.getElementById('ct-f-contract');
-    ctAmtTouched.fdi = ctAmtTouched.ven = false; ['ct-f-fdi', 'ct-f-ven', 'ct-f-wo'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+    ctAmtTouched.fdi = ctAmtTouched.ven = false; ['ct-f-fdi', 'ct-f-ven', 'ct-f-wo', 'ct-f-vi'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
     const chk = (id, label, extra, checked) => `<label class="ct-chk"><input type="checkbox" data-id="${escapeHtml(id)}"${checked ? ' checked' : ''}> <span>${escapeHtml(label)}</span>${extra ? `<span class="ct-chk-amt">${escapeHtml(extra)}</span>` : ''}</label>`;
     if (sites.length === 1){
       ctNewMode = 'single';
@@ -6066,7 +6336,7 @@ td.map-cell{ width:60px; text-align:center; }
   const ctAmtTouched = {};
   function ctSyncAmts(){
     const single = ctNewMode === 'single';
-    ['fdi', 'ven', 'wo'].forEach(k => { const w = document.getElementById('ct-f-amts-' + k); if (w) w.hidden = !single; });
+    ['fdi', 'ven', 'wo', 'vi'].forEach(k => { const w = document.getElementById('ct-f-amts-' + k); if (w) w.hidden = !single; });
     if (!single) return;
     const sites = ctNewSites(); if (sites.length !== 1) return;
     const a = ctAmountsFor(sites[0], ctPickedItems());
@@ -6120,12 +6390,12 @@ td.map-cell{ width:60px; text-align:center; }
         if (auto && !specific.length){ service = ctContractInfo(r).service || 'Plow + Salt'; serviceItems = ''; }
         else { service = ctServiceFromItems(specific); serviceItems = specific.map(i => i.label).join('; '); }
         // combined cost of the ticked contract parameters, saved with the service (editable afterwards in Service history)
-        let { fdiAmount, vendorCost } = ctAmountsFor(r, mine); let workOrder = '';
+        let { fdiAmount, vendorCost } = ctAmountsFor(r, mine); let workOrder = '', vendorInvoice = '';
         if (ctNewMode === 'single' && sites.length === 1){
           const num = id => { const n = shNum(document.getElementById(id).value); return n === null ? '' : String(n); };
-          fdiAmount = num('ct-f-fdi'); vendorCost = num('ct-f-ven'); workOrder = document.getElementById('ct-f-wo').value.trim();
+          fdiAmount = num('ct-f-fdi'); vendorCost = num('ct-f-ven'); workOrder = document.getElementById('ct-f-wo').value.trim(); vendorInvoice = document.getElementById('ct-f-vi').value.trim();
         }
-        ctNewRequest(r, name, date, { service, serviceItems, fdiAmount, vendorCost, workOrder }); made++; madeHere++;
+        ctNewRequest(r, name, date, { service, serviceItems, fdiAmount, vendorCost, workOrder, vendorInvoice }); made++; madeHere++;
       });
       if (madeHere && !firstName) firstName = name;
     });
@@ -6435,6 +6705,38 @@ td.map-cell{ width:60px; text-align:center; }
     const row = vtFindRow(name); if (!row) return '<span class="sc-chip warn" title="Not found in the Vendor Tracking List">not in list</span>';
     const bad = vtIssues(row); return bad.length ? `<span class="sc-chip bad" title="Missing / expired: ${escapeHtml(bad.join(', '))}">${escapeHtml(bad.length === 1 ? bad[0] : bad.length + ' issues')}</span>` : '<span class="sc-chip ok">compliant</span>';
   }
+  // Revenue = FDI amounts on the site's services (cancelled ones excluded); cost = vendor costs on those services.
+  function scFin(r){
+    const ns = normStore(r.store); let rev = 0, cost = 0, n = 0, noCost = 0;
+    ctReqs.forEach(q => {
+      if (normStore(q.store) !== ns || q.status === 'Cancelled') return;
+      const f = shNum(q.fdiAmount), v = shNum(q.vendorCost);
+      if (f !== null && f > 0){ rev += f; n++; if (v === null || v <= 0) noCost++; }
+      if (v !== null && v > 0) cost += v;
+    });
+    return { rev, cost, profit: rev - cost, margin: rev > 0 ? (rev - cost) / rev : null, n, noCost };
+  }
+  const scMoney = n => (n < 0 ? '-' : '') + shMoney(Math.abs(n));
+  function scFinCells(x){
+    if (!x.n && !x.cost) return '<td class="sc-num sc-rev" style="color:var(--ink-faint)">—</td><td class="sc-num sc-prof" style="color:var(--ink-faint)">—</td><td class="sc-num sc-mar" style="color:var(--ink-faint)">—</td>';
+    const flag = x.noCost ? ` <span class="sc-flag" title="${x.noCost} service${x.noCost === 1 ? ' has' : 's have'} an FDI amount but no vendor cost yet, so profit and margin look higher than they will end up.">*</span>` : '';
+    return `<td class="sc-num sc-rev">${scMoney(x.rev)}</td><td class="sc-num sc-prof${x.profit < 0 ? ' sc-neg' : ''}">${scMoney(x.profit)}${flag}</td><td class="sc-num sc-mar${x.margin !== null && x.margin < 0 ? ' sc-neg' : ''}">${x.margin === null ? '—' : (x.margin * 100).toFixed(1) + '%'}</td>`;
+  }
+  function scTotalRow(list){
+    let rev = 0, cost = 0; list.forEach(r => { const x = scFin(r); rev += x.rev; cost += x.cost; });
+    const x = { rev, cost, profit: rev - cost, margin: rev > 0 ? (rev - cost) / rev : null, n: 1, noCost: 0 };
+    return `<tr class="sc-total"><td colspan="8" style="text-align:right">Total &middot; ${list.length} site${list.length === 1 ? '' : 's'}</td><td></td>${scFinCells(x)}</tr>`;
+  }
+  // update the money columns in place (so an open site detail / typing isn't disturbed)
+  function scRefreshFin(){
+    const body = document.getElementById('sc-tbody'); if (!body) return;
+    const list = []; body.querySelectorAll('tr[data-store]:not(.detail-row)').forEach(tr => {
+      const r = rows.find(x => normStore(x.store) === normStore(tr.dataset.store)); if (!r) return; list.push(r);
+      const cells = tr.querySelectorAll('td.sc-rev, td.sc-prof, td.sc-mar'); if (cells.length !== 3) return;
+      const tmp = document.createElement('tr'); tmp.innerHTML = scFinCells(scFin(r)); { const nw = Array.from(tmp.children); cells.forEach((c, i) => c.replaceWith(nw[i])); }
+    });
+    const tot = body.querySelector('tr.sc-total'); if (tot && list.length){ const tmp = document.createElement('tbody'); tmp.innerHTML = scTotalRow(list); tot.replaceWith(tmp.firstElementChild); }
+  }
   function scRender(){
     const body = document.getElementById('sc-tbody'); if (!body) return;
     const openDetail = body.querySelector('.detail-row');   // keep an expanded site open across refreshes
@@ -6443,14 +6745,14 @@ td.map-cell{ width:60px; text-align:center; }
     if (cuSel){ const cs = [...new Set(rows.filter(ctEligible).map(r => r.customer).filter(Boolean))].sort(); const key = cs.join('|'); if (cuSel.dataset.k !== key){ const cur = cuSel.value; cuSel.dataset.k = key; cuSel.innerHTML = '<option value="">All customers</option>' + cs.map(c => `<option${c === cur ? ' selected' : ''}>${escapeHtml(c)}</option>`).join(''); } }
     const list = scVisible(); const total = rows.filter(ctEligible).length;
     document.getElementById('sc-count').textContent = `${list.length} of ${total} contracted sites`;
-    if (!total){ body.innerHTML = '<tr><td colspan="9" class="ct-empty">No sites have reached this stage yet. Sites show up here once Customer Status is <b>Contract Accepted</b> and the vendor contract is signed. (Change the stage under &ldquo;Sites&rdquo; above.)</td></tr>'; return; }
-    if (!list.length){ body.innerHTML = '<tr><td colspan="9" class="ct-empty">No sites match these filters.</td></tr>'; return; }
+    if (!total){ body.innerHTML = '<tr><td colspan="13" class="ct-empty">No sites have reached this stage yet. Sites show up here once Customer Status is <b>Contract Accepted</b> and the vendor contract is signed. (Change the stage under &ldquo;Sites&rdquo; above.)</td></tr>'; return; }
+    if (!list.length){ body.innerHTML = '<tr><td colspan="13" class="ct-empty">No sites match these filters.</td></tr>'; return; }
     body.innerHTML = list.map(r => {
       const ns = normStore(r.store); const reqs = ctReqs.filter(x => normStore(x.store) === ns); const done = reqs.filter(x => x.status === 'Completed').length;
       const tm = contractTermForRow(r);
-      return `<tr data-store="${escapeHtml(r.store)}"><td><b>${escapeHtml(r.store)}</b></td><td>${escapeHtml(r.address || '')}</td><td>${escapeHtml(r.customer || '')}</td><td class="sc-reg">${regionSelectHtml(r)}</td><td>${escapeHtml(pmShort(r.pm))}</td>
-        <td>${r.vendor2627 ? escapeHtml(r.vendor2627) : '<span class="ct-novendor">no vendor</span>'}</td><td style="white-space:nowrap">${escapeHtml(tm.beginMonthDay)} – ${escapeHtml(tm.endMonthDay)}, 20${escapeHtml(tm.endYear2)}</td><td>${scCompliance(r)}</td><td>${done} / ${reqs.length}</td></tr>`;
-    }).join('');
+      return `<tr data-store="${escapeHtml(r.store)}"><td><b>${escapeHtml(r.store)}</b></td><td>${escapeHtml(r.address || '')}</td><td class="sc-cust">${customerSelectHtml(r)}</td><td class="sc-reg">${regionSelectHtml(r)}</td><td>${escapeHtml(pmShort(r.pm))}</td>
+        <td>${r.vendor2627 ? escapeHtml(r.vendor2627) : '<span class="ct-novendor">no vendor</span>'}</td><td style="white-space:nowrap">${escapeHtml(tm.beginMonthDay)} – ${escapeHtml(tm.endMonthDay)}, 20${escapeHtml(tm.endYear2)}</td><td>${scCompliance(r)}</td><td>${done} / ${reqs.length}</td>${scFinCells(scFin(r))}</tr>`;
+    }).join('') + scTotalRow(list);
     if (openDetail){ const tr = Array.from(body.querySelectorAll('tr[data-store]')).find(x => x.dataset.store === openDetail.dataset.store); if (tr){ tr.classList.add('active'); tr.after(openDetail); } }
   }
 
@@ -6469,10 +6771,16 @@ td.map-cell{ width:60px; text-align:center; }
     document.getElementById('sc-tbody').addEventListener('change', e => {
       const sel = e.target.closest && e.target.closest('td.sc-reg select.region-select'); if (!sel || !sel.dataset.rowid) return;
       const r = rows.find(x => String(x.rowId) === sel.dataset.rowid); if (!r) return;
-      stageRegionChange(r, sel, sel.value).then(() => scRender());
+      regionChosen(r, sel).then(() => scRender());
+    });
+    document.getElementById('sc-tbody').addEventListener('change', e => {
+      const sel = e.target.closest && e.target.closest('td.sc-cust select.dm-select'); if (!sel || !sel.dataset.rowid) return;
+      const r = rows.find(x => String(x.rowId) === sel.dataset.rowid); if (!r) return;
+      if (sel.value === '__new__'){ scRender(); dmOpenNew(r, () => scRender()); return; }
+      dmSetCustomer(r, sel.value, sel.value ? dmEmailFor(sel.value) : ''); scRender();
     });
     document.getElementById('sc-tbody').addEventListener('click', e => {
-      if (e.target.closest('tr.detail-row') || e.target.closest('select.region-select')) return;
+      if (e.target.closest('tr.detail-row') || e.target.closest('select.region-select') || e.target.closest('select.dm-select')) return;
       const tr = e.target.closest('tr[data-store]'); if (!tr) return; const store = tr.dataset.store;
       const body = document.getElementById('sc-tbody'); const existing = body.querySelector('.detail-row');
       const wasThis = existing && existing.dataset.store === store;
@@ -6496,10 +6804,22 @@ td.map-cell{ width:60px; text-align:center; }
       let v = el.value.trim(); const f = el.dataset.f;
       if (f === 'fdiAmount' || f === 'vendorCost'){ const n = shNum(v); if (v !== '' && n === null){ el.value = q[f] || ''; return; } v = n === null ? '' : String(n); el.value = v; }
       ctSetField(q, f, v);
+      if (f === 'fdiAmount' || f === 'vendorCost'){ try { scRefreshFin(); } catch(x){} }
+      { const p1 = tr.querySelector('.sh-push-one'); if (p1){ p1.disabled = !blPending(q); p1.title = p1.disabled ? 'Add an FDI amount or vendor cost first' : 'Send just this service to owner + sub billing'; } }
       const blk = el.closest('.sh-block'); const sumEl = blk && blk.querySelector('.sh-sum');
       if (sumEl){ const store = blk.dataset.store; const lst = ctReqs.filter(x => normStore(x.store) === store); const sm = k => lst.reduce((a, x) => a + (shNum(x[k]) || 0), 0); sumEl.innerHTML = `${lst.length} service${lst.length === 1 ? '' : 's'} logged &middot; FDI ${shMoney(sm('fdiAmount'))} &middot; Vendor ${shMoney(sm('vendorCost'))}`; }
       if (blk){ const pb = blk.querySelector('.sh-pushbar'); const site = rows.find(x => normStore(x.store) === blk.dataset.store); if (pb && site){ const tmp = document.createElement('div'); tmp.innerHTML = blPushBarHtml(site, serviceHistoryRows(site)); pb.replaceWith(tmp.firstElementChild); } }
       ctFlush().then(ctRenderBanner);
+    });
+    document.addEventListener('click', e => {
+      const b = e.target.closest && e.target.closest('button.sh-push-one'); if (!b || b.disabled) return; e.stopPropagation();
+      const tr = b.closest('tr'); const rid = tr.dataset.rid, key = tr.dataset.key;
+      const q = ctReqs.find(x => (rid && String(x.rowId) === rid) || (key && x.key === key)); if (q) blPushOne(q);
+    });
+    document.addEventListener('click', e => {
+      const b = e.target.closest && e.target.closest('button.sh-del'); if (!b) return; e.stopPropagation();
+      const tr = b.closest('tr'); const rid = tr.dataset.rid, key = tr.dataset.key;
+      const q = ctReqs.find(x => (rid && String(x.rowId) === rid) || (key && x.key === key)); if (q) blDeleteOne(q);
     });
     document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button.sh-new'); if (!b) return; e.stopPropagation(); ctOpenNewStorm(b.dataset.store); });
     document.addEventListener('click', e => {
@@ -6508,7 +6828,9 @@ td.map-cell{ width:60px; text-align:center; }
       if (t.classList.contains('bl-undo')){
         const tr = t.closest('tr'); const rid = tr.dataset.rid, key = tr.dataset.key;
         const q = ctReqs.find(x => (rid && String(x.rowId) === rid) || (key && x.key === key)); if (!q) return;
-        ctSetField(q, 'pushedAt', ''); blRender(); scRefreshHistory(); ctFlush().then(ctRenderBanner); return;
+        if (q.ownerInvoice && !window.confirm(`This service is on invoice #${q.ownerInvoice}. Undo takes it off that invoice number and out of billing. Continue?`)) return;
+        if (q.ownerInvoice){ ctSetField(q, 'ownerInvoice', ''); ctSetField(q, 'ownerInvoiceDate', ''); }
+        ctSetField(q, 'pushedAt', ''); blSel.delete(blKey(q)); blRender(); scRefreshHistory(); ctFlush().then(ctRenderBanner); return;
       }
       const bar = t.closest('.sh-pushbar'); const store = bar && bar.dataset.store; const r = rows.find(x => normStore(x.store) === store); if (!r) return;
       if (t.classList.contains('sh-push-cancel')){ blConfirm = ''; scRefreshHistory(); return; }
@@ -6518,6 +6840,15 @@ td.map-cell{ width:60px; text-align:center; }
     document.getElementById('bl-tab-owner').addEventListener('click', () => { blMode = 'owner'; blRender(); });
     document.getElementById('bl-tab-sub').addEventListener('click', () => { blMode = 'sub'; blRender(); });
     document.getElementById('bl-csv').addEventListener('click', blCsv);
+    document.getElementById('bl-invoice').addEventListener('click', invOpen);
+    document.getElementById('inv-make').addEventListener('click', invMake);
+    document.getElementById('inv-cancel').addEventListener('click', () => { document.getElementById('inv-back').hidden = true; });
+    document.addEventListener('change', e => {
+      const t = e.target; if (!t.classList) return;
+      if (t.classList.contains('bl-chk')){ const tr = t.closest('tr'); const q = ctReqs.find(x => (tr.dataset.rid && String(x.rowId) === tr.dataset.rid) || (tr.dataset.key && x.key === tr.dataset.key)); if (!q) return; if (t.checked) blSel.add(blKey(q)); else blSel.delete(blKey(q)); invUpdateBtn(); const all = document.querySelector('.bl-chk-all'); if (all){ const open = blRows('owner').filter(x => !x.ownerInvoice); all.checked = open.length > 0 && open.every(x => blSel.has(blKey(x))); } }
+      else if (t.classList.contains('bl-chk-all')){ blRows('owner').filter(x => !x.ownerInvoice).forEach(x => { if (t.checked) blSel.add(blKey(x)); else blSel.delete(blKey(x)); }); blRender(); }
+    });
+    document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button.bl-inv-print'); if (b){ e.stopPropagation(); invReprint(b.dataset.no); } });
     document.getElementById('ct-email-vendors').addEventListener('click', ctOpenVendors);
     document.getElementById('ct-form').addEventListener('submit', ctSubmitNewStorm);
     document.getElementById('ct-f-store').addEventListener('change', ctRefreshNewService);
@@ -6556,6 +6887,8 @@ td.map-cell{ width:60px; text-align:center; }
       ctFlush().then(ctRenderBanner);
     });
     tb.addEventListener('click', e => {
+      const d = e.target.closest('button[data-act="delete"]');
+      if (d){ const ns = d.closest('tr').dataset.store; const q = ctStorm && ctReqs.find(x => x.storm === ctStorm && normStore(x.store) === ns); if (q) blDeleteOne(q); return; }
       const b = e.target.closest('button[data-act="request"]'); if (!b) return;
       const ns = b.closest('tr').dataset.store; const r = rows.find(x => normStore(x.store) === ns); if (!r || !ctStorm) return;
       const info = ctStorms().find(s => s.name === ctStorm) || {};
@@ -6568,6 +6901,14 @@ td.map-cell{ width:60px; text-align:center; }
       ctSel.forEach(ns => { const q = ctReqs.find(x => x.storm === ctStorm && normStore(x.store) === ns); if (q){ ctSetStatus(q, st); n++; } });
       e.target.value = ''; ctRender(); ctFlush().then(ctRender);
       const b = document.getElementById('ct-banner'); if (!n){ b.hidden = false; b.className = 'ct-banner bad'; b.textContent = 'None of the checked sites have a request in this storm yet.'; }
+    });
+    document.getElementById('ct-del-storm').addEventListener('click', () => {
+      if (!ctStorm) return; const list = ctReqs.filter(q => q.storm === ctStorm);
+      ctDeleteMany(list, `every site in &ldquo;${escapeHtml(ctStorm)}&rdquo;`);
+    });
+    document.getElementById('ct-bulk-delete').addEventListener('click', () => {
+      if (!ctStorm) return; const list = []; ctSel.forEach(ns => { const q = ctReqs.find(x => x.storm === ctStorm && normStore(x.store) === ns); if (q) list.push(q); });
+      ctDeleteMany(list, `the ${list.length} checked site${list.length === 1 ? '' : 's'} in &ldquo;${escapeHtml(ctStorm)}&rdquo;`);
     });
     document.getElementById('ct-bulk-request').addEventListener('click', () => {
       if (!ctStorm) return; const info = ctStorms().find(s => s.name === ctStorm) || {};

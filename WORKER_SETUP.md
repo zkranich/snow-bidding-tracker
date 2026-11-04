@@ -94,3 +94,5 @@ To use `request.html` (customer self-service requests), add a third secret on th
 - `POST /add-row { store, customer?, address?, sf?, region?, pm?, customerStatus?, customerEmail? }` → `{ ok, rowId }`.
 - `POST /attach?rowId=&name=` — raw file body; used for estimates, overhead maps and owner contracts.
 After pasting a new worker.js, click Deploy; no secrets change.
+
+- `POST /dispatch-delete {rowId}` — deletes one service row from the 26/27 Snow PBR Tracker (used by Service history → Delete).

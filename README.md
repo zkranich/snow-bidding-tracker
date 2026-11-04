@@ -260,3 +260,30 @@ Every edit on every tab writes to the "26-27 Snow Bidding Sheet" the moment you 
 ## New service dialog (Contracted tab)
 - **Contract parameters with several stores:** the list now includes every contract parameter found on the selected stores (e.g. "Plow — 2–4"", "Salt — Deicer"), each with how many stores have it. Untick "Per each store's contract" and tick the parameters you want: each store gets the ones its own contract has, at its own rate, and stores without any ticked parameter are skipped. A single store still shows its own checklist with editable amounts.
 - **Multiple service dates:** "+ Add date" adds more dates (each defaults to the next day, with × to remove). Every date creates its own entry for every store.
+
+## Vendor Invoice # on New service
+When a single store is picked in Contracted → New service, there is now a **Vendor Invoice #** box next to Work Order #. It saves to the PBR Tracker's Vendor Invoice column and shows (editable) in Service history and on the Billing tab's Sub list. Multi-store services leave it blank; fill it in per store afterwards.
+
+## Owner invoices (Billing tab → Owner billing)
+Tick the services, click **Create invoice**. One invoice is made per store (Bill to / Ship to are editable; Bill to is remembered per store in this browser). Invoice numbers auto-fill (next after the highest used, starting at 1001) and save to the PBR Tracker's **Owner Invoice Number** / **Owner Invoice Date** columns, so invoiced lines are marked and can't be invoiced twice. Click the #number on a line to reopen/print it. **Print / Save as PDF** uses the browser's print dialog. Undo on an invoiced line takes it off the invoice and out of billing.
+Requires the updated worker.js (adds ownerInvoice / ownerInvoiceDate to DISPATCH_COLS).
+
+## Service history: per-service Push to billing + Delete
+Each row in Service history has its own **Push to billing** button (enabled once it has an FDI amount or vendor cost) and a **Delete** button. Delete always asks first, warns if the service is already in billing, and refuses if it's on an owner invoice (Undo it in Billing first). Deleting removes the row from the PBR Tracker for everyone. Needs the updated worker.js (new /dispatch-delete route).
+
+## Contracted Sites: Revenue / Profit / Margin
+Each contracted site shows Revenue (sum of FDI amounts on its services, cancelled excluded), Profit (revenue minus vendor costs) and Margin (profit ÷ revenue), plus a Total row for whatever the filters show. Updates live as you edit Service history amounts. A * next to Profit means some service has an FDI amount but no vendor cost yet, so profit/margin look better than they'll end up.
+
+## Create Vendor Subcontract only once a vendor is picked
+The Create Vendor Subcontract button (and its contract-type dropdown) shows whenever the site has a 26/27 vendor entered and the vendor status isn't Compliance Received — on every site, including contracted ones — and is hidden (with a hint) otherwise. It no longer depends on the customer status. Create Owner Contract is unchanged.
+
+## Removed buttons; customer + region editing
+- The "Vendor follow-up" and "Flagged only" filter buttons are gone from the Bidding toolbar (the per-vendor follow-up chip inside a site is unchanged).
+- Contracted Sites table: Customer is now a dropdown (pick a DM, or "+ Add new DM…" to type a new one with email) right in the table; Region is too.
+- Every Region dropdown has **+ Add region…** — type a name and it's added to the lists/filters and assigned to that site (saved to the Region column in Smartsheet; no picklist change needed). Regions already used by any site show up in the lists automatically.
+
+## Service tab: delete services
+- **Delete** button on every row that has a request for the selected service.
+- **Delete selected requests** (appears when sites are checked) removes the checked sites' requests for this service.
+- **Delete service…** (top bar) removes every request in the selected service.
+All ask first and say how many will go; ones already in billing are called out; ones on an owner invoice are left alone (Undo them in Billing first). Needs the updated worker.js.
