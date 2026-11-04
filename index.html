@@ -421,6 +421,7 @@ button.sh-push-one:disabled{ opacity:.55; cursor:not-allowed; }
 .ct-btn.primary{ background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
 .ct-btn:disabled{ opacity:.55; cursor:not-allowed; }
 .ct-banner{ margin:10px 0 0; background:var(--accent-soft); color:var(--accent-ink); border:1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); border-radius:8px; padding:8px 12px; font-size:12.5px; font-weight:600; }
+.ct-tabs{ display:flex; gap:4px; flex-wrap:wrap; margin-top:12px; border-bottom:1px solid var(--border); } .ct-tab{ background:transparent; color:var(--ink-muted); border:1px solid transparent; border-bottom:0; border-radius:8px 8px 0 0; padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; margin-bottom:-1px; } .ct-tab:hover{ color:var(--ink); } .ct-tab.on{ background:var(--surface); color:var(--accent-ink, var(--ink)); border-color:var(--border); border-bottom:1px solid var(--surface); } .ct-tab .n{ font-weight:500; font-size:11.5px; background:var(--surface-alt); color:var(--ink-muted); border-radius:10px; padding:1px 7px; margin-left:6px; } .ct-tab.on .n{ background:var(--accent-soft); color:var(--accent-ink); }
 .ct-banner.bad{ background:var(--warn-soft); color:var(--warn); border-color:color-mix(in srgb, var(--warn) 40%, var(--border)); }
 .ct-bulk{ margin:10px 0 0; display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:12.5px; }
 .ct-bulk select{ background:var(--surface-alt); border:1px solid var(--border); border-radius:6px; padding:6px 8px; font-size:12.5px; color:var(--ink); }
@@ -429,8 +430,8 @@ table.ct-table td{ vertical-align:middle; padding:7px 9px; }
 table.ct-table input.ct-in, table.ct-table select.ct-in{ width:100%; box-sizing:border-box; background:var(--surface-alt); color:var(--ink); border:1px solid var(--border); border-radius:6px; padding:5px 6px; font-size:12.5px; font-family:inherit; }
 table.ct-table input.ct-num{ width:62px; }
 table.ct-table select[data-f="service"]{ min-width:118px; }
-table.ct-table select.ct-status{ font-weight:600; min-width:108px; }
-table.ct-table select.st-Requested{ border-color:#c98a1b; } table.ct-table select.st-Dispatched{ border-color:#3b82c4; } table.ct-table select.st-OnSite{ border-color:#8a63d2; }
+table.ct-table select.ct-status{ font-weight:600; min-width:128px; }
+table.ct-table select.st-Requested{ border-color:#c98a1b; } table.ct-table select.st-Dispatched{ border-color:#3b82c4; } table.ct-table select.st-VendorReplied{ border-color:#1aa6a6; } .ct-reply{ color:#1a8f8f !important; max-width:230px; white-space:normal; line-height:1.3; } .ct-mailmsg{ font-size:11.5px; color:var(--ink-muted); } table.ct-table select.st-OnSite{ border-color:#8a63d2; }
 table.ct-table select.st-Completed{ border-color:#2f9e6e; } table.ct-table select.st-Issue{ border-color:#d9534f; } table.ct-table select.st-Cancelled{ opacity:.6; }
 .ct-novendor{ color:#d9534f; font-size:12px; font-weight:600; }
 .ct-season{ font-size:11.5px; color:var(--ink-muted); white-space:nowrap; }
@@ -1207,6 +1208,7 @@ td.map-cell{ width:60px; text-align:center; }
       <label style="font-size:12px;color:var(--ink-muted);display:inline-flex;align-items:center;gap:5px;cursor:pointer" title="Off = the table lists only sites that have a request for the selected service"><input type="checkbox" id="ct-show-all"> Show sites without a request</label>
       <button class="ct-btn primary" id="ct-new-storm" type="button">&#43; New service</button>
       <button class="ct-btn" id="ct-email-vendors" type="button">&#9993; Email vendors</button>
+      <button class="ct-btn" id="ct-check-mail" type="button" title="Look in Gmail for vendor emails that were sent or answered and update the status (also runs automatically every few minutes)">&#8635; Check replies</button><span class="ct-mailmsg" id="ct-mail-msg"></span>
       <button class="ct-btn" id="ct-del-storm" type="button" style="color:#c0392b" title="Delete every request in the selected service">&#128465; Delete service&hellip;</button>
       <span class="vc-count" id="ct-count"></span>
     </div>
@@ -1218,7 +1220,8 @@ td.map-cell{ width:60px; text-align:center; }
       <button class="ct-btn" id="ct-bulk-delete" type="button" style="color:#c0392b" title="Delete the checked sites' requests for this service">Delete selected requests</button>
       <button class="ct-btn" id="ct-bulk-clear" type="button">Clear</button>
     </div>
-    <div class="table-wrap" style="margin-top:10px">
+    <div class="ct-tabs" id="ct-tabs"></div>
+    <div class="table-wrap" style="margin-top:6px">
       <table class="ct-table">
         <thead><tr>
           <th class="select-col"><input type="checkbox" id="ct-select-all" title="Select all shown"></th>
@@ -5773,7 +5776,7 @@ td.map-cell{ width:60px; text-align:center; }
       if (v === 'vendor') renderVendorContracting();
       if (v === 'compliance'){ if (vtRows === null || vtState === 'error' || vtState === 'noconn') vtLoad(); else renderCompliance(); }
       if (v === 'sites'){ scRender(); ctLoad(false); if (SMARTSHEET_WORKER_URL) vtEnsureRows().then(scRender).catch(() => {}); }
-      if (v === 'contracted'){ ctPickStorm(); ctRender(); ctLoad(true); wxRender(); if (!wxBusy && (wxState === 'idle' || Date.now() - wxAt > 30 * 60000)) wxRefresh(); }
+      if (v === 'contracted'){ ctPickStorm(); ctRender(); ctLoad(true).then(() => ctCheckEmails(false)).catch(() => {}); wxRender(); if (!wxBusy && (wxState === 'idle' || Date.now() - wxAt > 30 * 60000)) wxRefresh(); }
       if (v === 'billing'){ blRender(); ctLoad(false).then(blRender).catch(() => {}); }
       if (v === 'projections') renderProjections();
       if (v === 'map') renderMap();
@@ -5796,13 +5799,18 @@ td.map-cell{ width:60px; text-align:center; }
   // "26/27 Snow PBR Tracker" (via the Worker /dispatch endpoints). Changes are saved in this
   // browser first (outbox) and pushed to Smartsheet, so nothing is lost on a refresh.
   const CT_OUTBOX_KEY = 'fdiDispatchOutboxV1', CT_SCOPE_KEY = 'fdiCtScopeV1';
-  const CT_COLS = {"request":8036663236005764,"storm":718313841528708,"stormDate":5221913468899204,"store":2970113655213956,"address":7473713282584452,"pm":1844213748371332,"vendor":6347813375741828,"status":4096013562056580,"service":8599613189427076,"serviceItems":2241975098838916,"fdiAmount":1416956307345284,"vendorCost":5920555934715780,"workOrder":3668756121030532,"projectNo":8707827574804356,"pushedAt":3907393630801796,"vendorInvoice":5844323083784068,"ownerInvoice":3357743823753092,"ownerInvoiceDate":7861343451123588,"forecast":436838864818052,"actual":4940438492188548,"pushes":2688638678503300,"salt":7192238305873796,"requestedAt":1562738771660676,"dispatchedAt":6066338399031172,"onSiteAt":3814538585345924,"completedAt":8318138212716420,"issue":999788818239364,"notes":5503388445609860};
-  const CT_STATUSES = ['Requested', 'Dispatched', 'On Site', 'Completed', 'Issue', 'Cancelled'];
+  const CT_COLS = {"request":8036663236005764,"storm":718313841528708,"stormDate":5221913468899204,"store":2970113655213956,"address":7473713282584452,"pm":1844213748371332,"vendor":6347813375741828,"status":4096013562056580,"service":8599613189427076,"serviceItems":2241975098838916,"fdiAmount":1416956307345284,"vendorCost":5920555934715780,"workOrder":3668756121030532,"projectNo":8707827574804356,"pushedAt":3907393630801796,"vendorInvoice":5844323083784068,"ownerInvoice":3357743823753092,"ownerInvoiceDate":7861343451123588,"forecast":436838864818052,"actual":4940438492188548,"pushes":2688638678503300,"salt":7192238305873796,"requestedAt":1562738771660676,"dispatchedAt":6066338399031172,"onSiteAt":3814538585345924,"completedAt":8318138212716420,"issue":999788818239364,"notes":5503388445609860,"emailRef":1903329642581892,"vendorReply":6406929269952388,"vendorRepliedAt":4155129456267140};
+  const CT_STATUSES = ['Requested', 'Dispatched', 'Vendor Replied', 'On Site', 'Completed', 'Issue', 'Cancelled'];
   const CT_SERVICES = ['Plow', 'Salt', 'Plow + Salt', 'Haul / Stack', 'Other'];
   let ctReqs = [];            // all requests (server rows + not-yet-created local ones)
   let ctState = 'idle', ctError = '';   // idle | loading | ok | error | noconn
   let ctStorm = '';           // active storm name
   let ctStatusFilter = '';
+  // Service-tab sub-tabs: which statuses each tab lists ('' = All)
+  const CT_TABS = [['', 'All', null], ['requested', 'Requested', ['Requested']], ['dispatched', 'Dispatched', ['Dispatched', 'Vendor Replied', 'On Site']], ['completed', 'Completed', ['Completed']], ['other', 'Issue / Cancelled', ['Issue', 'Cancelled']]];
+  const ctTabOf = st => { const t = CT_TABS.find(x => x[2] && x[2].includes(st)); return t ? t[0] : ''; };
+  let ctTab = ''; try { const v = localStorage.getItem('fdiCtTabV1'); if (v && CT_TABS.some(x => x[0] === v)) ctTab = v; } catch(e){}
+  const ctSetTab = v => { ctTab = v; try { localStorage.setItem('fdiCtTabV1', v); } catch(e){} };
   const ctSel = new Set();    // normalized store numbers checked in the table
   let ctScope = 'full'; try { ctScope = localStorage.getItem(CT_SCOPE_KEY) || 'full'; } catch(e){}
   let ctLoadedAt = 0;
@@ -5851,8 +5859,9 @@ td.map-cell{ width:60px; text-align:center; }
   }
   // push whatever is still waiting: new requests first (they get a row id), then field updates
   let ctFlushing = false;
+  let ctFlushAgain = false;   // changes queued while a flush was running get sent right after it
   async function ctFlush(){
-    if (!SMARTSHEET_WORKER_URL || ctFlushing) return; ctFlushing = true;
+    if (!SMARTSHEET_WORKER_URL) return; if (ctFlushing){ ctFlushAgain = true; return; } ctFlushing = true;
     try {
       let ob = ctOutLoad();
       if (ob.creates.length){
@@ -5885,7 +5894,7 @@ td.map-cell{ width:60px; text-align:center; }
         } catch(e){ ctError = 'could not reach the Worker URL'; ctState = 'error'; }
       }
       if (ctPendingCount() === 0 && ctState === 'error' && ctError) { /* keep error text visible until next good load */ }
-    } finally { ctFlushing = false; ctRenderBanner(); }
+    } finally { ctFlushing = false; ctRenderBanner(); if (ctFlushAgain){ ctFlushAgain = false; setTimeout(() => { ctFlush().then(ctRender); }, 60); } }
   }
   // change one field on a request (local first, then queued for Smartsheet)
   function ctSetField(req, field, value){
@@ -5910,7 +5919,7 @@ td.map-cell{ width:60px; text-align:center; }
     if (req.status === status) return;
     ctSetField(req, 'status', status);
     const stamp = f => { if (!req[f]) ctSetField(req, f, ctNow()); };
-    if (status === 'Dispatched') stamp('dispatchedAt');
+    if (status === 'Dispatched' || status === 'Vendor Replied') stamp('dispatchedAt');
     if (status === 'On Site'){ stamp('dispatchedAt'); stamp('onSiteAt'); }
     if (status === 'Completed'){ stamp('dispatchedAt'); stamp('onSiteAt'); stamp('completedAt'); }
   }
@@ -6213,14 +6222,19 @@ td.map-cell{ width:60px; text-align:center; }
     allEligible.forEach(r => { const q = ctStorm ? ctReqFor(r, ctStorm) : null; if (q && counts[q.status] !== undefined) counts[q.status]++; else if (!q) none++; });
     const kp = [['', allEligible.length, 'Contracted sites']].concat(CT_STATUSES.filter(s => s !== 'Cancelled').map(s => [s, counts[s], s])).concat([['__NONE__', none, 'No request']]);
     document.getElementById('ct-kpis').innerHTML = kp.map(([k, n, l]) => `<div class="ct-kpi s-${escapeHtml(k.replace(/\s+/g, ''))}${ctStatusFilter === k && k ? ' on' : ''}" data-f="${escapeHtml(k)}"><div class="n">${n}</div><div class="l">${escapeHtml(l)}</div></div>`).join('');
+    // sub-tab counts: this service's requests among the sites passing the PM / region / search filters
+    { const tc = {}; CT_TABS.forEach(t => { tc[t[0]] = 0; });
+      sites.forEach(r => { const q = ctStorm ? ctReqFor(r, ctStorm) : null; if (!q) return; tc['']++; const k = ctTabOf(q.status); if (k) tc[k]++; });
+      document.getElementById('ct-tabs').innerHTML = CT_TABS.map(t => `<button type="button" class="ct-tab${ctTab === t[0] ? ' on' : ''}" data-tab="${t[0]}">${escapeHtml(t[1])}<span class="n">${tc[t[0]]}</span></button>`).join(''); }
+    const tabSt = (CT_TABS.find(t => t[0] === ctTab) || [])[2];
     const reqOnly = !ctShowAll && ctStatusFilter !== '__NONE__';
-    const shown = sites.filter(r => { const q = ctStorm ? ctReqFor(r, ctStorm) : null; if (reqOnly && !q) return false; if (!ctStatusFilter) return true; return ctStatusFilter === '__NONE__' ? !q : (q && q.status === ctStatusFilter); });
+    const shown = sites.filter(r => { const q = ctStorm ? ctReqFor(r, ctStorm) : null; if (reqOnly && !q) return false; if (tabSt && !(q && tabSt.includes(q.status))) return false; if (!ctStatusFilter) return true; return ctStatusFilter === '__NONE__' ? !q : (q && q.status === ctStatusFilter); });
     document.getElementById('ct-count').textContent = reqOnly ? `${shown.length} service request${shown.length === 1 ? '' : 's'} · ${allEligible.length} contracted sites` : `${shown.length} of ${allEligible.length} contracted sites`;
     const tb = document.getElementById('ct-tbody');
     if (!allEligible.length){
       tb.innerHTML = `<tr><td colspan="13" class="ct-empty">No sites have reached this stage yet. Sites show up here once Customer Status is <b>Contract Accepted</b> and the vendor contract is signed. (Change the stage under &ldquo;Sites&rdquo; above.)</td></tr>`;
     } else if (!shown.length){
-      tb.innerHTML = `<tr><td colspan="13" class="ct-empty">${reqOnly ? (ctStorm ? 'No service requests match these filters.' : 'No services yet.') + ' Click <b>+ New service</b> to create one, or tick <b>Show sites without a request</b>.' : 'No sites match these filters.'}</td></tr>`;
+      tb.innerHTML = `<tr><td colspan="13" class="ct-empty">${reqOnly ? (ctStorm ? (tabSt ? 'Nothing in the ' + (CT_TABS.find(t => t[0] === ctTab) || [])[1] + ' tab for this service.' : 'No service requests match these filters.') : 'No services yet.') + ' Click <b>+ New service</b> to create one, or tick <b>Show sites without a request</b>.' : 'No sites match these filters.'}</td></tr>`;
     } else {
       tb.innerHTML = shown.map(r => {
         const q = ctStorm ? ctReqFor(r, ctStorm) : null;
@@ -6230,7 +6244,7 @@ td.map-cell{ width:60px; text-align:center; }
         const vend = r.vendor2627 ? escapeHtml(r.vendor2627) : '<span class="ct-novendor">no vendor</span>';
         const opt = (list, cur) => list.map(s => `<option value="${escapeHtml(s)}"${s === cur ? ' selected' : ''}>${escapeHtml(s)}</option>`).join('');
         const cells = q
-          ? `<td><select class="ct-in ct-status st-${escapeHtml(q.status.replace(/\s+/g, ''))}" data-f="status">${opt(CT_STATUSES, q.status)}</select>${q.completedAt ? `<div class="ct-season" title="Completed">&#10003; ${escapeHtml(ctFmt(q.completedAt))}</div>` : q.onSiteAt ? `<div class="ct-season">on site ${escapeHtml(ctFmt(q.onSiteAt))}</div>` : q.dispatchedAt ? `<div class="ct-season">sent ${escapeHtml(ctFmt(q.dispatchedAt))}</div>` : ''}</td>
+          ? `<td><select class="ct-in ct-status st-${escapeHtml(q.status.replace(/\s+/g, ''))}" data-f="status">${opt(CT_STATUSES, q.status)}</select>${q.status === 'Vendor Replied' && q.vendorReply ? `<div class="ct-season ct-reply" title="${escapeHtml(q.vendorReply)}${q.vendorRepliedAt ? ' — ' + escapeHtml(ctFmt(q.vendorRepliedAt)) : ''}">&#8617; ${escapeHtml(q.vendorReply.length > 70 ? q.vendorReply.slice(0, 68) + '…' : q.vendorReply)}</div>` : ''}${q.completedAt ? `<div class="ct-season" title="Completed">&#10003; ${escapeHtml(ctFmt(q.completedAt))}</div>` : q.onSiteAt ? `<div class="ct-season">on site ${escapeHtml(ctFmt(q.onSiteAt))}</div>` : q.dispatchedAt ? `<div class="ct-season">sent ${escapeHtml(ctFmt(q.dispatchedAt))}</div>` : ''}</td>
              <td><select class="ct-in" data-f="service"><option value=""></option>${opt(CT_SERVICES, q.service)}</select>${q.serviceItems ? `<div class="ct-season" title="Contract parameters selected">${escapeHtml(q.serviceItems)}</div>` : ''}</td>
              <td><input class="ct-in ct-num" data-f="actual" inputmode="decimal" value="${escapeHtml(q.actual)}" placeholder="${escapeHtml(q.forecast || '')}" title="${q.forecast ? 'Forecast ' + escapeHtml(q.forecast) + '"' : 'Actual snowfall (in)'}"></td>
              <td><input class="ct-in ct-num" data-f="pushes" inputmode="numeric" value="${escapeHtml(q.pushes)}"></td>
@@ -6423,7 +6437,7 @@ td.map-cell{ width:60px; text-align:center; }
       if (madeHere){ madeNames.push(name); if (!firstName) firstName = name; }
     });
     if (!made){ msg.textContent = 'None of the selected stores have those contract parameters — tick a different parameter, or Plow / Salt / Per each store’s contract.'; msg.classList.add('bad'); return; }
-    name = firstName; ctStorm = name; ctSel.clear(); ctStatusFilter = '';
+    name = firstName; ctStorm = name; ctSel.clear(); ctStatusFilter = ''; ctSetTab('');
     document.getElementById('ct-back').hidden = true;
     ctRender(); ctFlush().then(ctRender);
     if (document.getElementById('ct-f-email').checked){ ctEmailSet = madeNames.slice(); ctOpenVendors(); }
@@ -6481,7 +6495,11 @@ td.map-cell{ width:60px; text-align:center; }
     const email = rowEl.querySelector('.ctv-email').value.trim();
     if (email.indexOf('@') < 0){ msg.textContent = 'Add the vendor’s email first.'; msg.classList.add('bad'); return; }
     msg.classList.remove('bad'); msg.textContent = 'Building…';
-    const subject = `SNOW SERVICE REQUEST: ${(ctEmailSet || [ctStorm]).join(', ')} — ${g.sites.length} site${g.sites.length === 1 ? '' : 's'}`; const body = ctEmailBody(g);
+    const ref = ctNewEmailRef();
+    const subject = `SNOW SERVICE REQUEST: ${(ctEmailSet || [ctStorm]).join(', ')} — ${g.sites.length} site${g.sites.length === 1 ? '' : 's'} [${ref}]`; const body = ctEmailBody(g);
+    // remember which email covers these sites so the reply can be matched to them later
+    g.reqs.forEach(q => { ctSetField(q, 'emailRef', ref); if (q.vendorReply) ctSetField(q, 'vendorReply', ''); });
+    ctFlush().then(ctRender);
     const win = window.open('', '_blank'); let url = '';
     if (SMARTSHEET_WORKER_URL && ivGmailOk !== false){
       try {
@@ -6491,8 +6509,46 @@ td.map-cell{ width:60px; text-align:center; }
     }
     if (!url) url = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(email) + '&su=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
     if (win) win.location = url; else window.open(url, '_blank');
-    msg.textContent = `Draft opened for ${g.name}. Mark them dispatched when you send it.`;
+    msg.textContent = `Draft opened for ${g.name} (ref ${ref}). When you send it the status moves to Dispatched, and to Vendor Replied when they answer — or use Mark dispatched.`;
     window.__lastVendorDraft = { to: email, subject, body, url };
+  }
+  // ----- Gmail check: sent -> Dispatched, vendor answered -> Vendor Replied (matched by the SR-xxxxx code in the email subject)
+  const ctNewEmailRef = () => { const a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let o = 'SR-'; for (let i = 0; i < 5; i++) o += a[Math.floor(Math.random() * a.length)]; return o; };
+  let ctMailBusy = false, ctMailOk = true, ctMailAt = 0;
+  function ctMailSay(t, bad){ const e = document.getElementById('ct-mail-msg'); if (e){ e.textContent = t; e.style.color = bad ? 'var(--warn)' : ''; } }
+  async function ctCheckEmails(manual){
+    if (ctMailBusy || !SMARTSHEET_WORKER_URL) return;
+    if (!ctMailOk && !manual) return;
+    const pending = ctReqs.filter(q => q.emailRef && (q.status === 'Requested' || q.status === 'Dispatched'));
+    const refs = [...new Set(pending.map(q => q.emailRef))];
+    if (!refs.length){ if (manual) ctMailSay('No vendor emails are waiting — draft one with Email vendors first.'); return; }
+    ctMailBusy = true; if (manual) ctMailSay('Checking Gmail…');
+    let sent = 0, replied = 0, err = '';
+    try {
+      for (let i = 0; i < refs.length; i += 6){
+        const chunk = refs.slice(i, i + 6);
+        const resp = await fetch(ctBase() + '/gmail-check', { method: 'POST', headers: ctHdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ refs: chunk }) });
+        let d = {}; try { d = await resp.json(); } catch(e){}
+        if (!resp.ok){ err = d && d.error === 'gmail-not-configured' ? 'Gmail isn’t connected to the Worker yet (see GMAIL_SETUP.md).' : d && d.error === 'gmail-read-scope' ? 'Gmail needs the read permission — see GMAIL_SETUP.md step 7.' : resp.status === 404 ? 'The Worker needs the latest worker.js (no /gmail-check route yet).' : 'Gmail check failed (' + ((d && (d.detail || d.error)) || resp.status) + ').'; ctMailOk = false; break; }
+        Object.entries(d.results || {}).forEach(([ref, res]) => {
+          const mine = pending.filter(q => q.emailRef === ref);
+          if (res.replied){
+            const txt = ((res.replyFrom ? res.replyFrom + ': ' : '') + (res.replySnippet || '')).slice(0, 250);
+            mine.forEach(q => { ctSetStatus(q, 'Vendor Replied'); if (q.vendorReply !== txt) ctSetField(q, 'vendorReply', txt); if (!q.vendorRepliedAt) ctSetField(q, 'vendorRepliedAt', res.repliedAt ? new Date(res.repliedAt).toISOString() : ctNow()); });
+            replied += mine.length;
+          } else if (res.sent){
+            mine.forEach(q => { if (q.status === 'Requested'){ ctSetStatus(q, 'Dispatched'); sent++; } });
+          }
+        });
+      }
+    } catch(e){ err = 'Couldn’t reach the Worker to check Gmail.'; }
+    ctMailBusy = false; ctMailAt = Date.now();
+    if (!err) ctMailOk = true;
+    if (sent || replied){ ctRender(); ctFlush().then(ctRender); }
+    const t = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    if (err) ctMailSay(err, true);
+    else ctMailSay((sent || replied) ? `Gmail checked ${t}: ${sent} site${sent === 1 ? '' : 's'} now Dispatched, ${replied} Vendor Replied.` : `Gmail checked ${t}: nothing new.`);
+    window.__lastMailCheck = { sent, replied, err };
   }
   function ctMarkDispatched(i){
     const g = document.getElementById('ctv-list')._groups[i];
@@ -6820,7 +6876,8 @@ td.map-cell{ width:60px; text-align:center; }
     ['ct-pm', 'ct-region'].forEach(id => document.getElementById(id).addEventListener('change', ctRender));
     document.getElementById('ct-search').addEventListener('input', ctRender);
     document.getElementById('ct-show-all').addEventListener('change', e => { ctShowAll = e.target.checked; try { localStorage.setItem('fdiCtShowAllV1', ctShowAll ? '1' : '0'); } catch(x){} ctRender(); });
-    document.getElementById('ct-kpis').addEventListener('click', e => { const k = e.target.closest('.ct-kpi'); if (!k) return; const f = k.dataset.f; ctStatusFilter = (ctStatusFilter === f) ? '' : f; ctRender(); });
+    document.getElementById('ct-kpis').addEventListener('click', e => { const k = e.target.closest('.ct-kpi'); if (!k) return; const f = k.dataset.f; const off = ctStatusFilter === f; ctStatusFilter = off ? '' : f; if (!off) ctSetTab(f && f !== '__NONE__' ? ctTabOf(f) : ''); ctRender(); });
+    document.getElementById('ct-tabs').addEventListener('click', e => { const b = e.target.closest('.ct-tab'); if (!b) return; ctSetTab(b.dataset.tab); ctStatusFilter = ''; ctRender(); });
     document.getElementById('ct-new-storm').addEventListener('click', () => ctOpenNewStorm());
     document.addEventListener('change', e => {
       const el = e.target; if (!el.classList || !el.classList.contains('sh-in')) return;
@@ -6875,6 +6932,8 @@ td.map-cell{ width:60px; text-align:center; }
     });
     document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button.bl-inv-print'); if (b){ e.stopPropagation(); invReprint(b.dataset.no); } });
     document.getElementById('ct-email-vendors').addEventListener('click', () => { ctEmailSet = null; ctOpenVendors(); });
+    document.getElementById('ct-check-mail').addEventListener('click', () => { ctMailOk = true; ctCheckEmails(true); });
+    setInterval(() => { const v = document.getElementById('view-contracted'); if (v && !v.hidden && !document.hidden && Date.now() - ctMailAt > 150000) ctCheckEmails(false); }, 60000);
     document.getElementById('ct-form').addEventListener('submit', ctSubmitNewStorm);
     document.getElementById('ct-f-search').addEventListener('input', ctRenderPick);
     document.getElementById('ct-f-cust').addEventListener('change', ctRenderPick);

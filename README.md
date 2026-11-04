@@ -296,3 +296,13 @@ The New service dialog no longer has a Store dropdown. Search by customer, store
 
 ## Vendor subcontract without a vendor
 The Create Vendor Subcontract button on the Bidding tab no longer needs a 26/27 vendor picked: with no vendor the PDF is built with the vendor name left blank. It is still hidden once the vendor's status is Compliance Received.
+
+## Vendor email status (Dispatched / Vendor Replied)
+- Each vendor draft gets an `[SR-XXXXX]` reference code in its subject; the code is saved on the requests (new Smartsheet column **Email Ref**).
+- Service tab → **↻ Check replies** (also automatic every few minutes while the tab is open): sent email → **Dispatched**; vendor answers → new status **Vendor Replied** (reply preview in **Vendor Reply**, time in **Vendor Replied At**). Only Requested/Dispatched rows are checked, so it never overwrites a later status you set by hand.
+- New Smartsheet bits on the 26/27 Snow PBR Tracker: status option "Vendor Replied", columns Email Ref, Vendor Reply, Vendor Replied At (already added).
+- Worker: new `POST /gmail-check`; setup in GMAIL_SETUP.md step 7 (adds the Gmail read scope).
+- Also fixed: changes queued while a Smartsheet save was already running are now sent right after it.
+
+## Service tab: status tabs
+Above the service table: **All · Requested · Dispatched · Completed · Issue / Cancelled**, each with a count for the selected service (respecting the PM / region / search filters). **Dispatched** includes Dispatched, Vendor Replied and On Site. Changing a row's status moves it to the matching tab. Clicking a status tile at the top jumps to its tab; creating a new service returns to All. The chosen tab is remembered in the browser.

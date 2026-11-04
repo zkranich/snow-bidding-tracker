@@ -57,3 +57,17 @@ Open the dashboard → any site with a vendor under **Vendors interested** → *
 - **google-auth-failed / invalid_grant** — token expired or was revoked. Redo step 4 and replace `GOOGLE_REFRESH_TOKEN`. Most common cause: app left in *Testing* mode (step 2).
 - **gmail-error 403** — Gmail API not enabled (step 1.3) or the scope wasn't added.
 - Drafts land in whichever Gmail account you authorized in step 4.
+
+## 7. Automatic status changes from vendor emails (needs the read permission)
+
+The dashboard can watch Gmail and move a service request for you: **Requested → Dispatched** when the vendor email is actually sent, and **→ Vendor Replied** when the vendor answers (the reply preview shows under the status). To do that the Worker needs permission to *read* Gmail threads, in addition to creating drafts.
+
+1. Google Cloud → **OAuth consent screen / Data access → Add scopes** → add `https://www.googleapis.com/auth/gmail.readonly` → Save.
+2. OAuth Playground (https://developers.google.com/oauthplayground), gear → your own credentials (same Client ID / secret as step 3). In the scopes box paste **both** scopes, separated by a space:
+   `https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.readonly`
+   → Authorize APIs → Exchange authorization code for tokens → copy the new **Refresh token**.
+3. Cloudflare → Worker → Settings → Variables and Secrets → replace `GOOGLE_REFRESH_TOKEN` with the new token → Deploy. Paste the latest `worker.js` too (it has the new `/gmail-check` route).
+
+How it works: every vendor draft gets a reference code in the subject, like `[SR-4K2P9]`. The Worker only searches Gmail for that code, never your whole inbox. Out-of-office auto-replies, bounces and replies from other @farmerdevelopment.com people don't count as a vendor reply. Keep the code in the subject when you edit the draft. The Service tab checks every few minutes while it's open, or click **Check replies**.
+
+Troubleshooting: "needs the read permission" = step 7.2/7.3 not done yet (the token only has compose). "Needs the latest worker.js" = the Worker hasn't been updated.

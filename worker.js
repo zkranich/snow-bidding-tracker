@@ -57,7 +57,7 @@ const DISPATCH_COLS = {
   address: 7473713282584452,
   pm: 1844213748371332,
   vendor: 6347813375741828,
-  status: 4096013562056580,       // picklist: Requested / Dispatched / On Site / Completed / Issue / Cancelled
+  status: 4096013562056580,       // picklist: Requested / Dispatched / Vendor Replied / On Site / Completed / Issue / Cancelled
   service: 8599613189427076,      // picklist: Plow / Salt / Plow + Salt / Haul / Stack / Other
   serviceItems: 2241975098838916, // text: individual contract parameters picked for the service
   fdiAmount: 1416956307345284,    // FDI Amount (combined contract amount of the picked services)
@@ -78,6 +78,9 @@ const DISPATCH_COLS = {
   completedAt: 8318138212716420,
   issue: 999788818239364,
   notes: 5503388445609860,
+  emailRef: 1903329642581892,       // Email Ref (SR-XXXXX in the vendor email subject)
+  vendorReply: 6406929269952388,    // Vendor Reply (who + preview of the reply)
+  vendorRepliedAt: 4155129456267140, // Vendor Replied At
 };
 
 // Field name (as sent by the dashboard) -> Smartsheet column ID.
@@ -228,6 +231,53 @@ function buildMime({ to, subject, body, attachments }) {
   return b64Utf8(mime).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
+
+// ---- Gmail reply check (needs the gmail.readonly scope on GOOGLE_REFRESH_TOKEN, see GMAIL_SETUP.md step 7) ----
+async function googleAccess(env) {
+  const tok = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ client_id: env.GOOGLE_CLIENT_ID, client_secret: env.GOOGLE_CLIENT_SECRET, refresh_token: env.GOOGLE_REFRESH_TOKEN, grant_type: 'refresh_token' }),
+  });
+  const d = await tok.json();
+  return tok.ok && d.access_token ? { token: d.access_token } : { error: d.error_description || d.error || 'google-auth-failed' };
+}
+function hdrOf(msg, name) {
+  const h = (((msg || {}).payload || {}).headers || []).find(x => String(x.name).toLowerCase() === name.toLowerCase());
+  return h ? String(h.value || '') : '';
+}
+// Looks at the Gmail thread(s) carrying this reference code in the subject and reports whether the email
+// was actually sent and whether somebody outside FDI (and not an auto-reply / bounce) answered it.
+async function gmailRefStatus(ref, me, access) {
+  const gh = { Authorization: `Bearer ${access}` };
+  const meDomain = me.split('@')[1] || '';
+  const lr = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/threads?maxResults=3&includeSpamTrash=false&q=${encodeURIComponent('"' + ref + '"')}`, { headers: gh });
+  const ld = await lr.json();
+  if (!lr.ok) { const e = new Error((ld.error && ld.error.message) || 'gmail-error'); e.status = lr.status; throw e; }
+  const out = { sent: false, sentAt: 0, replied: false, repliedAt: 0, replyFrom: '', replySnippet: '', bounced: false, found: false };
+  for (const t of (ld.threads || []).slice(0, 2)) {
+    const tr = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/threads/${t.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Auto-Submitted&metadataHeaders=Precedence`, { headers: gh });
+    const td = await tr.json();
+    if (!tr.ok) continue;
+    out.found = true;
+    const msgs = (td.messages || []).slice().sort((a, b) => Number(a.internalDate) - Number(b.internalDate));
+    for (const m of msgs) {
+      const labels = m.labelIds || [];
+      if (labels.includes('DRAFT')) continue;
+      const when = Number(m.internalDate) || 0;
+      const from = hdrOf(m, 'From').toLowerCase();
+      const mine = from.includes(me);
+      if (mine) { if (labels.includes('SENT')) { out.sent = true; if (!out.sentAt || when < out.sentAt) out.sentAt = when; } continue; }
+      const auto = (hdrOf(m, 'Auto-Submitted') && hdrOf(m, 'Auto-Submitted').toLowerCase() !== 'no') || /^bulk|junk|list$/i.test(hdrOf(m, 'Precedence')) || /^(automatic reply|auto(matic)?[- ]?reply|out of office|autoreply)/i.test(hdrOf(m, 'Subject').replace(/^(re|fw|fwd):\s*/i, ''));
+      if (/mailer-daemon|postmaster/.test(from)) { out.bounced = true; continue; }
+      if (auto) continue;
+      if (meDomain && from.includes('@' + meDomain)) continue;   // a teammate replying internally isn't the vendor
+      if (!out.replied || when > out.repliedAt) { out.replyFrom = hdrOf(m, 'From').replace(/<[^>]*>/, '').replace(/["']/g, '').trim() || from; out.replySnippet = String(m.snippet || '').slice(0, 160); }
+      out.replied = true; if (!out.repliedAt || when > out.repliedAt) out.repliedAt = when;
+    }
+  }
+  return out;
+}
 
 // ---- Customer request portal (public page: request.html) ----
 // Each customer/DM gets a private link: request.html?c=<customer>&t=<token>. The token is an
@@ -667,6 +717,30 @@ export default {
           messageId,
           url: `https://mail.google.com/mail/u/0/#drafts?compose=${messageId}`,
         }, 200, headers);
+      }
+
+      // POST /gmail-check  { refs: ["SR-4K2P9", ...] }  (max 8 per call)
+      // For each reference code (put in the vendor email subject by the dashboard) reports { sent, sentAt, replied, repliedAt,
+      // replyFrom, replySnippet, bounced, found }. Read-only: it only searches for threads containing that code.
+      if (url.pathname === '/gmail-check' && request.method === 'POST') {
+        if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET || !env.GOOGLE_REFRESH_TOKEN) return json({ error: 'gmail-not-configured' }, 501, headers);
+        let body;
+        try { body = await request.json(); } catch (e) { return json({ error: 'body must be JSON' }, 400, headers); }
+        const refs = [...new Set((Array.isArray(body && body.refs) ? body.refs : []).map(x => String(x || '').trim().toUpperCase()).filter(x => /^SR-[A-Z0-9]{4,10}$/.test(x)))].slice(0, 8);
+        if (!refs.length) return json({ error: 'refs required' }, 400, headers);
+        const acc = await googleAccess(env);
+        if (acc.error) return json({ error: 'google-auth-failed', detail: acc.error }, 502, headers);
+        const pr = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', { headers: { Authorization: `Bearer ${acc.token}` } });
+        const prof = await pr.json();
+        if (!pr.ok) return json({ error: pr.status === 403 ? 'gmail-read-scope' : 'gmail-error', detail: (prof.error && prof.error.message) || '' }, pr.status === 403 ? 403 : 502, headers);
+        const me = String(prof.emailAddress || '').toLowerCase();
+        const results = {};
+        try {
+          for (const ref of refs) results[ref] = await gmailRefStatus(ref, me, acc.token);
+        } catch (e) {
+          return json({ error: e.status === 403 ? 'gmail-read-scope' : 'gmail-error', detail: String(e.message || '') }, e.status === 403 ? 403 : 502, headers);
+        }
+        return json({ ok: true, me, results }, 200, headers);
       }
 
       // GET /vendors — the whole Vendor Tracking List
