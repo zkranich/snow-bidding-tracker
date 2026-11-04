@@ -290,3 +290,9 @@ All ask first and say how many will go; ones already in billing are called out; 
 
 ## Service tab: requests only
 The Service tab now lists only sites that have a service request for the selected service. Use **+ New service** to create requests for any site (or all sites). Tick **Show sites without a request** to bring back the full contracted-site roster (remembered per browser).
+
+## New service: pick sites by customer + vendor email option
+The New service dialog no longer has a Store dropdown. Search by customer, store #, address, PM or region (or filter by customer), tick each site that needs service (or **Select all shown**), then pick the service. Ticks persist while you change the search. Tick **Email the vendor(s) that this service was requested** to open one Gmail draft per vendor right after the service is created (nothing is sent automatically).
+
+## Vendor subcontract without a vendor
+The Create Vendor Subcontract button on the Bidding tab no longer needs a 26/27 vendor picked: with no vendor the PDF is built with the vendor name left blank. It is still hidden once the vendor's status is Compliance Received.

@@ -395,6 +395,9 @@ button.sh-push-one:disabled{ opacity:.55; cursor:not-allowed; }
 .ct-contract-hint{ font-size:12px; line-height:1.5; color:var(--ink-muted); background:var(--surface-alt); border:1px solid var(--border); border-radius:7px; padding:8px 10px; }
 .ct-contract-hint b{ color:var(--ink); }
 .ct-checks{ display:grid; grid-template-columns:1fr 1fr; gap:6px 14px; } .ct-chk{ display:flex !important; align-items:center; gap:8px; font-size:13px !important; font-weight:400 !important; color:var(--ink) !important; margin:0 !important; cursor:pointer; } .ct-chk-amt{ margin-left:auto; color:var(--ink-muted); font-size:12px; } .as-grid input[type=checkbox]{ width:auto; margin:0; padding:0; }
+.ct-pick-bar{ display:grid; grid-template-columns:1.4fr 1fr; gap:8px; } .ct-pick-acts{ display:flex; align-items:center; gap:8px; margin:7px 0 6px; } .ct-pick-count{ margin-left:auto; font-size:12px; color:var(--ink-muted); }
+.ct-sitelist{ max-height:210px; overflow:auto; border:1px solid var(--border); border-radius:7px; background:var(--surface-alt); padding:4px 8px; } .ct-sitelist .ct-chk{ padding:4px 0; border-bottom:1px solid var(--border); } .ct-sitelist .ct-chk:last-child{ border-bottom:0; } .ct-sitelist .ct-chk span{ min-width:0; } .ct-sitelist .ct-chk .ct-chk-amt{ text-align:right; max-width:42%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .ct-sitelist .ct-empty-pick{ padding:12px 4px; font-size:12px; color:var(--ink-muted); }
+.ct-emailopt{ margin:12px 0 2px; } .ct-emailhint{ font-size:11.5px; color:var(--ink-muted); margin:3px 0 0 24px; }
 .as-grid input[type=radio]{ width:auto; margin:0 7px 0 0; padding:0; vertical-align:middle; }
 .as-grid input, .as-grid select{ width:100%; box-sizing:border-box; background:var(--surface-alt); color:var(--ink); border:1px solid var(--border); border-radius:7px; padding:8px 9px; font-size:13px; font-family:inherit; }
 .as-actions{ display:flex; align-items:center; gap:10px; margin-top:14px; }
@@ -1268,7 +1271,10 @@ td.map-cell{ width:60px; text-align:center; }
     <h3>New service</h3>
     <p class="as-sub">Creates the service and logs it under each site’s Service history (saved to the 26/27 Snow PBR Tracker).</p>
     <div class="as-grid">
-      <div class="full"><label for="ct-f-store">Store *</label><select id="ct-f-store"></select></div>
+      <div class="full"><label for="ct-f-search">Sites *</label>
+        <div class="ct-pick-bar"><input id="ct-f-search" type="search" placeholder="Search customer, store #, address…" autocomplete="off"><select id="ct-f-cust" title="Filter by customer"><option value="">All customers</option></select></div>
+        <div class="ct-pick-acts"><button type="button" class="ct-btn" id="ct-f-all">Select all shown</button><button type="button" class="ct-btn" id="ct-f-none">Clear</button><span id="ct-f-count" class="ct-pick-count"></span></div>
+        <div id="ct-f-sites" class="ct-sitelist"></div></div>
       <div class="full"><label for="ct-f-date">Service date(s)</label><div class="ct-dates"><input id="ct-f-date" type="date"><span id="ct-f-more-dates"></span><button type="button" id="ct-f-add-date" class="ct-btn" title="Log the same service on more than one date — each date gets its own entry for every store">&#43; Add date</button></div></div>
       <div class="full"><label>Service</label><div id="ct-f-service" class="ct-checks"></div></div>
       <div class="full"><div id="ct-f-contract" class="ct-contract-hint"></div></div>
@@ -1277,6 +1283,7 @@ td.map-cell{ width:60px; text-align:center; }
       <div id="ct-f-amts-wo"><label for="ct-f-wo">Work Order #</label><input id="ct-f-wo" placeholder="optional"></div>
       <div id="ct-f-amts-vi"><label for="ct-f-vi">Vendor Invoice #</label><input id="ct-f-vi" placeholder="optional — if the vendor already invoiced"></div>
     </div>
+    <div class="ct-emailopt"><label class="ct-chk"><input type="checkbox" id="ct-f-email"> <span>Email the vendor(s) that this service was requested</span></label><div class="ct-emailhint">After creating, you get one draft email per vendor listing their sites. Nothing is sent until you send it from Gmail.</div></div>
     <div class="as-actions"><button type="submit" class="primary" id="ct-f-save">Create service</button><button type="button" id="ct-f-cancel">Cancel</button><span class="as-msg" id="ct-f-msg"></span></div>
   </form>
 </div>
@@ -2124,10 +2131,9 @@ td.map-cell{ width:60px; text-align:center; }
     return `<input type="date" class="cp-date-input" data-rowid="${r.rowId ?? ''}" data-field="${field}" value="${val ? escapeHtml(val) : ''}" ${canEdit?'':'disabled title="No Smartsheet row id on file — can\'t save"'}>`;
   }
 
-  // show the Create Vendor Subcontract button only while the site has a 26/27 vendor
-  // ...and the vendor's status isn't "Compliance Received" (that vendor is already done)
+  // the Create Vendor Subcontract button works with or without a 26/27 vendor (no vendor = blank vendor name on the PDF)
+  // ...but is hidden once the vendor's status is "Compliance Received" (that vendor is already done)
   function vsubState(r){
-    if (!effectiveVendor2627(r).trim()) return { ok: false, msg: 'Pick a 26/27 vendor below to create a vendor subcontract.' };
     if (effectiveVendorStatus(r) === 'Compliance Received') return { ok: false, msg: 'Vendor compliance already received — no vendor subcontract needed.' };
     return { ok: true, msg: '' };
   }
@@ -6291,16 +6297,27 @@ td.map-cell{ width:60px; text-align:center; }
     if (t.includes('haul')) return 'Haul / Stack'; return 'Other';
   }
   const CT_EXTRA_ITEMS = [{ label: 'Haul / Stack', kind: 'haul', money: '' }, { label: 'Other', kind: 'other', money: '' }];
-  function ctNewSites(){
-    const v = document.getElementById('ct-f-store').value;
-    if (v === '__checked') return rows.filter(r => ctEligible(r) && ctSel.has(normStore(r.store)));
-    if (v === '__shown' || !v) return ctVisibleSites();
-    return rows.filter(r => ctEligible(r) && normStore(r.store) === v);
+  // Sites picked in the New service dialog (search by customer / store / address, then tick each site that needs service)
+  let ctNewPick = new Set(), ctLastSingle = '', ctEmailSet = null;
+  const ctByStore = (a, b) => String(a.store).localeCompare(String(b.store), undefined, { numeric: true });
+  function ctNewSites(){ return rows.filter(r => ctEligible(r) && ctNewPick.has(normStore(r.store))).sort(ctByStore); }
+  function ctPickShown(){
+    const q = document.getElementById('ct-f-search').value.trim().toLowerCase(), cu = document.getElementById('ct-f-cust').value;
+    return rows.filter(r => ctEligible(r) && (!cu || (r.customer || '(unassigned)') === cu) && (!q || [r.store, r.address, r.customer, r.pm, r.region].join(' ').toLowerCase().includes(q))).sort(ctByStore);
   }
+  function ctRenderPick(){
+    const shown = ctPickShown(); const box = document.getElementById('ct-f-sites');
+    box.innerHTML = shown.length ? shown.map(r => { const ns = normStore(r.store); return `<label class="ct-chk"><input type="checkbox" data-s="${escapeHtml(ns)}"${ctNewPick.has(ns) ? ' checked' : ''}> <span><b>${escapeHtml(r.store)}</b> &mdash; ${escapeHtml(r.address || '')}</span><span class="ct-chk-amt">${escapeHtml(r.customer || '(unassigned)')}</span></label>`; }).join('') : '<div class="ct-empty-pick">No contracted sites match that search.</div>';
+    box._shown = shown; ctPickCount();
+  }
+  function ctPickCount(){ const n = ctNewSites().length; document.getElementById('ct-f-count').textContent = n ? `${n} site${n === 1 ? '' : 's'} selected` : 'No sites selected'; }
   let ctNewMode = 'multi';   // 'single' (checklist of this store's contract parameters) | 'multi'
-  function ctRefreshNewService(){
+  function ctRefreshNewService(keep){
     const sites = ctNewSites(); const box = document.getElementById('ct-f-service'); const hint = document.getElementById('ct-f-contract');
-    ctAmtTouched.fdi = ctAmtTouched.ven = false; ['ct-f-fdi', 'ct-f-ven', 'ct-f-wo', 'ct-f-vi'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+    const prevLabels = new Set(keep && box._items ? Array.from(box.querySelectorAll('input[type=checkbox]')).filter(c => c.checked).map(c => (box._items[Number(String(c.dataset.id).slice(1))] || {}).label) : []);
+    const prevMode = ctNewMode, single0 = sites.length === 1 ? normStore(sites[0].store) : '';
+    if (!keep || single0 !== ctLastSingle){ ctAmtTouched.fdi = ctAmtTouched.ven = false; ['ct-f-fdi', 'ct-f-ven', 'ct-f-wo', 'ct-f-vi'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; }); }
+    ctLastSingle = single0;
     const chk = (id, label, extra, checked) => `<label class="ct-chk"><input type="checkbox" data-id="${escapeHtml(id)}"${checked ? ' checked' : ''}> <span>${escapeHtml(label)}</span>${extra ? `<span class="ct-chk-amt">${escapeHtml(extra)}</span>` : ''}</label>`;
     if (sites.length === 1){
       ctNewMode = 'single';
@@ -6319,7 +6336,12 @@ td.map-cell{ width:60px; text-align:center; }
       const list = [{ label: 'Per each store’s contract', kind: 'auto', money: '' }, { label: 'Plow', kind: 'plow', money: '' }, { label: 'Salt', kind: 'salt', money: '' }].concat(params, CT_EXTRA_ITEMS);
       box._items = list;
       box.innerHTML = list.map((it, i) => chk('i' + i, it.label, it.multiParam ? `${it.n} store${it.n === 1 ? '' : 's'}` : '', i === 0)).join('');
-      hint.innerHTML = sites.length ? `${sites.length} stores selected. &ldquo;Per each store&rsquo;s contract&rdquo; gives each one the service its own contract covers. To pick specific contract parameters (rates shown in the list exist on at least one selected store), untick it and tick the parameters &mdash; each store gets the ones its contract has, billed at its own rate; stores without any ticked parameter are skipped. Pick a single store to edit the amounts.` : 'No stores to request — check the filters.';
+      hint.innerHTML = sites.length ? `${sites.length} stores selected. &ldquo;Per each store&rsquo;s contract&rdquo; gives each one the service its own contract covers. To pick specific contract parameters (rates shown in the list exist on at least one selected store), untick it and tick the parameters &mdash; each store gets the ones its contract has, billed at its own rate; stores without any ticked parameter are skipped. Pick a single store to edit the amounts.` : 'Tick the sites above that need this service.';
+    }
+    if (keep && prevLabels.size){
+      const items = box._items || []; const boxes = Array.from(box.querySelectorAll('input[type=checkbox]'));
+      boxes.forEach(c => { const it = items[Number(String(c.dataset.id).slice(1))]; c.checked = !!it && prevLabels.has(it.label); });
+      if (ctNewMode === 'multi' && prevMode === 'single' && !boxes.some(c => c.checked) && boxes[0]) boxes[0].checked = true;
     }
     ctSyncAmts();
   }
@@ -6353,21 +6375,18 @@ td.map-cell{ width:60px; text-align:center; }
   }
   function ctOpenNewStorm(pre){
     if (typeof pre !== 'string') pre = '';
-    const sites = ctVisibleSites().slice();
-    if (pre && !sites.some(r => normStore(r.store) === pre)){ const x = rows.find(r => ctEligible(r) && normStore(r.store) === pre); if (x) sites.push(x); }
-    sites.sort((a, b) => String(a.store).localeCompare(String(b.store), undefined, { numeric: true }));
-    const checked = pre ? [] : rows.filter(r => ctEligible(r) && ctSel.has(normStore(r.store)));
-    const st = document.getElementById('ct-f-store');
-    st.innerHTML = `<option value="__shown"${checked.length ? '' : ' selected'}>All ${sites.length} contracted site${sites.length === 1 ? '' : 's'}${(document.getElementById('ct-pm').value || document.getElementById('ct-region').value || document.getElementById('ct-search').value.trim()) ? ' (matching the filters)' : ''}</option>`
-      + (checked.length ? `<option value="__checked" selected>Only the ${checked.length} checked site${checked.length === 1 ? '' : 's'}</option>` : '')
-      + sites.map(r => `<option value="${escapeHtml(normStore(r.store))}">${escapeHtml(r.store)} — ${escapeHtml(r.address || '')}</option>`).join('');
-    if (pre) st.value = pre;
+    ctNewPick = new Set(pre ? [pre] : rows.filter(r => ctEligible(r) && ctSel.has(normStore(r.store))).map(r => normStore(r.store)));
+    const counts = {}; rows.forEach(r => { if (ctEligible(r)){ const c = r.customer || '(unassigned)'; counts[c] = (counts[c] || 0) + 1; } });
+    document.getElementById('ct-f-cust').innerHTML = '<option value="">All customers (' + Object.values(counts).reduce((a, b) => a + b, 0) + ')</option>' + Object.keys(counts).sort((a, b) => a.localeCompare(b)).map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)} (${counts[c]})</option>`).join('');
+    document.getElementById('ct-f-search').value = '';
+    document.getElementById('ct-f-email').checked = false;
+    ctRenderPick();
     document.getElementById('ct-f-date').value = ctToday();
     { const mo = document.getElementById('ct-f-more-dates'); if (mo) mo.innerHTML = ''; }
-    ctRefreshNewService();
+    ctLastSingle = ''; ctRefreshNewService();
     const m = document.getElementById('ct-f-msg'); m.textContent = ''; m.classList.remove('bad');
     document.getElementById('ct-f-save').disabled = false;
-    document.getElementById('ct-back').hidden = false; setTimeout(() => st.focus(), 30);
+    document.getElementById('ct-back').hidden = false; setTimeout(() => document.getElementById('ct-f-search').focus(), 30);
   }
   function ctSubmitNewStorm(ev){
     if (ev) ev.preventDefault();
@@ -6375,12 +6394,12 @@ td.map-cell{ width:60px; text-align:center; }
     [document.getElementById('ct-f-date').value || ctToday()].concat(Array.from(document.querySelectorAll('#ct-f-more-dates input[type=date]')).map(i => i.value)).forEach(d => { if (d && !dates.includes(d)) dates.push(d); });
     const msg = document.getElementById('ct-f-msg');
     const sites = ctNewSites();
-    if (!sites.length){ msg.textContent = 'No store to request — check the filters.'; msg.classList.add('bad'); return; }
+    if (!sites.length){ msg.textContent = 'Tick at least one site above (search by customer or store #).'; msg.classList.add('bad'); return; }
     const picked = ctPickedItems();
     if (!picked.length){ msg.textContent = 'Tick at least one service above, then click Create service.'; msg.classList.add('bad'); const sv = document.getElementById('ct-f-service'); sv.scrollIntoView && sv.scrollIntoView({ block: 'center' }); return; }
     // a ticked contract parameter (multi-store) resolves to each store's own matching item (and rate); stores without it are skipped
     const resolveFor = r => { const c = ctContractInfo(r); const out = []; picked.forEach(i => { if (i.multiParam){ const m = c.items.find(x => x.label === i.label); if (m) out.push(m); } else out.push(i); }); return out; };
-    let made = 0, firstName = '', name = '';
+    let made = 0, firstName = '', name = ''; const madeNames = [];
     // one entry per store per date; a second service for the same store on the same day gets "Service <date> (2)", etc.
     dates.forEach(date => {
       name = 'Service ' + date;
@@ -6401,19 +6420,20 @@ td.map-cell{ width:60px; text-align:center; }
         }
         ctNewRequest(r, name, date, { service, serviceItems, fdiAmount, vendorCost, workOrder, vendorInvoice }); made++; madeHere++;
       });
-      if (madeHere && !firstName) firstName = name;
+      if (madeHere){ madeNames.push(name); if (!firstName) firstName = name; }
     });
     if (!made){ msg.textContent = 'None of the selected stores have those contract parameters — tick a different parameter, or Plow / Salt / Per each store’s contract.'; msg.classList.add('bad'); return; }
     name = firstName; ctStorm = name; ctSel.clear(); ctStatusFilter = '';
     document.getElementById('ct-back').hidden = true;
     ctRender(); ctFlush().then(ctRender);
+    if (document.getElementById('ct-f-email').checked){ ctEmailSet = madeNames.slice(); ctOpenVendors(); }
     window.__lastStorm = { name, made, dates: dates.length, skipped: sites.length * dates.length - made };
   }
 
   // ----- Email vendors (one email per vendor listing that vendor's sites for the active storm)
   function ctVendorGroups(){
     const g = new Map();
-    ctReqs.filter(q => q.storm === ctStorm && q.status === 'Requested').forEach(q => {
+    ctReqs.filter(q => (ctEmailSet || [ctStorm]).includes(q.storm) && q.status === 'Requested').forEach(q => {
       const site = rows.find(r => normStore(r.store) === normStore(q.store)); const name = (q.vendor || (site && site.vendor2627) || '').trim();
       const key = name ? vtNorm(name) || name.toLowerCase() : '__none__';
       if (!g.has(key)) g.set(key, { name: name || '(no vendor assigned)', hasName: !!name, reqs: [], sites: [] });
@@ -6431,8 +6451,8 @@ td.map-cell{ width:60px; text-align:center; }
     return e;
   }
   function ctEmailBody(grp){
-    const q0 = grp.reqs[0]; const storm = ctStorm; const info = ctStorms().find(s => s.name === storm) || {};
-    const lines = grp.sites.map((s, i) => `${i + 1}. ${s.store} — ${s.address || ''}${grp.reqs[i] && grp.reqs[i].notes ? ' (' + grp.reqs[i].notes + ')' : ''}`);
+    const q0 = grp.reqs[0]; const set = ctEmailSet || [ctStorm]; const storm = set.join(', '); const dateOf = n => (ctStorms().find(s => s.name === n) || {}).date || ''; const info = { date: set.map(dateOf).filter(Boolean).join(', ') };
+    const lines = grp.sites.map((s, i) => `${i + 1}. ${s.store} — ${s.address || ''}${set.length > 1 && grp.reqs[i] ? ' [' + (dateOf(grp.reqs[i].storm) || grp.reqs[i].storm) + ']' : ''}${grp.reqs[i] && grp.reqs[i].notes ? ' (' + grp.reqs[i].notes + ')' : ''}`);
     const svc = [...new Set(grp.reqs.map(q => q.serviceItems || q.service).filter(Boolean))].join(' | ');
     return ['Hi ' + (grp.name.split(/[\s,]/)[0] || 'there') + ',', '',
       `Please service the following ${grp.sites.length === 1 ? 'property' : grp.sites.length + ' properties'} for ${storm}${info.date ? ' (' + info.date + ')' : ''}.`,
@@ -6449,7 +6469,7 @@ td.map-cell{ width:60px; text-align:center; }
   }
   function ctRenderVendors(){
     const groups = ctVendorGroups();
-    document.getElementById('ctv-sub').textContent = groups.length ? `${ctStorm}: sites still at "Requested", grouped by vendor. Draft the email, then mark them Dispatched once you send it.` : `Nothing waiting for a vendor email in ${ctStorm} — every site is already dispatched (or no requests yet).`;
+    document.getElementById('ctv-sub').textContent = groups.length ? `${(ctEmailSet || [ctStorm]).join(', ')}: sites still at "Requested", grouped by vendor. Draft the email, then mark them Dispatched once you send it.` : `Nothing waiting for a vendor email in ${(ctEmailSet || [ctStorm]).join(', ')} — every site is already dispatched (or no requests yet).`;
     const el = document.getElementById('ctv-list');
     el.innerHTML = groups.map((g, i) => `<div class="ct-vrow" data-i="${i}"><div><b>${escapeHtml(g.name)}</b>${g.hasName ? '' : '<div class="ct-novendor">Assign a 26/27 Vendor on the Bidding tab first</div>'}</div><div>${g.sites.length} site${g.sites.length === 1 ? '' : 's'}</div>
       <div><input type="email" class="ctv-email" placeholder="vendor email" value="${escapeHtml(ctVendorEmail(g))}"></div>
@@ -6461,7 +6481,7 @@ td.map-cell{ width:60px; text-align:center; }
     const email = rowEl.querySelector('.ctv-email').value.trim();
     if (email.indexOf('@') < 0){ msg.textContent = 'Add the vendor’s email first.'; msg.classList.add('bad'); return; }
     msg.classList.remove('bad'); msg.textContent = 'Building…';
-    const subject = `SNOW SERVICE REQUEST: ${ctStorm} — ${g.sites.length} site${g.sites.length === 1 ? '' : 's'}`; const body = ctEmailBody(g);
+    const subject = `SNOW SERVICE REQUEST: ${(ctEmailSet || [ctStorm]).join(', ')} — ${g.sites.length} site${g.sites.length === 1 ? '' : 's'}`; const body = ctEmailBody(g);
     const win = window.open('', '_blank'); let url = '';
     if (SMARTSHEET_WORKER_URL && ivGmailOk !== false){
       try {
@@ -6854,9 +6874,13 @@ td.map-cell{ width:60px; text-align:center; }
       else if (t.classList.contains('bl-chk-all')){ blRows('owner').filter(x => !x.ownerInvoice).forEach(x => { if (t.checked) blSel.add(blKey(x)); else blSel.delete(blKey(x)); }); blRender(); }
     });
     document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button.bl-inv-print'); if (b){ e.stopPropagation(); invReprint(b.dataset.no); } });
-    document.getElementById('ct-email-vendors').addEventListener('click', ctOpenVendors);
+    document.getElementById('ct-email-vendors').addEventListener('click', () => { ctEmailSet = null; ctOpenVendors(); });
     document.getElementById('ct-form').addEventListener('submit', ctSubmitNewStorm);
-    document.getElementById('ct-f-store').addEventListener('change', ctRefreshNewService);
+    document.getElementById('ct-f-search').addEventListener('input', ctRenderPick);
+    document.getElementById('ct-f-cust').addEventListener('change', ctRenderPick);
+    document.getElementById('ct-f-sites').addEventListener('change', e => { const c = e.target; if (!c || !c.dataset || !c.dataset.s) return; if (c.checked) ctNewPick.add(c.dataset.s); else ctNewPick.delete(c.dataset.s); ctPickCount(); ctRefreshNewService(true); });
+    document.getElementById('ct-f-all').addEventListener('click', () => { ctPickShown().forEach(r => ctNewPick.add(normStore(r.store))); ctRenderPick(); ctRefreshNewService(true); });
+    document.getElementById('ct-f-none').addEventListener('click', () => { ctNewPick.clear(); ctRenderPick(); ctRefreshNewService(true); });
     document.getElementById('ct-f-add-date').addEventListener('click', e => {
       e.preventDefault();
       const wrap = document.createElement('span'); wrap.className = 'ct-extra-date';
