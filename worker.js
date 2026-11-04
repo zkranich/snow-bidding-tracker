@@ -81,6 +81,7 @@ const DISPATCH_COLS = {
   emailRef: 1903329642581892,       // Email Ref (SR-XXXXX in the vendor email subject)
   vendorReply: 6406929269952388,    // Vendor Reply (who + preview of the reply)
   vendorRepliedAt: 4155129456267140, // Vendor Replied At
+  customerNotifiedAt: 225090901675908, // Customer Notified At (customer emailed that the service was dispatched)
 };
 
 // Field name (as sent by the dashboard) -> Smartsheet column ID.

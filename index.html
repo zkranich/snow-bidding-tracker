@@ -1208,11 +1208,13 @@ td.map-cell{ width:60px; text-align:center; }
       <label style="font-size:12px;color:var(--ink-muted);display:inline-flex;align-items:center;gap:5px;cursor:pointer" title="Off = the table lists only sites that have a request for the selected service"><input type="checkbox" id="ct-show-all"> Show sites without a request</label>
       <button class="ct-btn primary" id="ct-new-storm" type="button">&#43; New service</button>
       <button class="ct-btn" id="ct-email-vendors" type="button">&#9993; Email vendors</button>
+      <button class="ct-btn" id="ct-email-customers" type="button" title="Email each customer which of their properties were dispatched and what services">&#9993; Email customers</button>
       <button class="ct-btn" id="ct-check-mail" type="button" title="Look in Gmail for vendor emails that were sent or answered and update the status (also runs automatically every few minutes)">&#8635; Check replies</button><span class="ct-mailmsg" id="ct-mail-msg"></span>
       <button class="ct-btn" id="ct-del-storm" type="button" style="color:#c0392b" title="Delete every request in the selected service">&#128465; Delete service&hellip;</button>
       <span class="vc-count" id="ct-count"></span>
     </div>
     <div class="ct-banner" id="ct-banner" hidden></div>
+    <div class="ct-banner" id="ct-notify" hidden></div>
     <div class="ct-bulk" id="ct-bulk" hidden>
       <span><b id="ct-bulk-n">0</b> selected</span>
       <select id="ct-bulk-status"><option value="">Set status to&hellip;</option></select>
@@ -1296,6 +1298,14 @@ td.map-cell{ width:60px; text-align:center; }
     <p class="as-sub" id="ctv-sub"></p>
     <div id="ctv-list"></div>
     <div class="as-actions"><button type="button" id="ctv-close">Close</button><span class="as-msg" id="ctv-msg"></span></div>
+  </div>
+</div>
+<div class="as-back" id="cn-back" hidden>
+  <div class="as-card wide">
+    <h3>Email customers</h3>
+    <p class="as-sub" id="cn-sub"></p>
+    <div id="cn-list"></div>
+    <div class="as-actions"><button type="button" id="cn-close">Close</button><button type="button" id="cn-toggle" class="ct-btn"></button><span class="as-msg" id="cn-msg"></span></div>
   </div>
 </div>
 <div class="as-back" id="cl-back" hidden>
@@ -5799,7 +5809,7 @@ td.map-cell{ width:60px; text-align:center; }
   // "26/27 Snow PBR Tracker" (via the Worker /dispatch endpoints). Changes are saved in this
   // browser first (outbox) and pushed to Smartsheet, so nothing is lost on a refresh.
   const CT_OUTBOX_KEY = 'fdiDispatchOutboxV1', CT_SCOPE_KEY = 'fdiCtScopeV1';
-  const CT_COLS = {"request":8036663236005764,"storm":718313841528708,"stormDate":5221913468899204,"store":2970113655213956,"address":7473713282584452,"pm":1844213748371332,"vendor":6347813375741828,"status":4096013562056580,"service":8599613189427076,"serviceItems":2241975098838916,"fdiAmount":1416956307345284,"vendorCost":5920555934715780,"workOrder":3668756121030532,"projectNo":8707827574804356,"pushedAt":3907393630801796,"vendorInvoice":5844323083784068,"ownerInvoice":3357743823753092,"ownerInvoiceDate":7861343451123588,"forecast":436838864818052,"actual":4940438492188548,"pushes":2688638678503300,"salt":7192238305873796,"requestedAt":1562738771660676,"dispatchedAt":6066338399031172,"onSiteAt":3814538585345924,"completedAt":8318138212716420,"issue":999788818239364,"notes":5503388445609860,"emailRef":1903329642581892,"vendorReply":6406929269952388,"vendorRepliedAt":4155129456267140};
+  const CT_COLS = {"request":8036663236005764,"storm":718313841528708,"stormDate":5221913468899204,"store":2970113655213956,"address":7473713282584452,"pm":1844213748371332,"vendor":6347813375741828,"status":4096013562056580,"service":8599613189427076,"serviceItems":2241975098838916,"fdiAmount":1416956307345284,"vendorCost":5920555934715780,"workOrder":3668756121030532,"projectNo":8707827574804356,"pushedAt":3907393630801796,"vendorInvoice":5844323083784068,"ownerInvoice":3357743823753092,"ownerInvoiceDate":7861343451123588,"forecast":436838864818052,"actual":4940438492188548,"pushes":2688638678503300,"salt":7192238305873796,"requestedAt":1562738771660676,"dispatchedAt":6066338399031172,"onSiteAt":3814538585345924,"completedAt":8318138212716420,"issue":999788818239364,"notes":5503388445609860,"emailRef":1903329642581892,"vendorReply":6406929269952388,"vendorRepliedAt":4155129456267140,"customerNotifiedAt":225090901675908};
   const CT_STATUSES = ['Requested', 'Dispatched', 'Vendor Replied', 'On Site', 'Completed', 'Issue', 'Cancelled'];
   const CT_SERVICES = ['Plow', 'Salt', 'Plow + Salt', 'Haul / Stack', 'Other'];
   let ctReqs = [];            // all requests (server rows + not-yet-created local ones)
@@ -6244,7 +6254,7 @@ td.map-cell{ width:60px; text-align:center; }
         const vend = r.vendor2627 ? escapeHtml(r.vendor2627) : '<span class="ct-novendor">no vendor</span>';
         const opt = (list, cur) => list.map(s => `<option value="${escapeHtml(s)}"${s === cur ? ' selected' : ''}>${escapeHtml(s)}</option>`).join('');
         const cells = q
-          ? `<td><select class="ct-in ct-status st-${escapeHtml(q.status.replace(/\s+/g, ''))}" data-f="status">${opt(CT_STATUSES, q.status)}</select>${q.status === 'Vendor Replied' && q.vendorReply ? `<div class="ct-season ct-reply" title="${escapeHtml(q.vendorReply)}${q.vendorRepliedAt ? ' — ' + escapeHtml(ctFmt(q.vendorRepliedAt)) : ''}">&#8617; ${escapeHtml(q.vendorReply.length > 70 ? q.vendorReply.slice(0, 68) + '…' : q.vendorReply)}</div>` : ''}${q.completedAt ? `<div class="ct-season" title="Completed">&#10003; ${escapeHtml(ctFmt(q.completedAt))}</div>` : q.onSiteAt ? `<div class="ct-season">on site ${escapeHtml(ctFmt(q.onSiteAt))}</div>` : q.dispatchedAt ? `<div class="ct-season">sent ${escapeHtml(ctFmt(q.dispatchedAt))}</div>` : ''}</td>
+          ? `<td><select class="ct-in ct-status st-${escapeHtml(q.status.replace(/\s+/g, ''))}" data-f="status">${opt(CT_STATUSES, q.status)}</select>${q.customerNotifiedAt ? `<div class="ct-season" title="Customer was emailed that this service was dispatched">&#9993; customer notified ${escapeHtml(ctFmt(q.customerNotifiedAt))}</div>` : ''}${q.status === 'Vendor Replied' && q.vendorReply ? `<div class="ct-season ct-reply" title="${escapeHtml(q.vendorReply)}${q.vendorRepliedAt ? ' — ' + escapeHtml(ctFmt(q.vendorRepliedAt)) : ''}">&#8617; ${escapeHtml(q.vendorReply.length > 70 ? q.vendorReply.slice(0, 68) + '…' : q.vendorReply)}</div>` : ''}${q.completedAt ? `<div class="ct-season" title="Completed">&#10003; ${escapeHtml(ctFmt(q.completedAt))}</div>` : q.onSiteAt ? `<div class="ct-season">on site ${escapeHtml(ctFmt(q.onSiteAt))}</div>` : q.dispatchedAt ? `<div class="ct-season">sent ${escapeHtml(ctFmt(q.dispatchedAt))}</div>` : ''}</td>
              <td><select class="ct-in" data-f="service"><option value=""></option>${opt(CT_SERVICES, q.service)}</select>${q.serviceItems ? `<div class="ct-season" title="Contract parameters selected">${escapeHtml(q.serviceItems)}</div>` : ''}</td>
              <td><input class="ct-in ct-num" data-f="actual" inputmode="decimal" value="${escapeHtml(q.actual)}" placeholder="${escapeHtml(q.forecast || '')}" title="${q.forecast ? 'Forecast ' + escapeHtml(q.forecast) + '"' : 'Actual snowfall (in)'}"></td>
              <td><input class="ct-in ct-num" data-f="pushes" inputmode="numeric" value="${escapeHtml(q.pushes)}"></td>
@@ -6261,6 +6271,9 @@ td.map-cell{ width:60px; text-align:center; }
     const all = document.getElementById('ct-select-all');
     if (all){ const ids = shown.map(r => normStore(r.store)); all.checked = ids.length > 0 && ids.every(i => ctSel.has(i)); }
     document.getElementById('ct-email-vendors').disabled = !ctStorm;
+    { const ec = document.getElementById('ct-email-customers'); if (ec) ec.disabled = !ctStorm;
+      const nb = document.getElementById('ct-notify'); if (nb){ const n = ctStorm ? ctReqs.filter(q => q.storm === ctStorm && CT_NOTIFY_ST.includes(q.status) && !q.customerNotifiedAt).length : 0;
+        nb.hidden = !n; nb.className = 'ct-banner'; nb.innerHTML = n ? `&#9993; <b>${n}</b> dispatched propert${n === 1 ? 'y hasn’t' : 'ies haven’t'} been communicated to the customer yet. <button type="button" class="ct-btn primary" data-act="notify" style="margin-left:8px;padding:4px 10px">Email customers</button>` : ''; } }
     { const d = document.getElementById('ct-del-storm'); if (d) d.disabled = !ctStorm || !ctReqs.some(q => q.storm === ctStorm); }
     ctRenderBanner();
     const sv = document.getElementById('view-sites'); if (sv && !sv.hidden) scRender();
@@ -6550,6 +6563,67 @@ td.map-cell{ width:60px; text-align:center; }
     else ctMailSay((sent || replied) ? `Gmail checked ${t}: ${sent} site${sent === 1 ? '' : 's'} now Dispatched, ${replied} Vendor Replied.` : `Gmail checked ${t}: nothing new.`);
     window.__lastMailCheck = { sent, replied, err };
   }
+  // ----- Email customers: tell each customer which of their properties were dispatched and for what (one Gmail draft per customer)
+  const CT_NOTIFY_ST = ['Dispatched', 'Vendor Replied', 'On Site'];
+  let ctCustAll = false;
+  function ctCustGroups(){
+    const g = new Map();
+    ctReqs.filter(q => q.storm === ctStorm && CT_NOTIFY_ST.includes(q.status) && (ctCustAll || !q.customerNotifiedAt)).forEach(q => {
+      const site = rows.find(r => normStore(r.store) === normStore(q.store)) || { store: q.store, address: q.address };
+      const name = String(site.customer || '').trim(); const key = name ? name.toLowerCase() : '__none__';
+      if (!g.has(key)) g.set(key, { name: name || '(no customer assigned)', hasName: !!name, reqs: [], sites: [], email: '' });
+      const grp = g.get(key); grp.reqs.push(q); grp.sites.push(site);
+      if (!grp.email){ const e = String(site.customerEmail || '').trim() || (name ? dmEmailFor(name) : ''); if (e) grp.email = e.split(/[;,\s]+/).filter(x => x.indexOf('@') > 0).join(', '); }
+    });
+    return [...g.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }
+  function ctCustEmailBody(grp){
+    const info = ctStorms().find(s => s.name === ctStorm) || {};
+    const lines = grp.sites.map((s, i) => { const q = grp.reqs[i]; const svc = (q && (q.serviceItems || q.service)) || 'Snow service'; return `${i + 1}. ${s.store} — ${s.address || ''} — ${svc}`; });
+    const one = grp.sites.length === 1;
+    return ['Hi ' + (grp.name.split(/[\s,]/)[0] || 'there') + ',', '',
+      `Snow service has been dispatched to the following ${one ? 'property' : grp.sites.length + ' properties'}${info.date ? ' for ' + info.date : ''}:`, '',
+      ...lines, '',
+      `If you disagree with the service${one ? '' : 's'} listed above, please reply to this email as soon as possible so we can correct ${one ? 'it' : 'them'} with the provider.`, '',
+      'Thank you,', 'Zak Kranich', 'Farmer Development'].join('\n');
+  }
+  function ctRenderCustomers(){
+    const groups = ctCustGroups();
+    document.getElementById('cn-sub').textContent = groups.length ? `${ctStorm}: dispatched properties grouped by customer. Each draft lists the properties and services, and asks them to reply right away if anything is wrong. Nothing is sent until you send it from Gmail.` : `Nothing to tell customers in ${ctStorm} — no dispatched properties yet, or every customer has already been emailed.`;
+    document.getElementById('cn-toggle').textContent = ctCustAll ? 'Hide already-emailed' : 'Show already-emailed';
+    document.getElementById('cn-list').innerHTML = groups.map((g, i) => { const done = g.reqs.every(q => q.customerNotifiedAt); return `<div class="ct-vrow" data-i="${i}"><div><b>${escapeHtml(g.name)}</b>${g.hasName ? '' : '<div class="ct-novendor">Assign a customer on the Sites tab first</div>'}${done ? '<div class="ct-season">&#10003; already emailed</div>' : ''}</div><div>${g.sites.length} propert${g.sites.length === 1 ? 'y' : 'ies'}</div>
+      <div><input type="email" class="cn-email" multiple placeholder="customer email" value="${escapeHtml(g.email)}"></div>
+      <div class="acts"><button type="button" class="ct-btn primary" data-act="draft">${done ? 'Draft again' : 'Draft email'}</button><button type="button" class="ct-btn" data-act="notified"${done ? ' disabled' : ''}>Mark emailed</button></div></div>`; }).join('');
+    document.getElementById('cn-list')._groups = groups;
+  }
+  function ctOpenCustomers(){ if (!ctStorm) return; ctCustAll = false; document.getElementById('cn-msg').textContent = ''; ctRenderCustomers(); document.getElementById('cn-back').hidden = false; }
+  async function ctDraftCustomer(i, rowEl){
+    const g = document.getElementById('cn-list')._groups[i]; const msg = document.getElementById('cn-msg');
+    const email = rowEl.querySelector('.cn-email').value.trim();
+    if (email.indexOf('@') < 0){ msg.textContent = 'Add the customer’s email first.'; msg.classList.add('bad'); return; }
+    msg.classList.remove('bad'); msg.textContent = 'Building…';
+    const subject = `Snow service dispatched — ${g.sites.length} propert${g.sites.length === 1 ? 'y' : 'ies'}${(ctStorms().find(s => s.name === ctStorm) || {}).date ? ' (' + ctStorms().find(s => s.name === ctStorm).date + ')' : ''}`; const body = ctCustEmailBody(g);
+    const win = window.open('', '_blank'); let url = '';
+    if (SMARTSHEET_WORKER_URL && ivGmailOk !== false){
+      try {
+        const resp = await fetch(ctBase() + '/gmail-draft', { method: 'POST', headers: ctHdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ to: email, subject, body, attachments: [] }) });
+        if (resp.status === 501) ivGmailOk = false; else if (resp.ok){ const d = await resp.json(); if (d && d.url){ url = d.url; ivGmailOk = true; } }
+      } catch(e){}
+    }
+    if (!url) url = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(email) + '&su=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    if (win) win.location = url; else window.open(url, '_blank');
+    const now = ctNow(); g.reqs.forEach(q => ctSetField(q, 'customerNotifiedAt', now));
+    window.__lastCustDraft = { to: email, subject, body, url };
+    ctRender(); ctFlush().then(ctRender); ctRenderCustomers();
+    msg.classList.remove('bad'); msg.textContent = `Draft opened for ${g.name} — marked as emailed.`;
+  }
+  function ctMarkCustomerNotified(i){
+    const g = document.getElementById('cn-list')._groups[i]; const now = ctNow();
+    g.reqs.forEach(q => ctSetField(q, 'customerNotifiedAt', now));
+    ctRender(); ctFlush().then(ctRender); ctRenderCustomers();
+    const msg = document.getElementById('cn-msg'); msg.classList.remove('bad'); msg.textContent = `${g.name} marked as emailed.`;
+  }
+
   function ctMarkDispatched(i){
     const g = document.getElementById('ctv-list')._groups[i];
     g.reqs.forEach(q => ctSetStatus(q, 'Dispatched'));
@@ -6959,6 +7033,12 @@ td.map-cell{ width:60px; text-align:center; }
     document.getElementById('ct-f-cancel').addEventListener('click', () => { document.getElementById('ct-back').hidden = true; });
     document.getElementById('ct-back').addEventListener('mousedown', e => { if (e.target.id === 'ct-back') e.target.hidden = true; });
     document.getElementById('ctv-close').addEventListener('click', () => { document.getElementById('ctv-back').hidden = true; });
+    document.getElementById('ct-email-customers').addEventListener('click', ctOpenCustomers);
+    document.getElementById('ct-notify').addEventListener('click', e => { if (e.target.closest('button[data-act="notify"]')) ctOpenCustomers(); });
+    document.getElementById('cn-close').addEventListener('click', () => { document.getElementById('cn-back').hidden = true; });
+    document.getElementById('cn-back').addEventListener('mousedown', e => { if (e.target.id === 'cn-back') e.target.hidden = true; });
+    document.getElementById('cn-toggle').addEventListener('click', () => { ctCustAll = !ctCustAll; ctRenderCustomers(); });
+    document.getElementById('cn-list').addEventListener('click', e => { const b = e.target.closest('button[data-act]'); if (!b || b.disabled) return; const rowEl = b.closest('.ct-vrow'); const i = Number(rowEl.dataset.i); if (b.dataset.act === 'draft') ctDraftCustomer(i, rowEl); else if (b.dataset.act === 'notified') ctMarkCustomerNotified(i); });
     document.getElementById('ctv-back').addEventListener('mousedown', e => { if (e.target.id === 'ctv-back') e.target.hidden = true; });
     document.getElementById('ctv-list').addEventListener('click', e => {
       const b = e.target.closest('button[data-act]'); if (!b) return; const rowEl = b.closest('.ct-vrow'); const i = Number(rowEl.dataset.i);
@@ -7003,7 +7083,7 @@ td.map-cell{ width:60px; text-align:center; }
       ctSel.forEach(ns => { const r = rows.find(x => normStore(x.store) === ns); if (r && !ctReqFor(r, ctStorm)) ctNewRequest(r, ctStorm, info.date || ctToday()); });
       ctRender(); ctFlush().then(ctRender);
     });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape'){ document.getElementById('ct-back').hidden = true; document.getElementById('ctv-back').hidden = true; document.getElementById('dm-back').hidden = true; document.getElementById('cl-back').hidden = true; } });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape'){ document.getElementById('ct-back').hidden = true; document.getElementById('ctv-back').hidden = true; document.getElementById('cn-back').hidden = true; document.getElementById('dm-back').hidden = true; document.getElementById('cl-back').hidden = true; } });
     // keep fresh while the tab is open
     if (SMARTSHEET_WORKER_URL) setInterval(() => { const v = document.getElementById('view-contracted'); const a = document.activeElement; if (v && !v.hidden && !document.hidden && SMARTSHEET_WORKER_URL && !(a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) && ctPendingCount() === 0) ctLoad(true); }, 60000);
   })();

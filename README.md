@@ -306,3 +306,6 @@ The Create Vendor Subcontract button on the Bidding tab no longer needs a 26/27 
 
 ## Service tab: status tabs
 Above the service table: **All · Requested · Dispatched · Completed · Issue / Cancelled**, each with a count for the selected service (respecting the PM / region / search filters). **Dispatched** includes Dispatched, Vendor Replied and On Site. Changing a row's status moves it to the matching tab. Clicking a status tile at the top jumps to its tab; creating a new service returns to All. The chosen tab is remembered in the browser.
+
+## Email customers when a service is dispatched
+Service tab → **✉ Email customers** (also offered by a banner as soon as any sites for the selected service are Dispatched / Vendor Replied / On Site and the customer hasn't been told). One Gmail draft per customer (email comes from the site's customer / DM email) listing each property and its service, and asking them to reply ASAP if they disagree so the services can be corrected with the provider. Nothing is sent automatically. Opening the draft (or **Mark emailed**) stamps the new Smartsheet column **Customer Notified At**, so each property is only offered once; **Show already-emailed** brings them back. worker.js has the new column id.
