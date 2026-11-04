@@ -321,3 +321,6 @@ Click a service row (anywhere except a dropdown/box/button) to open the detail u
 
 ## Push to billing from the Service tab
 When a service's status is **Completed**, its row shows a green **Push to billing** button (also inside the row's drop-down). It's greyed out until there's an FDI amount or vendor cost (open the row to enter them). Clicking it sends that service to Owner billing and Sub billing, same as the button in Service history; the row then shows "✓ In billing <date>" and the amounts lock.
+
+## Service drop-down: lighter look + contract parameters to bill
+The row drop-down now has a light panel (readable in dark mode too). New **Contract parameters to bill** section lists the site's contract rates as tick boxes (with FDI / vendor rate). Ticking sets the service's items and adds the ticked rates into FDI amount and vendor cost (vendor cost is only overwritten when the ticked parameters have a vendor rate); you can still edit the amounts. Push to billing then sends those amounts, and the invoice lists the ticked parameters. Locked once the service is in billing.

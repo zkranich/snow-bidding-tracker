@@ -423,7 +423,9 @@ button.sh-push-one:disabled{ opacity:.55; cursor:not-allowed; }
 .ct-btn:disabled{ opacity:.55; cursor:not-allowed; }
 .ct-banner{ margin:10px 0 0; background:var(--accent-soft); color:var(--accent-ink); border:1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); border-radius:8px; padding:8px 12px; font-size:12.5px; font-weight:600; }
 .ct-pushed{ font-size:12px; font-weight:600; color:#14532d; background:#d7f3e1; border:1px solid #8fd1a8; border-radius:7px; padding:3px 8px; } .ct-main{ cursor:pointer; } .ct-main:hover td{ background:color-mix(in srgb, var(--accent) 6%, transparent); } .ct-chev{ display:inline-block; width:14px; color:var(--ink-faint); font-size:11px; } .ct-main.open .ct-chev{ color:var(--accent); }
-.ct-detail-row > td{ background:var(--surface-alt); padding:12px 14px !important; cursor:default; } .ct-dgrid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; } .ct-dgroup{ border:1px solid var(--border); border-radius:9px; padding:10px 12px; background:var(--surface); } .ct-dgroup h4{ margin:0 0 8px; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-muted); } .ct-drow{ display:grid; grid-template-columns:130px 1fr; align-items:center; gap:8px; margin-bottom:7px; font-size:12.5px; } .ct-drow:last-child{ margin-bottom:0; } .ct-drow label{ color:var(--ink-muted); } .ct-drow .v{ color:var(--ink); font-weight:600; } .ct-detail-row input.sh-in, .ct-detail-row textarea.sh-in{ width:100%; box-sizing:border-box; } .ct-dnotes{ grid-column:1 / -1; } .ct-dnote-pushed{ font-size:11.5px; color:var(--ink-muted); margin-top:8px; } @media (max-width:760px){ .ct-dgrid{ grid-template-columns:1fr; } }
+.ct-detail-row > td{ background:#e8eef5 !important; padding:12px 14px !important; cursor:default; color:#1b2733; } .ct-dgrid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; } .ct-dgroup{ border:1px solid #c5d0dc; border-radius:9px; padding:10px 12px; background:#f8fafc; color:#1b2733; } .ct-dgroup h4{ margin:0 0 8px; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:#4a5b6c; } .ct-drow{ display:grid; grid-template-columns:130px 1fr; align-items:center; gap:8px; margin-bottom:7px; font-size:12.5px; } .ct-drow:last-child{ margin-bottom:0; } .ct-drow label{ color:#4a5b6c; } .ct-drow .v{ color:#1b2733; font-weight:600; } .ct-detail-row .sh-money{ color:#4a5b6c; } .ct-detail-row input.sh-in, .ct-detail-row textarea.sh-in{ width:100%; box-sizing:border-box; background:#fff !important; color:#1b2733 !important; -webkit-text-fill-color:#1b2733 !important; border:1px solid #b6c3d1 !important; border-radius:6px; padding:6px 8px; } .ct-detail-row input.sh-in[readonly]{ background:#eef2f6 !important; color:#5b6b7b !important; -webkit-text-fill-color:#5b6b7b !important; } .ct-dnotes{ grid-column:1 / -1; } .ct-dnote-pushed{ font-size:11.5px; color:#4a5b6c; margin-top:8px; }
+.ct-prms{ display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:6px 14px; } .ct-prm{ display:flex !important; align-items:center; gap:8px; font-size:12.5px; color:#1b2733 !important; cursor:pointer; padding:5px 8px; border:1px solid #d3dce6; border-radius:7px; background:#fff; margin:0 !important; } .ct-prm input{ width:auto !important; margin:0; } .ct-prm-amt{ margin-left:auto; color:#4a5b6c; font-size:11.5px; white-space:nowrap; }
+@media (max-width:760px){ .ct-dgrid{ grid-template-columns:1fr; } }
 .ct-banner.bad{ background:var(--warn-soft); color:var(--warn); border-color:color-mix(in srgb, var(--warn) 40%, var(--border)); }
 .ct-bulk{ margin:10px 0 0; display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:12.5px; }
 .ct-bulk select{ background:var(--surface-alt); border:1px solid var(--border); border-radius:6px; padding:6px 8px; font-size:12.5px; color:var(--ink); }
@@ -6225,6 +6227,15 @@ td.map-cell{ width:60px; text-align:center; }
     const ok = blPending(q);
     return `<button type="button" class="ct-btn sh-push-one"${ok ? '' : ' disabled'} title="${ok ? 'Send this service to owner + sub billing' : 'Add an FDI amount or vendor cost first (click the row to open the details)'}" style="padding:4px 9px">Push to billing</button>`;
   }
+  // Contract parameters of the site as tick boxes: ticked ones set the service items and add up into the FDI amount / vendor cost that gets billed
+  function ctParamsHtml(q, r){
+    const items = r ? ctContractInfo(r).items : [];
+    if (!items.length) return '<div class="ct-dnote-pushed" style="margin:0">No contract rates are on file for this site — enter the amounts above.</div>';
+    const cur = new Set(String(q.serviceItems || '').split(/\s*;\s*/).filter(Boolean));
+    const money = n => typeof n === 'number' ? '$' + n.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '—';
+    return `<div class="ct-prms">${items.map(i => `<label class="ct-prm"><input type="checkbox" class="ct-param" data-label="${escapeHtml(i.label)}"${cur.has(i.label) ? ' checked' : ''}${q.pushedAt ? ' disabled' : ''}> <span>${escapeHtml(i.label)}</span><span class="ct-prm-amt">FDI ${money(i.fdi)} &middot; Vendor ${money(i.vendor)}</span></label>`).join('')}</div>
+      <div class="ct-dnote-pushed">${q.pushedAt ? 'Already in billing.' : 'Tick what was actually done: the ticked rates fill in the FDI amount and vendor cost above (you can still adjust them), and that’s what Push to billing sends.'}</div>`;
+  }
   // Drop-down under a service row: FDI side, vendor side (cost + invoice paired), notes
   function ctDetailHtml(q, ns, r){
     const m = (f, ph) => `<span class="sh-money">$<input class="sh-in" data-f="${f}" inputmode="decimal" value="${escapeHtml(q[f] || '')}" placeholder="${ph}"${q.pushedAt ? ' readonly title="Already pushed to billing"' : ''}></span>`;
@@ -6236,6 +6247,7 @@ td.map-cell{ width:60px; text-align:center; }
       <div class="ct-dgroup"><h4>Vendor${q.vendor || (r && r.vendor2627) ? ' — ' + escapeHtml(q.vendor || r.vendor2627) : ''}</h4>
         <div class="ct-drow"><label>Vendor cost</label>${m('vendorCost', 'enter if known')}</div>
         <div class="ct-drow"><label>Vendor invoice #</label><input class="sh-in sh-vi" data-f="vendorInvoice" value="${escapeHtml(q.vendorInvoice || '')}" placeholder="Invoice #"></div></div>
+      <div class="ct-dgroup ct-dnotes"><h4>Contract parameters to bill</h4>${ctParamsHtml(q, r)}</div>
       ${q.status === 'Completed' ? `<div class="ct-dgroup ct-dnotes ct-dpush"><h4>Billing</h4>${ctPushHtml(q)}<span class="ct-dnote-pushed" style="margin-left:10px">${q.pushedAt ? '' : 'Completed — send the amounts above to owner billing and sub billing.'}</span></div>` : ''}
       <div class="ct-dgroup ct-dnotes"><h4>Notes</h4><textarea class="sh-in sh-notes" data-f="notes" rows="2" placeholder="Special requests, what happened…">${escapeHtml(q.notes || '')}</textarea>${q.pushedAt ? `<div class="ct-dnote-pushed">Pushed to billing ${escapeHtml(ctFmt(q.pushedAt))} — amounts are locked.</div>` : ''}</div>
     </div></td></tr>`;
@@ -7075,6 +7087,18 @@ td.map-cell{ width:60px; text-align:center; }
     tb.addEventListener('change', e => {
       const el = e.target;
       if (el.classList.contains('ct-row-sel')){ const ns = el.closest('tr').dataset.store; if (el.checked) ctSel.add(ns); else ctSel.delete(ns); ctRender(); return; }
+      if (el.classList.contains('ct-param')){
+        const dr = el.closest('tr'); const q = ctReqs.find(x => (dr.dataset.rid && String(x.rowId) === dr.dataset.rid) || (dr.dataset.key && x.key === dr.dataset.key)); if (!q || q.pushedAt) return;
+        const site = rows.find(r => normStore(r.store) === normStore(q.store)); if (!site) return;
+        const items = ctContractInfo(site).items; const cl = new Set(items.map(i => i.label));
+        const ticked = [...dr.querySelectorAll('input.ct-param')].filter(c => c.checked).map(c => c.dataset.label);
+        const others = String(q.serviceItems || '').split(/\s*;\s*/).filter(x => x && !cl.has(x));
+        const labels = ticked.concat(others); const picked = items.filter(i => ticked.includes(i.label));
+        ctSetField(q, 'serviceItems', labels.join('; '));
+        if (labels.length){ const extra = others.map(l => CT_GENERIC_ITEMS.concat(CT_EXTRA_ITEMS).find(g => g.label === l)).filter(Boolean); ctSetField(q, 'service', ctServiceFromItems(picked.concat(extra))); }
+        if (picked.length){ const a = ctAmountsFor(site, picked); ctSetField(q, 'fdiAmount', a.fdiAmount); if (a.vendorCost !== '') ctSetField(q, 'vendorCost', a.vendorCost); }
+        ctRender(); ctFlush().then(ctRenderBanner); return;
+      }
       if (el.classList.contains('sh-in')){ if (el.dataset.f === 'notes'){ const mr = [...tb.querySelectorAll('tr.ct-main')].find(t => t.dataset.store === (el.closest('tr').dataset.dstore || '')); const mi = mr && mr.querySelector('input[data-f="notes"]'); if (mi) mi.value = el.value.trim(); } return; }
       const f = el.dataset.f; if (!f) return; const { q } = reqOfRow(el); if (!q) return;
       if (f === 'status'){ ctSetStatus(q, el.value); ctRender(); }
