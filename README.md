@@ -332,3 +332,17 @@ The row drop-down now has a light panel (readable in dark mode too). New **Contr
 
 ## Contracted Sites: Site financials strip
 Expanding a contracted site now shows **Site financials** above Service history: Total FDI revenue, Vendor COGS, Gross profit and Margin, totalled from that site's service history (cancelled services excluded). It updates live as you edit FDI amounts or vendor costs, and flags services that still have no vendor cost.
+
+## Collapsible Service history + Contract parameters
+In an expanded site, click the **Service history** or **Contract parameters** heading (the little arrow) to collapse or expand it. The buttons in those headings (Create new service, Lock FDI prices, Lock vendor costs) still work while collapsed. Your choice is remembered in this browser.
+
+## Contracted Sites toolbar
+The **Sites** stage dropdown (Fully contracted / Verbally or fully accepted, etc.) now sits on the right side of the toolbar.
+
+## Editable on-site contact / phone / email / gate code
+In an expanded contracted site these four boxes are now editable. They start filled from the **Customer Information** sheet (tagged "from Customer Info"). Type over one and it is saved on the 26-27 Snow Bidding Sheet (new columns On-Site Contact, On-Site Phone, On-Site Email, Gate Code) and tagged "edited"; your entry wins from then on. Clear the box (or type exactly what the Customer Information sheet has) to go back to following that sheet. Sites with no Customer Information row start blank and can be filled in by hand.
+**Needs the latest worker.js pasted into Cloudflare** (adds siteContact / sitePhone / siteEmail / siteGate to FIELD_COLUMN_IDS) before edits will save to Smartsheet.
+
+## New service dialog: Request date, Push instead of Plow
+- New **Request date** field (defaults to today) above Service date(s). It is saved as the request's Requested At, so a service logged after the fact keeps the right request day. Service history now has separate **Request date** and **Service date** columns.
+- Everything that said Plow now says **Push** (service dropdown, "Push + Salt", "Push — 2–4"" contract parameters). The separate single "Plow" checkbox is gone; Push stays. Older entries that were saved as Plow are shown as Push. The Service picklist on the 26/27 Snow PBR Tracker sheet was updated to Push / Salt / Push + Salt / Haul / Stack / Other. (Contract PDF names such as "Snowplowing Contract" are unchanged.)

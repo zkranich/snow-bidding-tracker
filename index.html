@@ -347,8 +347,9 @@ button{ font-family:inherit; }
 /* Contracted Sites: revenue / profit / margin */
 td.sc-cust select.dm-select, td.sc-reg select.region-select{ max-width:170px; }
 table.sc-table th.sc-num, table.sc-table td.sc-num{ text-align:right; white-space:nowrap; }
-.sh-fin{ margin-bottom:12px; } .sf-h{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-muted); margin-bottom:6px; } .sf-h span{ text-transform:none; letter-spacing:0; color:var(--ink-faint); margin-left:6px; } .sf-row{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; } .sf-t{ background:#f8fafc; border:1px solid #c5d0dc; border-radius:10px; padding:8px 12px; } .sf-t .l{ font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:#4a5b6c; } .sf-t .n{ font-size:20px; font-weight:700; font-variant-numeric:tabular-nums; color:#1b2733; } .sf-t .n.neg{ color:#c0392b; } .sf-t .s{ font-size:11px; color:#6b7b8c; } .sh-fin .sf-h, .sh-fin .sf-h span{ color:#4a5b6c; } @media(max-width:700px){ .sf-row{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
-.sc-modes{ display:inline-flex; gap:6px; margin-left:auto; } #sc-fin-wrap{ margin-top:12px; } .fd-kpis{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-bottom:14px; } .fd-kpi{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 16px; } .fd-kpi .t{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-muted); } .fd-kpi .n{ font-size:26px; font-weight:700; line-height:1.2; margin-top:2px; font-variant-numeric:tabular-nums; } .fd-kpi .s{ font-size:11.5px; color:var(--ink-faint); margin-top:2px; } .fd-kpi .n.neg{ color:#c0392b; } .fd-h{ font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-muted); margin:16px 0 6px; font-weight:600; } .fd-bar{ height:6px; border-radius:3px; background:var(--surface-alt); overflow:hidden; min-width:70px; } .fd-bar > i{ display:block; height:100%; background:var(--accent); } #sc-fin-wrap table.fd-table{ min-width:0; }
+.ci-v{ display:flex; flex-direction:column; gap:2px; } .ci-in{ width:100%; box-sizing:border-box; background:#fff !important; color:#14202e !important; -webkit-text-fill-color:#14202e; color-scheme:light; border:1px solid #9aa7b6; border-radius:6px; padding:5px 8px; font-size:12.5px; font-family:inherit; } .ci-in[data-ci="gate"]{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-weight:600; letter-spacing:.04em; } .ci-in::placeholder{ color:#7a8696; -webkit-text-fill-color:#7a8696; opacity:1; } .ci-in:focus{ outline:2px solid #1e3a5f; outline-offset:0; } .ci-src{ font-size:10.5px; color:#6b7b8c; min-height:12px; }
+.sec-head{ cursor:pointer; user-select:none; } .sec-chev{ display:inline-block; width:14px; margin-right:4px; text-align:center; line-height:1; font-size:12px; transition:transform .15s; } .sec-off > .sec-head .sec-chev{ transform:rotate(-90deg); } .sh-wrap.sec-off .sh-block, .contract-params.sec-off > .v{ display:none; } .sh-fin{ margin-bottom:12px; } .sf-h{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-muted); margin-bottom:6px; } .sf-h span{ text-transform:none; letter-spacing:0; color:var(--ink-faint); margin-left:6px; } .sf-row{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; } .sf-t{ background:#f8fafc; border:1px solid #c5d0dc; border-radius:10px; padding:8px 12px; } .sf-t .l{ font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:#4a5b6c; } .sf-t .n{ font-size:20px; font-weight:700; font-variant-numeric:tabular-nums; color:#1b2733; } .sf-t .n.neg{ color:#c0392b; } .sf-t .s{ font-size:11px; color:#6b7b8c; } .sh-fin .sf-h, .sh-fin .sf-h span{ color:#4a5b6c; } @media(max-width:700px){ .sf-row{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+.sc-modes{ display:inline-flex; gap:6px; } #sc-fin-wrap{ margin-top:12px; } .fd-kpis{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-bottom:14px; } .fd-kpi{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 16px; } .fd-kpi .t{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-muted); } .fd-kpi .n{ font-size:26px; font-weight:700; line-height:1.2; margin-top:2px; font-variant-numeric:tabular-nums; } .fd-kpi .s{ font-size:11.5px; color:var(--ink-faint); margin-top:2px; } .fd-kpi .n.neg{ color:#c0392b; } .fd-h{ font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-muted); margin:16px 0 6px; font-weight:600; } .fd-bar{ height:6px; border-radius:3px; background:var(--surface-alt); overflow:hidden; min-width:70px; } .fd-bar > i{ display:block; height:100%; background:var(--accent); } #sc-fin-wrap table.fd-table{ min-width:0; }
 table.sc-table .sc-neg{ color:#c0392b; font-weight:600; }
 table.sc-table tr.sc-total td{ font-weight:700; border-top:2px solid var(--border); background:var(--surface-alt); cursor:default; }
 table.sc-table tr.sc-total:hover{ background:var(--surface-alt); }
@@ -717,7 +718,7 @@ footer{
 .sub-tab.active{ background:var(--accent-soft); color:var(--accent-ink); border-color:color-mix(in srgb, var(--accent) 45%, var(--border)); }
 .sc-chip{ font-size:11px; font-weight:600; padding:2px 9px; border-radius:999px; white-space:nowrap; background:var(--surface-alt); border:1px solid var(--border-soft); color:var(--ink-muted); }
 .sc-chip.ok{ background:var(--map-green); color:#fff; border-color:transparent; } .sc-chip.bad{ background:var(--map-red); color:#fff; border-color:transparent; } .sc-chip.warn{ background:var(--map-yellow); color:#1c1c1c; border-color:transparent; }
-table.sc-table{ min-width:760px; } .sh-wrap{ min-width:0; max-width:100%; } .sh-wrap .sh-block{ max-width:100%; overflow-x:auto; } table.sh-table{ min-width:0 !important; table-layout:auto; } table.sh-table th, table.sh-table td{ padding-left:6px; padding-right:6px; } table.sh-table td{ overflow-wrap:break-word; } table.sh-table.sh-hist td:nth-child(2), table.sh-table.sh-hist td:last-child{ white-space:nowrap; } table.sh-table input.sh-in, table.sh-table textarea.sh-in{ width:100% !important; min-width:64px; max-width:130px; } table.sh-table textarea.sh-in.sh-notes{ max-width:none; min-width:110px; } table.sh-table input.sh-pn{ max-width:none; min-width:60px; } .sc-table .detail-row > td, .sc-table .detail-row .grid, .sc-table .detail-row > td > div{ min-width:0; max-width:100%; } .sh-wrap .v{ margin-top:4px; } .sh-sum{ font-size:12px; color:var(--ink-muted); margin-bottom:6px; } .sh-empty{ font-size:12.5px; color:var(--ink-faint); } table.sh-table{ border-collapse:collapse; width:100%; font-size:12.5px; background:var(--surface); border:1px solid var(--border); border-radius:8px; } table.sh-table .sh-block{ overflow-x:auto; } .sh-money{ white-space:nowrap; color:#4a5666; } .ci-wait{ color:var(--ink-faint); font-size:12px; } .ci-gate{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:14px; letter-spacing:.04em; } .ci-v a{ color:var(--accent-ink); } div.sh-bl{ margin-top:4px; white-space:nowrap; } .sh-pushed{ display:inline-block; padding:2px 8px; border-radius:999px; background:#1f8a4c; color:#fff; font-size:11px; font-weight:600; } input.sh-in[readonly]{ background:#e9edf2 !important; border-color:#c3ccd7; }
+table.sc-table{ min-width:760px; } .sh-wrap{ min-width:0; max-width:100%; } .sh-wrap .sh-block{ max-width:100%; overflow-x:auto; } table.sh-table{ min-width:0 !important; table-layout:auto; } table.sh-table th, table.sh-table td{ padding-left:6px; padding-right:6px; } table.sh-table td{ overflow-wrap:break-word; } table.sh-table.sh-hist td:nth-child(2), table.sh-table.sh-hist td:nth-child(3), table.sh-table.sh-hist td:last-child{ white-space:nowrap; } table.sh-table input.sh-in, table.sh-table textarea.sh-in{ width:100% !important; min-width:64px; max-width:130px; } table.sh-table textarea.sh-in.sh-notes{ max-width:none; min-width:110px; } table.sh-table input.sh-pn{ max-width:none; min-width:60px; } .sc-table .detail-row > td, .sc-table .detail-row .grid, .sc-table .detail-row > td > div{ min-width:0; max-width:100%; } .sh-wrap .v{ margin-top:4px; } .sh-sum{ font-size:12px; color:var(--ink-muted); margin-bottom:6px; } .sh-empty{ font-size:12.5px; color:var(--ink-faint); } table.sh-table{ border-collapse:collapse; width:100%; font-size:12.5px; background:var(--surface); border:1px solid var(--border); border-radius:8px; } table.sh-table .sh-block{ overflow-x:auto; } .sh-money{ white-space:nowrap; color:#4a5666; } .ci-wait{ color:var(--ink-faint); font-size:12px; } .ci-gate{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:14px; letter-spacing:.04em; } .ci-v a{ color:var(--accent-ink); } div.sh-bl{ margin-top:4px; white-space:nowrap; } .sh-pushed{ display:inline-block; padding:2px 8px; border-radius:999px; background:#1f8a4c; color:#fff; font-size:11px; font-weight:600; } input.sh-in[readonly]{ background:#e9edf2 !important; border-color:#c3ccd7; }
   .sh-pushbar{ display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:8px 12px; margin-top:8px; } .sh-bl-info{ font-size:12px; color:var(--ink-muted); } .sh-bl-msg{ font-size:12px; font-weight:600; color:#1e6b46; margin-right:auto; } .sh-pushbar .ct-btn.primary{ background:#1f8a4c; border-color:#1f8a4c; color:#fff; font-weight:600; } .sh-pushbar .ct-btn.primary:hover{ background:#187540; } .sh-push-done{ display:inline-block; padding:7px 14px; border-radius:7px; background:#1f8a4c; color:#fff; font-size:12.5px; font-weight:600; } .sh-pushbar .ct-btn:disabled{ opacity:.5; cursor:not-allowed; }
   .bl-table{ width:100%; border-collapse:separate; border-spacing:0; background:var(--surface); } .bl-amt{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; } .bl-table tfoot td{ padding:8px 9px; border-top:2px solid #1e3a5f; }
   input.sh-in.sh-vi{ width:130px; } .wx-kpis{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:10px; } .wx-kpi{ border:2px solid transparent; border-radius:10px; padding:8px 18px; min-width:96px; text-align:left; cursor:pointer; font-family:inherit; color:#fff; display:flex; flex-direction:column; } .wx-kpi .n{ font-size:24px; font-weight:700; line-height:1.1; } .wx-kpi .t{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; opacity:.95; } .wx-kpi.on{ border-color:#14202e; box-shadow:0 0 0 2px #fff inset; } .wx-none{ font-size:12px; color:var(--ink-muted); }
@@ -1140,6 +1141,13 @@ td.map-cell{ width:60px; text-align:center; }
 <div id="view-sites" hidden>
   <div class="vc-wrap">
     <div class="vc-bar">
+      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">PM <select id="sc-pm"><option value="">All PMs</option></select></label>
+      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Region <select id="sc-region"><option value="">All regions</option></select></label>
+      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Customer <select id="sc-customer"><option value="">All customers</option></select></label>
+      <input type="search" id="sc-search" placeholder="Search store, address, customer, vendor, PM">
+      <button class="ct-btn" id="cl-open" type="button" title="Private links: customer request page and PM Bidding view">&#128279; Private links</button>
+      <span class="sc-modes"><button type="button" class="sub-tab active" id="sc-mode-sites">Sites</button><button type="button" class="sub-tab" id="sc-mode-fin">Financial dashboard</button></span>
+      <span class="vc-count" id="sc-count"></span>
       <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Sites
         <select id="sc-scope">
           <option value="full">Fully contracted (customer accepted + vendor signed)</option>
@@ -1148,13 +1156,6 @@ td.map-cell{ width:60px; text-align:center; }
           <option value="verbal">Verbally or fully accepted</option>
         </select>
       </label>
-      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">PM <select id="sc-pm"><option value="">All PMs</option></select></label>
-      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Region <select id="sc-region"><option value="">All regions</option></select></label>
-      <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Customer <select id="sc-customer"><option value="">All customers</option></select></label>
-      <input type="search" id="sc-search" placeholder="Search store, address, customer, vendor, PM">
-      <button class="ct-btn" id="cl-open" type="button" title="Private links: customer request page and PM Bidding view">&#128279; Private links</button>
-      <span class="sc-modes"><button type="button" class="sub-tab active" id="sc-mode-sites">Sites</button><button type="button" class="sub-tab" id="sc-mode-fin">Financial dashboard</button></span>
-      <span class="vc-count" id="sc-count"></span>
     </div>
     <div id="sc-sites-wrap">
     <div class="table-wrap" style="margin-top:10px">
@@ -1289,6 +1290,7 @@ td.map-cell{ width:60px; text-align:center; }
         <div class="ct-pick-bar"><input id="ct-f-search" type="search" placeholder="Search customer, store #, address…" autocomplete="off"><select id="ct-f-cust" title="Filter by customer"><option value="">All customers</option></select></div>
         <div class="ct-pick-acts"><button type="button" class="ct-btn" id="ct-f-all">Select all shown</button><button type="button" class="ct-btn" id="ct-f-none">Clear</button><span id="ct-f-count" class="ct-pick-count"></span></div>
         <div id="ct-f-sites" class="ct-sitelist"></div></div>
+      <div class="full"><label for="ct-f-req">Request date</label><div class="ct-dates"><input id="ct-f-req" type="date" title="The day the service was requested (defaults to today)"></div></div>
       <div class="full"><label for="ct-f-date">Service date(s)</label><div class="ct-dates"><input id="ct-f-date" type="date"><span id="ct-f-more-dates"></span><button type="button" id="ct-f-add-date" class="ct-btn" title="Log the same service on more than one date — each date gets its own entry for every store">&#43; Add date</button></div></div>
       <div class="full"><label>Service</label><div id="ct-f-service" class="ct-checks"></div></div>
       <div class="full"><div id="ct-f-contract" class="ct-contract-hint"></div></div>
@@ -1593,6 +1595,7 @@ td.map-cell{ width:60px; text-align:center; }
       else if (e.field === 'pm') r.pm = pmFromCell(e.value, '');
       else if (e.field === 'customer'){ if (e.value) r.customer = String(e.value); }
       else if (e.field === 'customerEmail') r.customerEmail = e.value ? String(e.value) : '';
+      else if (e.field === 'siteContact' || e.field === 'sitePhone' || e.field === 'siteEmail' || e.field === 'siteGate') r[e.field] = e.value ? String(e.value) : '';
       else if (Object.prototype.hasOwnProperty.call(INTERESTED_COLUMNS, e.field)){ if (!r.interested) r.interested = {}; r.interested[e.field] = e.value ? String(e.value) : ''; }
       else if (Object.prototype.hasOwnProperty.call(LIVE_CONTRACT_COLUMNS, e.field)){
         if (!r.contractParams) r.contractParams = {};
@@ -1742,10 +1745,10 @@ td.map-cell{ width:60px; text-align:center; }
   function pmShort(name){ return name ? String(name).split(' ')[0] : ''; }
   // Vendors interested in a site: 3 x (name, email, phone), each its own Smartsheet column.
   const INTERESTED_COLUMNS = {"iv1Name": 716833319325572, "iv1Email": 5220432946696068, "iv1Phone": 2968633133010820, "iv2Name": 7472232760381316, "iv2Email": 1842733226168196, "iv2Phone": 6346332853538692, "iv3Name": 4094533039853444, "iv3Email": 8598132667223940, "iv3Phone": 435358342614916, "iv1Emailed": 4044247596306308, "iv1Quote": 8547847223676804, "iv2Emailed": 385072899067780, "iv2Quote": 4888672526438276, "iv3Emailed": 2636872712753028, "iv3Quote": 7140472340123524};
-  const LIVE_COL = { customerStatus: 7113215152263044, vendorStatus: 1483715618049924, lost: 5987315245420420, region: 260677394796420, vendor2627: 7903831494791044, customer: 4342064557100932, customerEmail: 8178725658857348, fdiLocked: 10645392887684, vendorLocked: 4514245020258180 };
+  const LIVE_COL = { customerStatus: 7113215152263044, vendorStatus: 1483715618049924, lost: 5987315245420420, region: 260677394796420, vendor2627: 7903831494791044, customer: 4342064557100932, customerEmail: 8178725658857348, siteContact: 803364493102980, sitePhone: 5306964120473476, siteEmail: 3055164306788228, siteGate: 7558763934158724, fdiLocked: 10645392887684, vendorLocked: 4514245020258180 };
   // A cheap fingerprint of everything a refresh can change, so the screen is only rebuilt when something actually differs.
   function rowsSig(){
-    return rows.length + '#' + rows.map(r => [r.rowId, r.customerStatus, r.vendorStatus, r.lost ? 1 : 0, r.region, r.vendor2627, r.pm, r.customer, r.customerEmail, r.fdiLocked ? 1 : 0, r.vendorLocked ? 1 : 0,
+    return rows.length + '#' + rows.map(r => [r.rowId, r.customerStatus, r.vendorStatus, r.lost ? 1 : 0, r.region, r.vendor2627, r.pm, r.customer, r.customerEmail, r.siteContact, r.sitePhone, r.siteEmail, r.siteGate, r.fdiLocked ? 1 : 0, r.vendorLocked ? 1 : 0,
       JSON.stringify(r.contractParams || null), JSON.stringify(r.interested || null)].join('|')).join('\n');
   }
   let lastAttSig = '';
@@ -1822,6 +1825,7 @@ td.map-cell{ width:60px; text-align:center; }
         if (c[LIVE_COL.region]) r.region = String(c[LIVE_COL.region]);
         if (c[LIVE_COL.customer]) r.customer = String(c[LIVE_COL.customer]);
         r.customerEmail = c[LIVE_COL.customerEmail] ? String(c[LIVE_COL.customerEmail]) : '';
+        ['siteContact', 'sitePhone', 'siteEmail', 'siteGate'].forEach(k => { r[k] = c[LIVE_COL[k]] ? String(c[LIVE_COL[k]]) : ''; });
       });
       try { buildCustomerFilter(); } catch(e){}
       applyOutbox(); // edits Smartsheet hasn't confirmed yet always win over what was just read
@@ -4697,7 +4701,7 @@ td.map-cell{ width:60px; text-align:center; }
       const extra = ((type === 'DSS' || type === 'MP') && k === 'seasonal' ? dssPushesItemHtml(r) : '') + ((type === 'DSS' || type === 'PS' || type === 'MP') && k === 'seasonal' ? baseMonthlyItemHtml(r) : '');
       return extra + item;
     }).join('');
-    return `<div class="contract-params"><div class="k">Contract parameters${cpLockBarHtml(r)}</div><div class="v"><div class="cp-grid">${rowsHtml}</div></div></div>`;
+    return `<div class="contract-params${secCollapsed('cp') ? ' sec-off' : ''}" data-sec="cp"><div class="k sec-head" title="Click to collapse / expand">${SEC_CHEV}Contract parameters${cpLockBarHtml(r)}</div><div class="v"><div class="cp-grid">${rowsHtml}</div></div></div>`;
   }
 
   function rowFlagBadges(r){
@@ -5821,7 +5825,7 @@ td.map-cell{ width:60px; text-align:center; }
   const CT_OUTBOX_KEY = 'fdiDispatchOutboxV1', CT_SCOPE_KEY = 'fdiCtScopeV1';
   const CT_COLS = {"request":8036663236005764,"storm":718313841528708,"stormDate":5221913468899204,"store":2970113655213956,"address":7473713282584452,"pm":1844213748371332,"vendor":6347813375741828,"status":4096013562056580,"service":8599613189427076,"serviceItems":2241975098838916,"fdiAmount":1416956307345284,"vendorCost":5920555934715780,"workOrder":3668756121030532,"projectNo":8707827574804356,"pushedAt":3907393630801796,"vendorInvoice":5844323083784068,"ownerInvoice":3357743823753092,"ownerInvoiceDate":7861343451123588,"forecast":436838864818052,"actual":4940438492188548,"pushes":2688638678503300,"salt":7192238305873796,"requestedAt":1562738771660676,"dispatchedAt":6066338399031172,"onSiteAt":3814538585345924,"completedAt":8318138212716420,"issue":999788818239364,"notes":5503388445609860,"emailRef":1903329642581892,"vendorReply":6406929269952388,"vendorRepliedAt":4155129456267140,"customerNotifiedAt":225090901675908};
   const CT_STATUSES = ['Requested', 'Dispatched', 'Vendor Replied', 'On Site', 'Completed', 'Issue', 'Cancelled'];
-  const CT_SERVICES = ['Plow', 'Salt', 'Plow + Salt', 'Haul / Stack', 'Other'];
+  const CT_SERVICES = ['Push', 'Salt', 'Push + Salt', 'Haul / Stack', 'Other'];
   let ctReqs = [];            // all requests (server rows + not-yet-created local ones)
   let ctState = 'idle', ctError = '';   // idle | loading | ok | error | noconn
   let ctStorm = '';           // active storm name
@@ -5844,6 +5848,8 @@ td.map-cell{ width:60px; text-align:center; }
       const o = { rowId: sr.id, key: null };
       Object.keys(CT_COLS).forEach(k => { o[k] = ''; });
       (sr.cells || []).forEach(c => { const k = byCol[c.columnId]; if (k && c.value !== undefined && c.value !== null) o[k] = String(c.value).slice(0, k === 'stormDate' ? 10 : 4000); });
+      if (o.service) o.service = o.service.replace(/\bPlow\b/g, 'Push');
+      if (o.serviceItems) o.serviceItems = o.serviceItems.replace(/\bPlow\b/g, 'Push').replace(/\bplow \+ salt\b/g, 'push + salt');   // older entries said Plow
       return o;
     }).filter(o => o.store && o.storm);
   }
@@ -5966,29 +5972,56 @@ td.map-cell{ width:60px; text-align:center; }
   }
   function ciFor(r){ return (ciMap && ciMap.get(normStore(r.store))) || null; }
   const ciTel = v => { const d = String(v || '').replace(/[^\d+]/g, ''); return d ? `<a href="tel:${escapeHtml(d)}">${escapeHtml(v)}</a>` : escapeHtml(v); };
-  function ciFieldHtml(r, key){
-    const i = ciFor(r);
-    if (!i){ return ciState === 'loading' || ciState === 'idle' ? '<span class="ci-wait">loading…</span>' : ciState === 'noconn' ? '<span class="ci-wait">connect Smartsheet</span>' : ciState === 'error' ? `<span class="ci-wait" title="${escapeHtml(ciErr)}">unavailable</span>` : '&mdash;'; }
-    if (key === 'contact') return escapeHtml(i.contact || '') || '&mdash;';
-    if (key === 'phone'){ const v = i.contactCell || i.storePhone || ''; return v ? ciTel(v) + (!i.contactCell && i.storePhone ? ' <span class="ci-wait">(store)</span>' : '') : '&mdash;'; }
-    if (key === 'email') return i.email ? `<a href="mailto:${escapeHtml(i.email)}">${escapeHtml(i.email)}</a>` : '&mdash;';
-    if (key === 'gate') return i.gate ? `<b class="ci-gate">${escapeHtml(i.gate)}</b>` : '&mdash;';
+  // Each of the four fields: what you typed (saved on the bidding sheet) wins; otherwise the value from the Customer Information sheet.
+  const CI_FIELD = { contact: 'siteContact', phone: 'sitePhone', email: 'siteEmail', gate: 'siteGate' };
+  const CI_LABEL = { contact: 'On-site contact', phone: 'On-site phone', email: 'On-site email', gate: 'Gate code' };
+  function ciSheetValue(r, key){
+    const i = ciFor(r); if (!i) return '';
+    if (key === 'contact') return i.contact || '';
+    if (key === 'phone') return i.contactCell || i.storePhone || '';
+    if (key === 'email') return i.email || '';
+    if (key === 'gate') return i.gate || '';
     return '';
   }
+  function ciState3(r, key){   // { value, src: 'edited' | 'sheet' | '' }
+    const own = String(r[CI_FIELD[key]] || '').trim(); if (own) return { value: own, src: 'edited' };
+    const sv = ciSheetValue(r, key); return sv ? { value: sv, src: 'sheet' } : { value: '', src: '' };
+  }
+  function ciPlaceholder(){ return ciState === 'loading' || ciState === 'idle' ? 'loading…' : ciState === 'noconn' ? 'type to add' : ciState === 'error' ? 'type to add' : '—'; }
+  function ciSrcHtml(st){ return st.src === 'sheet' ? 'from Customer Info' : st.src === 'edited' ? 'edited' : ''; }
+  function ciFieldHtml(r, key){
+    const st = ciState3(r, key); const canEdit = r.rowId != null;
+    return `<input class="ci-in" type="${key === 'email' ? 'email' : 'text'}" data-ci="${key}" data-rowid="${canEdit ? escapeHtml(String(r.rowId)) : ''}" value="${escapeHtml(st.value)}" placeholder="${ciPlaceholder()}"${canEdit ? '' : ' disabled'}${key === 'gate' ? ' autocomplete="off"' : ''}><span class="ci-src" title="${st.src === 'sheet' ? 'Filled from the Customer Information sheet; type to override it' : st.src === 'edited' ? 'Saved on the bidding sheet. Clear the box to go back to the Customer Information value' : ''}">${ciSrcHtml(st)}</span>`;
+  }
   function ciBoxHtml(r){
-    const f = (k, label) => `<div class="ci-item" data-store="${escapeHtml(normStore(r.store))}" data-ci="${k}"><div class="k">${label}</div><div class="v ci-v">${ciFieldHtml(r, k)}</div></div>`;
+    const f = k => `<div class="ci-item" data-store="${escapeHtml(normStore(r.store))}" data-ci="${k}"><div class="k">${CI_LABEL[k]}</div><div class="v ci-v">${ciFieldHtml(r, k)}</div></div>`;
     setTimeout(() => { ciEnsure().then(ciRefresh); }, 0);
-    return f('contact', 'On-site contact') + f('phone', 'On-site phone') + f('email', 'On-site email') + f('gate', 'Gate code');
+    return f('contact') + f('phone') + f('email') + f('gate');
   }
   function ciRefresh(){
-    document.querySelectorAll('.ci-item').forEach(el => { const r = rows.find(x => normStore(x.store) === el.dataset.store); const v = el.querySelector('.ci-v'); if (r && v) v.innerHTML = ciFieldHtml(r, el.dataset.ci); });
+    document.querySelectorAll('.ci-item').forEach(el => {
+      const r = rows.find(x => normStore(x.store) === el.dataset.store); const v = el.querySelector('.ci-v'); if (!r || !v) return;
+      const inp = v.querySelector('input.ci-in'); if (inp && document.activeElement === inp) return;   // don't disturb typing
+      v.innerHTML = ciFieldHtml(r, el.dataset.ci);
+    });
   }
+  document.addEventListener('change', e => {
+    const inp = e.target; if (!inp || !inp.classList || !inp.classList.contains('ci-in')) return;
+    const item = inp.closest('.ci-item'); if (!item || !inp.dataset.rowid) return;
+    const r = rows.find(x => normStore(x.store) === item.dataset.store); if (!r) return;
+    const key = inp.dataset.ci, f = CI_FIELD[key]; let v = inp.value.trim();
+    if (v && v === ciSheetValue(r, key)) v = '';   // same as the Customer Information value: keep following that sheet
+    r[f] = v; syncFieldToSmartsheet(r.rowId, f, v);
+    const st = ciState3(r, key); inp.value = st.value;
+    const src = inp.parentElement.querySelector('.ci-src'); if (src) src.textContent = ciSrcHtml(st);
+  });
 
   // ----- Service history (dispatch log rows for one site) shown under each contracted site
   function serviceHistoryRows(r){
     const ns = normStore(r.store);
     return ctReqs.filter(q => normStore(q.store) === ns).sort((a, b) => String(b.stormDate || '').localeCompare(String(a.stormDate || '')) || String(b.requestedAt || '').localeCompare(String(a.requestedAt || '')));
   }
+  const shReqDate = q => { const d = new Date(q.requestedAt || ''); return isNaN(d) ? '' : `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}/${d.getFullYear()}`; };
   const shMdy = d => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(d || '')); return m ? `${m[2]}/${m[3]}/${m[1]}` : String(d || ''); };
   const shNum = v => { const n = Number(String(v == null ? '' : v).replace(/[$,\s]/g, '')); return String(v == null ? '' : v).trim() === '' || isNaN(n) ? null : n; };
   const shMoney = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -5998,8 +6031,8 @@ td.map-cell{ width:60px; text-align:center; }
     const sum = f => list.reduce((a, q) => a + (shNum(q[f]) || 0), 0);
     const money = (q, f) => `<span class="sh-money">$<input class="sh-in" data-f="${f}" inputmode="decimal" value="${escapeHtml(q[f] || '')}" placeholder="—"${q.pushedAt ? ' readonly title="Already pushed to billing"' : ''}></span>`;
     return `<div class="sh-sum">${list.length} service${list.length === 1 ? '' : 's'} logged &middot; FDI ${shMoney(sum('fdiAmount'))} &middot; Vendor ${shMoney(sum('vendorCost'))}</div>
-      <table class="sh-table sh-hist"><thead><tr><th>Project #</th><th>Date</th><th>Service</th><th>Vendor</th><th>FDI Amount</th><th>Vendor Cost</th><th>Work Order #</th><th>Vendor Invoice #</th><th>Notes</th><th>Billing</th><th></th></tr></thead><tbody>`
-      + list.map(q => `<tr data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}"><td class="sh-pn">${escapeHtml(q.projectNo || '')}</td><td>${escapeHtml(shMdy(q.stormDate))}${q.pushedAt ? `<div class="sh-bl"><span class="sh-pushed" title="Pushed to owner + sub billing">Pushed to billing ${escapeHtml(shMdy(q.pushedAt))}</span></div>` : ''}</td><td>${escapeHtml(q.serviceItems || q.service || '')}${q.serviceItems && q.service ? `<div class="sh-items">${escapeHtml(q.service)}</div>` : ''}</td><td>${escapeHtml(q.vendor || '')}</td><td>${money(q, 'fdiAmount')}</td><td>${money(q, 'vendorCost')}</td><td><input class="sh-in sh-wo" data-f="workOrder" value="${escapeHtml(q.workOrder || '')}" placeholder="WO #"></td><td><input class="sh-in sh-vi" data-f="vendorInvoice" value="${escapeHtml(q.vendorInvoice || '')}" placeholder="Invoice #"></td><td><textarea class="sh-in sh-notes" data-f="notes" rows="1" placeholder="Add a note…">${escapeHtml(q.notes || '')}</textarea></td><td>${q.pushedAt ? '<span class="sh-pushed" title="Already in owner + sub billing">&#10003; In billing</span>' : `<button type="button" class="ct-btn sh-push-one" style="white-space:nowrap;padding:5px 10px"${blPending(q) ? '' : ' disabled'} title="${blPending(q) ? 'Send just this service to owner + sub billing' : 'Add an FDI amount or vendor cost first'}">Push to billing</button>`}</td><td><button type="button" class="ct-btn sh-del" title="Delete this service" style="padding:5px 10px;color:#c0392b">Delete</button></td></tr>`).join('')
+      <table class="sh-table sh-hist"><thead><tr><th>Project #</th><th>Request date</th><th>Service date</th><th>Service</th><th>Vendor</th><th>FDI Amount</th><th>Vendor Cost</th><th>Work Order #</th><th>Vendor Invoice #</th><th>Notes</th><th>Billing</th><th></th></tr></thead><tbody>`
+      + list.map(q => `<tr data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}"><td class="sh-pn">${escapeHtml(q.projectNo || '')}</td><td>${escapeHtml(shReqDate(q))}</td><td>${escapeHtml(shMdy(q.stormDate))}${q.pushedAt ? `<div class="sh-bl"><span class="sh-pushed" title="Pushed to owner + sub billing">Pushed to billing ${escapeHtml(shMdy(q.pushedAt))}</span></div>` : ''}</td><td>${escapeHtml(q.serviceItems || q.service || '')}${q.serviceItems && q.service ? `<div class="sh-items">${escapeHtml(q.service)}</div>` : ''}</td><td>${escapeHtml(q.vendor || '')}</td><td>${money(q, 'fdiAmount')}</td><td>${money(q, 'vendorCost')}</td><td><input class="sh-in sh-wo" data-f="workOrder" value="${escapeHtml(q.workOrder || '')}" placeholder="WO #"></td><td><input class="sh-in sh-vi" data-f="vendorInvoice" value="${escapeHtml(q.vendorInvoice || '')}" placeholder="Invoice #"></td><td><textarea class="sh-in sh-notes" data-f="notes" rows="1" placeholder="Add a note…">${escapeHtml(q.notes || '')}</textarea></td><td>${q.pushedAt ? '<span class="sh-pushed" title="Already in owner + sub billing">&#10003; In billing</span>' : `<button type="button" class="ct-btn sh-push-one" style="white-space:nowrap;padding:5px 10px"${blPending(q) ? '' : ' disabled'} title="${blPending(q) ? 'Send just this service to owner + sub billing' : 'Add an FDI amount or vendor cost first'}">Push to billing</button>`}</td><td><button type="button" class="ct-btn sh-del" title="Delete this service" style="padding:5px 10px;color:#c0392b">Delete</button></td></tr>`).join('')
       + '</tbody></table>' + blPushBarHtml(r, list);
   }
   // ----- Push to billing: owner billing gets the FDI amount only, sub billing gets the vendor cost only
@@ -6182,6 +6215,11 @@ td.map-cell{ width:60px; text-align:center; }
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (owner ? 'Owner Billing' : 'Sub Billing') + ' ' + ctToday() + '.csv';
     document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   }
+  // Collapsible sections in the site detail (Service history, Contract parameters); remembered per browser
+  const SEC_KEY = 'fdiSecCollapsedV1';
+  function secCollapsed(k){ try { return (JSON.parse(localStorage.getItem(SEC_KEY) || '{}') || {})[k] === 1; } catch(e){ return false; } }
+  function secSet(k, on){ try { const o = JSON.parse(localStorage.getItem(SEC_KEY) || '{}') || {}; if (on) o[k] = 1; else delete o[k]; localStorage.setItem(SEC_KEY, JSON.stringify(o)); } catch(e){} }
+  const SEC_CHEV = '<span class="sec-chev" aria-hidden="true">&#9662;</span>';
   // Site financials strip above Service history: totals across the site's logged services (cancelled excluded)
   function siteFinHtml(r){
     const x = scFin(r); const t = (l, n, cls, sub) => `<div class="sf-t"><div class="l">${l}</div><div class="n${cls ? ' ' + cls : ''}">${n}</div>${sub ? `<div class="s">${sub}</div>` : ''}</div>`;
@@ -6193,7 +6231,7 @@ td.map-cell{ width:60px; text-align:center; }
       + t('Margin', x.margin === null ? '&mdash;' : (x.margin * 100).toFixed(1) + '%', x.margin !== null && x.margin < 0 ? 'neg' : '', '') + '</div>';
   }
   function serviceHistoryHtml(r){
-    return `<div class="sh-wrap" style="grid-column:1/-1"><div class="sh-fin" data-store="${escapeHtml(normStore(r.store))}">${siteFinHtml(r)}</div><div class="k" style="display:flex;align-items:center;gap:10px">Service history <button type="button" class="ct-btn primary sh-new" data-store="${escapeHtml(normStore(r.store))}" style="text-transform:none;letter-spacing:0;background:var(--accent);border-color:var(--accent);color:#fff">Create new service</button></div><div class="v sh-block" data-store="${escapeHtml(normStore(r.store))}">${serviceHistoryInner(r)}</div></div>`;
+    return `<div class="sh-wrap${secCollapsed('sh') ? ' sec-off' : ''}" data-sec="sh" style="grid-column:1/-1"><div class="sh-fin" data-store="${escapeHtml(normStore(r.store))}">${siteFinHtml(r)}</div><div class="k sec-head" title="Click to collapse / expand" style="display:flex;align-items:center;gap:10px">${SEC_CHEV}Service history <button type="button" class="ct-btn primary sh-new" data-store="${escapeHtml(normStore(r.store))}" style="text-transform:none;letter-spacing:0;background:var(--accent);border-color:var(--accent);color:#fff">Create new service</button></div><div class="v sh-block" data-store="${escapeHtml(normStore(r.store))}">${serviceHistoryInner(r)}</div></div>`;
   }
   function scRefreshHistory(){
     try { scRefreshFin(); } catch(e){}
@@ -6357,24 +6395,24 @@ td.map-cell{ width:60px; text-align:center; }
       const vk = 'vendor' + k.charAt(0).toUpperCase() + k.slice(1); const vv = Number(cp[vk]); const extra = { fdi: Number(cp[k]), vendor: (cp[vk] !== null && cp[vk] !== undefined && cp[vk] !== '' && !isNaN(vv)) ? vv : null };
       if (k === 'deicer') items.push(Object.assign({ label: 'Salt — Deicer', kind: 'salt', money }, extra));
       else if (k === 'saltingOfficeGate') items.push(Object.assign({ label: 'Salt — Office/gate', kind: 'salt', money }, extra));
-      else if (k === 'seasonal') items.push(Object.assign({ label: 'Seasonal (plow + salt)', kind: 'seasonal', money }, extra));
-      else items.push(Object.assign({ label: 'Plow — ' + (CT_PARAM_LABELS[k] || k), kind: 'plow', money }, extra));
+      else if (k === 'seasonal') items.push(Object.assign({ label: 'Seasonal (push + salt)', kind: 'seasonal', money }, extra));
+      else items.push(Object.assign({ label: 'Push — ' + (CT_PARAM_LABELS[k] || k), kind: 'plow', money }, extra));
     });
     const order = { plow: 0, salt: 1, seasonal: 2 }; items.sort((a, b) => order[a.kind] - order[b.kind]);
     const plow = items.some(i => i.kind === 'plow'), salt = items.some(i => i.kind === 'salt'), seasonal = items.some(i => i.kind === 'seasonal');
-    let service = ''; if (seasonal || (plow && salt)) service = 'Plow + Salt'; else if (plow) service = 'Plow'; else if (salt) service = 'Salt';
+    let service = ''; if (seasonal || (plow && salt)) service = 'Push + Salt'; else if (plow) service = 'Push'; else if (salt) service = 'Salt';
     return { service, items };
   }
   // Picklist value for the Service column, from the individual items picked.
   function ctServiceFromItems(items){
     const t = items.map(i => i.kind);
-    const plow = t.includes('plow'), salt = t.includes('salt'), seasonal = t.includes('seasonal');
-    if (seasonal || (plow && salt)) return 'Plow + Salt'; if (plow) return 'Plow'; if (salt) return 'Salt';
+    const plow = t.includes('plow') || t.includes('push'), salt = t.includes('salt'), seasonal = t.includes('seasonal');
+    if (seasonal || (plow && salt)) return 'Push + Salt'; if (plow) return 'Push'; if (salt) return 'Salt';
     if (t.includes('haul')) return 'Haul / Stack'; return 'Other';
   }
   const CT_EXTRA_ITEMS = [{ label: 'Haul / Stack', kind: 'haul', money: '' }, { label: 'Other', kind: 'other', money: '' }];
-  // Offered for every site (even when the depth isn't known yet): generic Plow / Salt, a Push and Walks
-  const CT_GENERIC_ITEMS = [{ label: 'Plow', kind: 'plow', money: '' }, { label: 'Salt', kind: 'salt', money: '' }, { label: 'Push', kind: 'plow', money: '' }, { label: 'Walks', kind: 'walk', money: '' }];
+  // Offered for every site (even when the depth isn't known yet): generic Push / Salt and Walks
+  const CT_GENERIC_ITEMS = [{ label: 'Push', kind: 'plow', money: '' }, { label: 'Salt', kind: 'salt', money: '' }, { label: 'Walks', kind: 'walk', money: '' }];
   // Sites picked in the New service dialog (search by customer / store / address, then tick each site that needs service)
   let ctNewPick = new Set(), ctLastSingle = '', ctEmailSet = null;
   const ctByStore = (a, b) => String(a.store).localeCompare(String(b.store), undefined, { numeric: true });
@@ -6404,7 +6442,7 @@ td.map-cell{ width:60px; text-align:center; }
       const list = c.items.concat(CT_GENERIC_ITEMS.filter(g => !have.has(g.label)), CT_EXTRA_ITEMS);
       box._items = list;
       box.innerHTML = list.map((it, i) => chk('i' + i, it.label, it.money, false)).join('');
-      hint.innerHTML = c.items.length ? `Services in <b>${escapeHtml(sites[0].store)}</b>&rsquo;s contract &mdash; tick every one that applies to this service (amounts are what FDI bills). Plow, Salt, Push and Walks are there too when you don&rsquo;t know the depth yet.` : `No contract rates are entered for <b>${escapeHtml(sites[0].store)}</b> yet &mdash; tick what applies.`;
+      hint.innerHTML = c.items.length ? `Services in <b>${escapeHtml(sites[0].store)}</b>&rsquo;s contract &mdash; tick every one that applies to this service (amounts are what FDI bills). Push, Salt and Walks are there too when you don&rsquo;t know the depth yet.` : `No contract rates are entered for <b>${escapeHtml(sites[0].store)}</b> yet &mdash; tick what applies.`;
     } else {
       ctNewMode = 'multi';
       // Contract parameters that exist on any selected store (each store bills at its own rate for a ticked parameter).
@@ -6426,7 +6464,7 @@ td.map-cell{ width:60px; text-align:center; }
   }
   // Amounts for one store from the ticked items: specific contract parameters use their own rates;
   // a generic "Salt" uses the store's Deicer rate; "per each store's contract" is filled only when that
-  // contract has a single service. Plow tiers depend on snowfall, so a generic "Plow" is left blank.
+  // contract has a single service. Push tiers depend on snowfall, so a generic "Push" is left blank.
   function ctAmountsFor(r, picked){
     const c = ctContractInfo(r); let fdi = null, ven = null;
     const add = it => { if (!it) return; if (typeof it.fdi === 'number') fdi = (fdi || 0) + it.fdi; if (typeof it.vendor === 'number') ven = (ven || 0) + it.vendor; };
@@ -6462,6 +6500,7 @@ td.map-cell{ width:60px; text-align:center; }
     { const nt = document.getElementById('ct-f-notes'); if (nt) nt.value = ''; }
     ctRenderPick();
     document.getElementById('ct-f-date').value = ctToday();
+    { const rq = document.getElementById('ct-f-req'); if (rq) rq.value = ctToday(); }
     { const mo = document.getElementById('ct-f-more-dates'); if (mo) mo.innerHTML = ''; }
     ctLastSingle = ''; ctRefreshNewService();
     const m = document.getElementById('ct-f-msg'); m.textContent = ''; m.classList.remove('bad');
@@ -6473,6 +6512,8 @@ td.map-cell{ width:60px; text-align:center; }
     const dates = [];
     [document.getElementById('ct-f-date').value || ctToday()].concat(Array.from(document.querySelectorAll('#ct-f-more-dates input[type=date]')).map(i => i.value)).forEach(d => { if (d && !dates.includes(d)) dates.push(d); });
     const msg = document.getElementById('ct-f-msg');
+    const reqDay = (document.getElementById('ct-f-req') || {}).value || ctToday();
+    const reqAt = reqDay === ctToday() ? ctNow() : new Date(reqDay + 'T12:00:00').toISOString();
     const sites = ctNewSites();
     if (!sites.length){ msg.textContent = 'Tick at least one site above (search by customer or store #).'; msg.classList.add('bad'); return; }
     const picked = ctPickedItems();
@@ -6491,7 +6532,7 @@ td.map-cell{ width:60px; text-align:center; }
         const mine = resolveFor(r); if (!mine.length) return;
         const auto = mine.some(i => i.kind === 'auto'); const specific = mine.filter(i => i.kind !== 'auto');
         let service, serviceItems;
-        if (auto && !specific.length){ service = ctContractInfo(r).service || 'Plow + Salt'; serviceItems = ''; }
+        if (auto && !specific.length){ service = ctContractInfo(r).service || 'Push + Salt'; serviceItems = ''; }
         else { service = ctServiceFromItems(specific); serviceItems = specific.map(i => i.label).join('; '); }
         // combined cost of the ticked contract parameters, saved with the service (editable afterwards in Service history)
         let { fdiAmount, vendorCost } = ctAmountsFor(r, mine); let workOrder = '', vendorInvoice = '';
@@ -6499,11 +6540,11 @@ td.map-cell{ width:60px; text-align:center; }
           const num = id => { const n = shNum(document.getElementById(id).value); return n === null ? '' : String(n); };
           fdiAmount = num('ct-f-fdi'); vendorCost = num('ct-f-ven'); workOrder = document.getElementById('ct-f-wo').value.trim(); vendorInvoice = document.getElementById('ct-f-vi').value.trim();
         }
-        ctNewRequest(r, name, date, { service, serviceItems, fdiAmount, vendorCost, workOrder, vendorInvoice, notes: reqNotes }); made++; madeHere++;
+        ctNewRequest(r, name, date, { service, serviceItems, fdiAmount, vendorCost, workOrder, vendorInvoice, notes: reqNotes, requestedAt: reqAt }); made++; madeHere++;
       });
       if (madeHere){ madeNames.push(name); if (!firstName) firstName = name; }
     });
-    if (!made){ msg.textContent = 'None of the selected stores have those contract parameters — tick a different parameter, or Plow / Salt / Per each store’s contract.'; msg.classList.add('bad'); return; }
+    if (!made){ msg.textContent = 'None of the selected stores have those contract parameters — tick a different parameter, or Push / Salt / Per each store’s contract.'; msg.classList.add('bad'); return; }
     name = firstName; ctStorm = name; ctSel.clear(); ctStatusFilter = '';
     document.getElementById('ct-back').hidden = true;
     ctRender(); ctFlush().then(ctRender);
@@ -7014,6 +7055,12 @@ td.map-cell{ width:60px; text-align:center; }
       const r = rows.find(x => String(x.rowId) === sel.dataset.rowid); if (!r) return;
       if (sel.value === '__new__'){ scRender(); dmOpenNew(r, () => scRender()); return; }
       dmSetCustomer(r, sel.value, sel.value ? dmEmailFor(sel.value) : ''); scRender();
+    });
+    document.addEventListener('click', e => {
+      const h = e.target.closest && e.target.closest('.sec-head'); if (!h) return;
+      if (e.target.closest('button, a, input, select, textarea, label')) return;
+      const box = h.parentElement; if (!box || !box.dataset.sec) return;
+      const off = !box.classList.contains('sec-off'); document.querySelectorAll(`[data-sec="${box.dataset.sec}"]`).forEach(b => b.classList.toggle('sec-off', off)); secSet(box.dataset.sec, off);
     });
     document.getElementById('sc-mode-sites').addEventListener('click', () => scSetMode('sites'));
     document.getElementById('sc-mode-fin').addEventListener('click', () => scSetMode('fin'));

@@ -94,6 +94,10 @@ const FIELD_COLUMN_IDS = {
   vendor2627: 7903831494791044,     // 26/27 Vendor (text)
   customer: 4342064557100932,       // Customer (the DM / contact)
   customerEmail: 8178725658857348,  // Customer Email
+  siteContact: 803364493102980,     // On-Site Contact (edited in the dashboard; overrides Customer Information)
+  sitePhone: 5306964120473476,      // On-Site Phone
+  siteEmail: 3055164306788228,      // On-Site Email
+  siteGate: 7558763934158724,        // Gate Code
   // Contract rates (FDI + vendor side), seasonal amounts, and contract dates.
   // Dashboard keys that share a Smartsheet column (e.g. fdi2_4 / pfuetze2_4) point at the same ID.
   deicer: 8242098027663236,
