@@ -399,6 +399,7 @@ button.sh-push-one:disabled{ opacity:.55; cursor:not-allowed; }
 .ct-sitelist{ max-height:210px; overflow:auto; border:1px solid var(--border); border-radius:7px; background:var(--surface-alt); padding:4px 8px; } .ct-sitelist .ct-chk{ padding:4px 0; border-bottom:1px solid var(--border); } .ct-sitelist .ct-chk:last-child{ border-bottom:0; } .ct-sitelist .ct-chk span{ min-width:0; } .ct-sitelist .ct-chk .ct-chk-amt{ text-align:right; max-width:42%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .ct-sitelist .ct-empty-pick{ padding:12px 4px; font-size:12px; color:var(--ink-muted); }
 .ct-emailopt{ margin:12px 0 2px; } .ct-emailhint{ font-size:11.5px; color:var(--ink-muted); margin:3px 0 0 24px; }
 .as-grid input[type=radio]{ width:auto; margin:0 7px 0 0; padding:0; vertical-align:middle; }
+.as-grid textarea{ width:100%; box-sizing:border-box; background:var(--surface-alt); color:var(--ink); border:1px solid var(--border); border-radius:7px; padding:8px 9px; font-size:13px; font-family:inherit; resize:vertical; }
 .as-grid input, .as-grid select{ width:100%; box-sizing:border-box; background:var(--surface-alt); color:var(--ink); border:1px solid var(--border); border-radius:7px; padding:8px 9px; font-size:13px; font-family:inherit; }
 .as-actions{ display:flex; align-items:center; gap:10px; margin-top:14px; }
 .as-actions button{ border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); border-radius:7px; padding:8px 14px; font-size:13px; cursor:pointer; }
@@ -421,7 +422,6 @@ button.sh-push-one:disabled{ opacity:.55; cursor:not-allowed; }
 .ct-btn.primary{ background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
 .ct-btn:disabled{ opacity:.55; cursor:not-allowed; }
 .ct-banner{ margin:10px 0 0; background:var(--accent-soft); color:var(--accent-ink); border:1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); border-radius:8px; padding:8px 12px; font-size:12.5px; font-weight:600; }
-.ct-tabs{ display:flex; gap:4px; flex-wrap:wrap; margin-top:12px; border-bottom:1px solid var(--border); } .ct-tab{ background:transparent; color:var(--ink-muted); border:1px solid transparent; border-bottom:0; border-radius:8px 8px 0 0; padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; margin-bottom:-1px; } .ct-tab:hover{ color:var(--ink); } .ct-tab.on{ background:var(--surface); color:var(--accent-ink, var(--ink)); border-color:var(--border); border-bottom:1px solid var(--surface); } .ct-tab .n{ font-weight:500; font-size:11.5px; background:var(--surface-alt); color:var(--ink-muted); border-radius:10px; padding:1px 7px; margin-left:6px; } .ct-tab.on .n{ background:var(--accent-soft); color:var(--accent-ink); }
 .ct-banner.bad{ background:var(--warn-soft); color:var(--warn); border-color:color-mix(in srgb, var(--warn) 40%, var(--border)); }
 .ct-bulk{ margin:10px 0 0; display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:12.5px; }
 .ct-bulk select{ background:var(--surface-alt); border:1px solid var(--border); border-radius:6px; padding:6px 8px; font-size:12.5px; color:var(--ink); }
@@ -1191,7 +1191,6 @@ td.map-cell{ width:60px; text-align:center; }
     <div id="wx-body"></div>
       </div>
     </details>
-    <div class="ct-kpis" id="ct-kpis"></div>
     <div class="vc-bar">
       <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Sites
         <select id="ct-scope">
@@ -1222,12 +1221,12 @@ td.map-cell{ width:60px; text-align:center; }
       <button class="ct-btn" id="ct-bulk-delete" type="button" style="color:#c0392b" title="Delete the checked sites' requests for this service">Delete selected requests</button>
       <button class="ct-btn" id="ct-bulk-clear" type="button">Clear</button>
     </div>
-    <div class="ct-tabs" id="ct-tabs"></div>
-    <div class="table-wrap" style="margin-top:6px">
+    <div class="ct-kpis" id="ct-kpis" style="margin-top:12px"></div>
+    <div class="table-wrap" style="margin-top:10px">
       <table class="ct-table">
         <thead><tr>
           <th class="select-col"><input type="checkbox" id="ct-select-all" title="Select all shown"></th>
-          <th>Store #</th><th>Address</th><th>PM</th><th>Vendor</th><th>Status</th><th>Service</th><th>Snow (in)</th><th>Pushes</th><th>Salt</th><th>Notes</th><th>Season</th><th></th>
+          <th>Store #</th><th>Address</th><th>Customer</th><th>Vendor</th><th>Status</th><th>Service</th><th>Date &amp; time</th><th>Notes</th><th></th>
         </tr></thead>
         <tbody id="ct-tbody"></tbody>
       </table>
@@ -1286,6 +1285,7 @@ td.map-cell{ width:60px; text-align:center; }
       <div id="ct-f-amts-fdi"><label for="ct-f-fdi">FDI Amount ($)</label><input id="ct-f-fdi" inputmode="decimal" placeholder="from contract"></div>
       <div id="ct-f-amts-ven"><label for="ct-f-ven">Vendor Cost ($)</label><input id="ct-f-ven" inputmode="decimal" placeholder="enter if known"></div>
       <div id="ct-f-amts-wo"><label for="ct-f-wo">Work Order #</label><input id="ct-f-wo" placeholder="optional"></div>
+      <div class="full"><label for="ct-f-notes">Notes / special requests</label><textarea id="ct-f-notes" rows="2" placeholder="Optional — added to the vendor email and saved on each request (e.g. “Push only, no salt”, “Walks first”)"></textarea></div>
       <div id="ct-f-amts-vi"><label for="ct-f-vi">Vendor Invoice #</label><input id="ct-f-vi" placeholder="optional — if the vendor already invoiced"></div>
     </div>
     <div class="ct-emailopt"><label class="ct-chk"><input type="checkbox" id="ct-f-email"> <span>Email the vendor(s) that this service was requested</span></label><div class="ct-emailhint">After creating, you get one draft email per vendor listing their sites. Nothing is sent until you send it from Gmail.</div></div>
@@ -5816,11 +5816,6 @@ td.map-cell{ width:60px; text-align:center; }
   let ctState = 'idle', ctError = '';   // idle | loading | ok | error | noconn
   let ctStorm = '';           // active storm name
   let ctStatusFilter = '';
-  // Service-tab sub-tabs: which statuses each tab lists ('' = All)
-  const CT_TABS = [['', 'All', null], ['requested', 'Requested', ['Requested']], ['dispatched', 'Dispatched', ['Dispatched', 'Vendor Replied', 'On Site']], ['completed', 'Completed', ['Completed']], ['other', 'Issue / Cancelled', ['Issue', 'Cancelled']]];
-  const ctTabOf = st => { const t = CT_TABS.find(x => x[2] && x[2].includes(st)); return t ? t[0] : ''; };
-  let ctTab = ''; try { const v = localStorage.getItem('fdiCtTabV1'); if (v && CT_TABS.some(x => x[0] === v)) ctTab = v; } catch(e){}
-  const ctSetTab = v => { ctTab = v; try { localStorage.setItem('fdiCtTabV1', v); } catch(e){} };
   const ctSel = new Set();    // normalized store numbers checked in the table
   let ctScope = 'full'; try { ctScope = localStorage.getItem(CT_SCOPE_KEY) || 'full'; } catch(e){}
   let ctLoadedAt = 0;
@@ -6219,6 +6214,12 @@ td.map-cell{ width:60px; text-align:center; }
     b.hidden = true;
   }
   let ctShowAll = false; try { ctShowAll = localStorage.getItem('fdiCtShowAllV1') === '1'; } catch(e){}
+  // Date & time column: the service date, then the time of the latest thing that happened (requested / sent / on site / completed)
+  function ctWhenHtml(q){
+    const ev = q.completedAt ? ['Completed', q.completedAt] : q.onSiteAt ? ['On site', q.onSiteAt] : q.vendorRepliedAt && q.status === 'Vendor Replied' ? ['Vendor replied', q.vendorRepliedAt] : q.dispatchedAt ? ['Dispatched', q.dispatchedAt] : q.requestedAt ? ['Requested', q.requestedAt] : null;
+    const day = q.stormDate ? (() => { const d = new Date(q.stormDate + (String(q.stormDate).length <= 10 ? 'T12:00:00' : '')); return isNaN(d) ? String(q.stormDate) : d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }); })() : '';
+    return `<div>${escapeHtml(day) || '&mdash;'}</div>${ev ? `<div class="ct-season" title="${escapeHtml(ev[0])}">${escapeHtml(ev[0])} ${escapeHtml(ctFmt(ev[1]))}</div>` : ''}`;
+  }
   function ctRender(){
     const stormSel = document.getElementById('ct-storm');
     const storms = ctStorms();
@@ -6232,19 +6233,14 @@ td.map-cell{ width:60px; text-align:center; }
     allEligible.forEach(r => { const q = ctStorm ? ctReqFor(r, ctStorm) : null; if (q && counts[q.status] !== undefined) counts[q.status]++; else if (!q) none++; });
     const kp = [['', allEligible.length, 'Contracted sites']].concat(CT_STATUSES.filter(s => s !== 'Cancelled').map(s => [s, counts[s], s])).concat([['__NONE__', none, 'No request']]);
     document.getElementById('ct-kpis').innerHTML = kp.map(([k, n, l]) => `<div class="ct-kpi s-${escapeHtml(k.replace(/\s+/g, ''))}${ctStatusFilter === k && k ? ' on' : ''}" data-f="${escapeHtml(k)}"><div class="n">${n}</div><div class="l">${escapeHtml(l)}</div></div>`).join('');
-    // sub-tab counts: this service's requests among the sites passing the PM / region / search filters
-    { const tc = {}; CT_TABS.forEach(t => { tc[t[0]] = 0; });
-      sites.forEach(r => { const q = ctStorm ? ctReqFor(r, ctStorm) : null; if (!q) return; tc['']++; const k = ctTabOf(q.status); if (k) tc[k]++; });
-      document.getElementById('ct-tabs').innerHTML = CT_TABS.map(t => `<button type="button" class="ct-tab${ctTab === t[0] ? ' on' : ''}" data-tab="${t[0]}">${escapeHtml(t[1])}<span class="n">${tc[t[0]]}</span></button>`).join(''); }
-    const tabSt = (CT_TABS.find(t => t[0] === ctTab) || [])[2];
     const reqOnly = !ctShowAll && ctStatusFilter !== '__NONE__';
-    const shown = sites.filter(r => { const q = ctStorm ? ctReqFor(r, ctStorm) : null; if (reqOnly && !q) return false; if (tabSt && !(q && tabSt.includes(q.status))) return false; if (!ctStatusFilter) return true; return ctStatusFilter === '__NONE__' ? !q : (q && q.status === ctStatusFilter); });
+    const shown = sites.filter(r => { const q = ctStorm ? ctReqFor(r, ctStorm) : null; if (reqOnly && !q) return false; if (!ctStatusFilter) return true; return ctStatusFilter === '__NONE__' ? !q : (q && q.status === ctStatusFilter); });
     document.getElementById('ct-count').textContent = reqOnly ? `${shown.length} service request${shown.length === 1 ? '' : 's'} · ${allEligible.length} contracted sites` : `${shown.length} of ${allEligible.length} contracted sites`;
     const tb = document.getElementById('ct-tbody');
     if (!allEligible.length){
-      tb.innerHTML = `<tr><td colspan="13" class="ct-empty">No sites have reached this stage yet. Sites show up here once Customer Status is <b>Contract Accepted</b> and the vendor contract is signed. (Change the stage under &ldquo;Sites&rdquo; above.)</td></tr>`;
+      tb.innerHTML = `<tr><td colspan="10" class="ct-empty">No sites have reached this stage yet. Sites show up here once Customer Status is <b>Contract Accepted</b> and the vendor contract is signed. (Change the stage under &ldquo;Sites&rdquo; above.)</td></tr>`;
     } else if (!shown.length){
-      tb.innerHTML = `<tr><td colspan="13" class="ct-empty">${reqOnly ? (ctStorm ? (tabSt ? 'Nothing in the ' + (CT_TABS.find(t => t[0] === ctTab) || [])[1] + ' tab for this service.' : 'No service requests match these filters.') : 'No services yet.') + ' Click <b>+ New service</b> to create one, or tick <b>Show sites without a request</b>.' : 'No sites match these filters.'}</td></tr>`;
+      tb.innerHTML = `<tr><td colspan="10" class="ct-empty">${reqOnly ? (ctStorm ? 'No service requests match these filters.' : 'No services yet.') + ' Click <b>+ New service</b> to create one, or tick <b>Show sites without a request</b>.' : 'No sites match these filters.'}</td></tr>`;
     } else {
       tb.innerHTML = shown.map(r => {
         const q = ctStorm ? ctReqFor(r, ctStorm) : null;
@@ -6254,16 +6250,14 @@ td.map-cell{ width:60px; text-align:center; }
         const vend = r.vendor2627 ? escapeHtml(r.vendor2627) : '<span class="ct-novendor">no vendor</span>';
         const opt = (list, cur) => list.map(s => `<option value="${escapeHtml(s)}"${s === cur ? ' selected' : ''}>${escapeHtml(s)}</option>`).join('');
         const cells = q
-          ? `<td><select class="ct-in ct-status st-${escapeHtml(q.status.replace(/\s+/g, ''))}" data-f="status">${opt(CT_STATUSES, q.status)}</select>${q.customerNotifiedAt ? `<div class="ct-season" title="Customer was emailed that this service was dispatched">&#9993; customer notified ${escapeHtml(ctFmt(q.customerNotifiedAt))}</div>` : ''}${q.status === 'Vendor Replied' && q.vendorReply ? `<div class="ct-season ct-reply" title="${escapeHtml(q.vendorReply)}${q.vendorRepliedAt ? ' — ' + escapeHtml(ctFmt(q.vendorRepliedAt)) : ''}">&#8617; ${escapeHtml(q.vendorReply.length > 70 ? q.vendorReply.slice(0, 68) + '…' : q.vendorReply)}</div>` : ''}${q.completedAt ? `<div class="ct-season" title="Completed">&#10003; ${escapeHtml(ctFmt(q.completedAt))}</div>` : q.onSiteAt ? `<div class="ct-season">on site ${escapeHtml(ctFmt(q.onSiteAt))}</div>` : q.dispatchedAt ? `<div class="ct-season">sent ${escapeHtml(ctFmt(q.dispatchedAt))}</div>` : ''}</td>
+          ? `<td><select class="ct-in ct-status st-${escapeHtml(q.status.replace(/\s+/g, ''))}" data-f="status">${opt(CT_STATUSES, q.status)}</select>${q.customerNotifiedAt ? `<div class="ct-season" title="Customer was emailed that this service was dispatched">&#9993; customer notified ${escapeHtml(ctFmt(q.customerNotifiedAt))}</div>` : ''}${q.status === 'Vendor Replied' && q.vendorReply ? `<div class="ct-season ct-reply" title="${escapeHtml(q.vendorReply)}${q.vendorRepliedAt ? ' — ' + escapeHtml(ctFmt(q.vendorRepliedAt)) : ''}">&#8617; ${escapeHtml(q.vendorReply.length > 70 ? q.vendorReply.slice(0, 68) + '…' : q.vendorReply)}</div>` : ''}</td>
              <td><select class="ct-in" data-f="service"><option value=""></option>${opt(CT_SERVICES, q.service)}</select>${q.serviceItems ? `<div class="ct-season" title="Contract parameters selected">${escapeHtml(q.serviceItems)}</div>` : ''}</td>
-             <td><input class="ct-in ct-num" data-f="actual" inputmode="decimal" value="${escapeHtml(q.actual)}" placeholder="${escapeHtml(q.forecast || '')}" title="${q.forecast ? 'Forecast ' + escapeHtml(q.forecast) + '"' : 'Actual snowfall (in)'}"></td>
-             <td><input class="ct-in ct-num" data-f="pushes" inputmode="numeric" value="${escapeHtml(q.pushes)}"></td>
-             <td><input class="ct-in ct-num" data-f="salt" inputmode="numeric" value="${escapeHtml(q.salt)}"></td>
+             <td>${ctWhenHtml(q)}</td>
              <td><input class="ct-in" data-f="notes" value="${escapeHtml(q.notes)}" placeholder="${q.status === 'Issue' ? 'What happened?' : ''}"></td>`
-          : `<td colspan="6" style="color:var(--ink-faint);font-size:12px">${ctStorm ? `<button type="button" class="ct-btn" data-act="request">Request ${escapeHtml(ctStorm)}</button>` : 'Create a service to start dispatching'}</td>`;
+          : `<td colspan="4" style="color:var(--ink-faint);font-size:12px">${ctStorm ? `<button type="button" class="ct-btn" data-act="request">Request ${escapeHtml(ctStorm)}</button>` : 'Create a service to start dispatching'}</td>`;
         return `<tr data-store="${escapeHtml(ns)}"><td class="select-col"><input type="checkbox" class="ct-row-sel" ${ctSel.has(ns) ? 'checked' : ''}></td>
-          <td><b>${escapeHtml(r.store)}</b></td><td>${escapeHtml(r.address || '')}</td><td>${escapeHtml(pmShort(r.pm))}</td><td>${vend}</td>${cells}
-          <td class="ct-season">${done}/${season.length}</td><td>${q ? '<button type="button" class="ct-btn ct-del" data-act="delete" title="Delete this site\'s request for this service" style="padding:4px 9px;color:#c0392b">Delete</button>' : ''}</td></tr>`;
+          <td><b>${escapeHtml(r.store)}</b></td><td>${escapeHtml(r.address || '')}</td><td>${escapeHtml(r.customer || '')}</td><td>${vend}</td>${cells}
+          <td>${q ? '<button type="button" class="ct-btn ct-del" data-act="delete" title="Delete this site\'s request for this service" style="padding:4px 9px;color:#c0392b">Delete</button>' : ''}</td></tr>`;
       }).join('');
     }
     const nSel = [...ctSel].length; const bulk = document.getElementById('ct-bulk');
@@ -6324,6 +6318,8 @@ td.map-cell{ width:60px; text-align:center; }
     if (t.includes('haul')) return 'Haul / Stack'; return 'Other';
   }
   const CT_EXTRA_ITEMS = [{ label: 'Haul / Stack', kind: 'haul', money: '' }, { label: 'Other', kind: 'other', money: '' }];
+  // Offered for every site (even when the depth isn't known yet): generic Plow / Salt, a Push and Walks
+  const CT_GENERIC_ITEMS = [{ label: 'Plow', kind: 'plow', money: '' }, { label: 'Salt', kind: 'salt', money: '' }, { label: 'Push', kind: 'plow', money: '' }, { label: 'Walks', kind: 'walk', money: '' }];
   // Sites picked in the New service dialog (search by customer / store / address, then tick each site that needs service)
   let ctNewPick = new Set(), ctLastSingle = '', ctEmailSet = null;
   const ctByStore = (a, b) => String(a.store).localeCompare(String(b.store), undefined, { numeric: true });
@@ -6349,10 +6345,11 @@ td.map-cell{ width:60px; text-align:center; }
     if (sites.length === 1){
       ctNewMode = 'single';
       const c = ctContractInfo(sites[0]);
-      const list = (c.items.length ? c.items : [{ label: 'Plow', kind: 'plow', money: '' }, { label: 'Salt', kind: 'salt', money: '' }]).concat(CT_EXTRA_ITEMS);
+      const have = new Set(c.items.map(i => i.label));
+      const list = c.items.concat(CT_GENERIC_ITEMS.filter(g => !have.has(g.label)), CT_EXTRA_ITEMS);
       box._items = list;
       box.innerHTML = list.map((it, i) => chk('i' + i, it.label, it.money, false)).join('');
-      hint.innerHTML = c.items.length ? `Services in <b>${escapeHtml(sites[0].store)}</b>&rsquo;s contract &mdash; tick every one that applies to this service (amounts are what FDI bills).` : `No contract rates are entered for <b>${escapeHtml(sites[0].store)}</b> yet &mdash; tick what applies.`;
+      hint.innerHTML = c.items.length ? `Services in <b>${escapeHtml(sites[0].store)}</b>&rsquo;s contract &mdash; tick every one that applies to this service (amounts are what FDI bills). Plow, Salt, Push and Walks are there too when you don&rsquo;t know the depth yet.` : `No contract rates are entered for <b>${escapeHtml(sites[0].store)}</b> yet &mdash; tick what applies.`;
     } else {
       ctNewMode = 'multi';
       // Contract parameters that exist on any selected store (each store bills at its own rate for a ticked parameter).
@@ -6360,7 +6357,7 @@ td.map-cell{ width:60px; text-align:center; }
       sites.forEach(r => ctContractInfo(r).items.forEach(it => { const u = union.get(it.label) || { label: it.label, kind: it.kind, money: '', multiParam: true, n: 0 }; u.n++; union.set(it.label, u); }));
       const order = { plow: 0, salt: 1, seasonal: 2 };
       const params = [...union.values()].sort((a, b) => (order[a.kind] - order[b.kind]) || a.label.localeCompare(b.label, undefined, { numeric: true }));
-      const list = [{ label: 'Per each store’s contract', kind: 'auto', money: '' }, { label: 'Plow', kind: 'plow', money: '' }, { label: 'Salt', kind: 'salt', money: '' }].concat(params, CT_EXTRA_ITEMS);
+      const list = [{ label: 'Per each store’s contract', kind: 'auto', money: '' }].concat(CT_GENERIC_ITEMS, params, CT_EXTRA_ITEMS);
       box._items = list;
       box.innerHTML = list.map((it, i) => chk('i' + i, it.label, it.multiParam ? `${it.n} store${it.n === 1 ? '' : 's'}` : '', i === 0)).join('');
       hint.innerHTML = sites.length ? `${sites.length} stores selected. &ldquo;Per each store&rsquo;s contract&rdquo; gives each one the service its own contract covers. To pick specific contract parameters (rates shown in the list exist on at least one selected store), untick it and tick the parameters &mdash; each store gets the ones its contract has, billed at its own rate; stores without any ticked parameter are skipped. Pick a single store to edit the amounts.` : 'Tick the sites above that need this service.';
@@ -6407,6 +6404,7 @@ td.map-cell{ width:60px; text-align:center; }
     document.getElementById('ct-f-cust').innerHTML = '<option value="">All customers (' + Object.values(counts).reduce((a, b) => a + b, 0) + ')</option>' + Object.keys(counts).sort((a, b) => a.localeCompare(b)).map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)} (${counts[c]})</option>`).join('');
     document.getElementById('ct-f-search').value = '';
     document.getElementById('ct-f-email').checked = false;
+    { const nt = document.getElementById('ct-f-notes'); if (nt) nt.value = ''; }
     ctRenderPick();
     document.getElementById('ct-f-date').value = ctToday();
     { const mo = document.getElementById('ct-f-more-dates'); if (mo) mo.innerHTML = ''; }
@@ -6426,6 +6424,7 @@ td.map-cell{ width:60px; text-align:center; }
     if (!picked.length){ msg.textContent = 'Tick at least one service above, then click Create service.'; msg.classList.add('bad'); const sv = document.getElementById('ct-f-service'); sv.scrollIntoView && sv.scrollIntoView({ block: 'center' }); return; }
     // a ticked contract parameter (multi-store) resolves to each store's own matching item (and rate); stores without it are skipped
     const resolveFor = r => { const c = ctContractInfo(r); const out = []; picked.forEach(i => { if (i.multiParam){ const m = c.items.find(x => x.label === i.label); if (m) out.push(m); } else out.push(i); }); return out; };
+    const reqNotes = (document.getElementById('ct-f-notes').value || '').trim();
     let made = 0, firstName = '', name = ''; const madeNames = [];
     // one entry per store per date; a second service for the same store on the same day gets "Service <date> (2)", etc.
     dates.forEach(date => {
@@ -6445,12 +6444,12 @@ td.map-cell{ width:60px; text-align:center; }
           const num = id => { const n = shNum(document.getElementById(id).value); return n === null ? '' : String(n); };
           fdiAmount = num('ct-f-fdi'); vendorCost = num('ct-f-ven'); workOrder = document.getElementById('ct-f-wo').value.trim(); vendorInvoice = document.getElementById('ct-f-vi').value.trim();
         }
-        ctNewRequest(r, name, date, { service, serviceItems, fdiAmount, vendorCost, workOrder, vendorInvoice }); made++; madeHere++;
+        ctNewRequest(r, name, date, { service, serviceItems, fdiAmount, vendorCost, workOrder, vendorInvoice, notes: reqNotes }); made++; madeHere++;
       });
       if (madeHere){ madeNames.push(name); if (!firstName) firstName = name; }
     });
     if (!made){ msg.textContent = 'None of the selected stores have those contract parameters — tick a different parameter, or Plow / Salt / Per each store’s contract.'; msg.classList.add('bad'); return; }
-    name = firstName; ctStorm = name; ctSel.clear(); ctStatusFilter = ''; ctSetTab('');
+    name = firstName; ctStorm = name; ctSel.clear(); ctStatusFilter = '';
     document.getElementById('ct-back').hidden = true;
     ctRender(); ctFlush().then(ctRender);
     if (document.getElementById('ct-f-email').checked){ ctEmailSet = madeNames.slice(); ctOpenVendors(); }
@@ -6479,11 +6478,12 @@ td.map-cell{ width:60px; text-align:center; }
   }
   function ctEmailBody(grp){
     const q0 = grp.reqs[0]; const set = ctEmailSet || [ctStorm]; const storm = set.join(', '); const dateOf = n => (ctStorms().find(s => s.name === n) || {}).date || ''; const info = { date: set.map(dateOf).filter(Boolean).join(', ') };
-    const lines = grp.sites.map((s, i) => `${i + 1}. ${s.store} — ${s.address || ''}${set.length > 1 && grp.reqs[i] ? ' [' + (dateOf(grp.reqs[i].storm) || grp.reqs[i].storm) + ']' : ''}${grp.reqs[i] && grp.reqs[i].notes ? ' (' + grp.reqs[i].notes + ')' : ''}`);
+    const nts = grp.reqs.map(q => String((q && q.notes) || '').trim()); const common = nts[0] && nts.every(n => n === nts[0]) ? nts[0] : '';   // same note on every site -> print it once as special instructions
+    const lines = grp.sites.map((s, i) => `${i + 1}. ${s.store} — ${s.address || ''}${set.length > 1 && grp.reqs[i] ? ' [' + (dateOf(grp.reqs[i].storm) || grp.reqs[i].storm) + ']' : ''}${!common && grp.reqs[i] && grp.reqs[i].notes ? ' (' + grp.reqs[i].notes + ')' : ''}`);
     const svc = [...new Set(grp.reqs.map(q => q.serviceItems || q.service).filter(Boolean))].join(' | ');
     return ['Hi ' + (grp.name.split(/[\s,]/)[0] || 'there') + ',', '',
       `Please service the following ${grp.sites.length === 1 ? 'property' : grp.sites.length + ' properties'} for ${storm}${info.date ? ' (' + info.date + ')' : ''}.`,
-      q0 && q0.forecast ? `Forecast: ${q0.forecast}"` : '', svc ? `Service: ${svc}` : '', '',
+      q0 && q0.forecast ? `Forecast: ${q0.forecast}"` : '', svc ? `Service: ${svc}` : '', common ? `Special instructions: ${common}` : '', '',
       ...lines, '', window.__ctVendorNote ? window.__ctVendorNote : '',
       'Please reply to confirm you’re on it, and let me know right away if any site can’t be reached or if there’s an issue. Send completion photos / time on site when done.', '', 'Thanks,', 'Zak Kranich', 'Farmer Development'].filter((x, i, a) => !(x === '' && a[i - 1] === '')).join('\n');
   }
@@ -6950,8 +6950,7 @@ td.map-cell{ width:60px; text-align:center; }
     ['ct-pm', 'ct-region'].forEach(id => document.getElementById(id).addEventListener('change', ctRender));
     document.getElementById('ct-search').addEventListener('input', ctRender);
     document.getElementById('ct-show-all').addEventListener('change', e => { ctShowAll = e.target.checked; try { localStorage.setItem('fdiCtShowAllV1', ctShowAll ? '1' : '0'); } catch(x){} ctRender(); });
-    document.getElementById('ct-kpis').addEventListener('click', e => { const k = e.target.closest('.ct-kpi'); if (!k) return; const f = k.dataset.f; const off = ctStatusFilter === f; ctStatusFilter = off ? '' : f; if (!off) ctSetTab(f && f !== '__NONE__' ? ctTabOf(f) : ''); ctRender(); });
-    document.getElementById('ct-tabs').addEventListener('click', e => { const b = e.target.closest('.ct-tab'); if (!b) return; ctSetTab(b.dataset.tab); ctStatusFilter = ''; ctRender(); });
+    document.getElementById('ct-kpis').addEventListener('click', e => { const k = e.target.closest('.ct-kpi'); if (!k) return; const f = k.dataset.f; ctStatusFilter = (ctStatusFilter === f) ? '' : f; ctRender(); });
     document.getElementById('ct-new-storm').addEventListener('click', () => ctOpenNewStorm());
     document.addEventListener('change', e => {
       const el = e.target; if (!el.classList || !el.classList.contains('sh-in')) return;

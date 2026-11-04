@@ -304,8 +304,14 @@ The Create Vendor Subcontract button on the Bidding tab no longer needs a 26/27 
 - Worker: new `POST /gmail-check`; setup in GMAIL_SETUP.md step 7 (adds the Gmail read scope).
 - Also fixed: changes queued while a Smartsheet save was already running are now sent right after it.
 
-## Service tab: status tabs
-Above the service table: **All · Requested · Dispatched · Completed · Issue / Cancelled**, each with a count for the selected service (respecting the PM / region / search filters). **Dispatched** includes Dispatched, Vendor Replied and On Site. Changing a row's status moves it to the matching tab. Clicking a status tile at the top jumps to its tab; creating a new service returns to All. The chosen tab is remembered in the browser.
+## Service tab: status bubbles
+The status bubbles (Contracted sites, Requested, Dispatched, Vendor Replied, On Site, Completed, Issue, No request) sit directly above the service table; click one to filter the table to that status, click again to clear. (The All / Requested / Dispatched / Completed tab strip was removed.)
 
 ## Email customers when a service is dispatched
 Service tab → **✉ Email customers** (also offered by a banner as soon as any sites for the selected service are Dispatched / Vendor Replied / On Site and the customer hasn't been told). One Gmail draft per customer (email comes from the site's customer / DM email) listing each property and its service, and asking them to reply ASAP if they disagree so the services can be corrected with the provider. Nothing is sent automatically. Opening the draft (or **Mark emailed**) stamps the new Smartsheet column **Customer Notified At**, so each property is only offered once; **Show already-emailed** brings them back. worker.js has the new column id.
+
+## New service: Push / Walks / generic Plow & Salt, and Notes
+Every site's New service list now also offers **Plow**, **Salt**, **Push** and **Walks** (for when the depth isn't known yet) alongside its contract parameters. Push saves as service "Plow"; Walks saves as "Other" (the items are listed in Service Items). A **Notes / special requests** box saves onto every request (shows in the Service tab Notes column) and goes into the vendor email as "Special instructions: …" (printed once if all sites share it, otherwise per property).
+
+## Service table columns
+Store #, Address, Customer, Vendor, Status, Service, Date & time (service date plus the time of the latest event: requested / dispatched / vendor replied / on site / completed), Notes — plus the row checkbox and Delete. The Snow (in), Pushes, Salt, PM and Season columns were removed from this table (any values already in the sheet are untouched).
