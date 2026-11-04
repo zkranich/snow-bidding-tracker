@@ -324,3 +324,8 @@ When a service's status is **Completed**, its row shows a green **Push to billin
 
 ## Service drop-down: lighter look + contract parameters to bill
 The row drop-down now has a light panel (readable in dark mode too). New **Contract parameters to bill** section lists the site's contract rates as tick boxes (with FDI / vendor rate). Ticking sets the service's items and adds the ticked rates into FDI amount and vendor cost (vendor cost is only overwritten when the ticked parameters have a vendor rate); you can still edit the amounts. Push to billing then sends those amounts, and the invoice lists the ticked parameters. Locked once the service is in billing.
+
+## Contracted Sites: Financial dashboard + tidier site row
+- The Service history table in an expanded site now stays inside the panel (it shrinks/wraps instead of running past the right edge).
+- The main site row now shows only Store #, Address, Customer, Region, PM, 26/27 Vendor, Services completed. Contract term, Vendor compliance, Revenue, Profit and Margin were removed from it.
+- New **Financial dashboard** toggle (next to Private links): Revenue (FDI), Vendor cost, Profit and Margin tiles, plus By customer and By site tables with totals. It uses the same Sites / PM / Region / Customer / search filters and updates live when you edit amounts in a site's Service history.

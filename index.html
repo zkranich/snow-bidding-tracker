@@ -347,6 +347,7 @@ button{ font-family:inherit; }
 /* Contracted Sites: revenue / profit / margin */
 td.sc-cust select.dm-select, td.sc-reg select.region-select{ max-width:170px; }
 table.sc-table th.sc-num, table.sc-table td.sc-num{ text-align:right; white-space:nowrap; }
+.sc-modes{ display:inline-flex; gap:6px; margin-left:auto; } #sc-fin-wrap{ margin-top:12px; } .fd-kpis{ display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-bottom:14px; } .fd-kpi{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 16px; } .fd-kpi .t{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-muted); } .fd-kpi .n{ font-size:26px; font-weight:700; line-height:1.2; margin-top:2px; font-variant-numeric:tabular-nums; } .fd-kpi .s{ font-size:11.5px; color:var(--ink-faint); margin-top:2px; } .fd-kpi .n.neg{ color:#c0392b; } .fd-h{ font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-muted); margin:16px 0 6px; font-weight:600; } .fd-bar{ height:6px; border-radius:3px; background:var(--surface-alt); overflow:hidden; min-width:70px; } .fd-bar > i{ display:block; height:100%; background:var(--accent); } #sc-fin-wrap table.fd-table{ min-width:0; }
 table.sc-table .sc-neg{ color:#c0392b; font-weight:600; }
 table.sc-table tr.sc-total td{ font-weight:700; border-top:2px solid var(--border); background:var(--surface-alt); cursor:default; }
 table.sc-table tr.sc-total:hover{ background:var(--surface-alt); }
@@ -715,7 +716,7 @@ footer{
 .sub-tab.active{ background:var(--accent-soft); color:var(--accent-ink); border-color:color-mix(in srgb, var(--accent) 45%, var(--border)); }
 .sc-chip{ font-size:11px; font-weight:600; padding:2px 9px; border-radius:999px; white-space:nowrap; background:var(--surface-alt); border:1px solid var(--border-soft); color:var(--ink-muted); }
 .sc-chip.ok{ background:var(--map-green); color:#fff; border-color:transparent; } .sc-chip.bad{ background:var(--map-red); color:#fff; border-color:transparent; } .sc-chip.warn{ background:var(--map-yellow); color:#1c1c1c; border-color:transparent; }
-table.sc-table{ min-width:1100px; } .sh-wrap .v{ margin-top:4px; } .sh-sum{ font-size:12px; color:var(--ink-muted); margin-bottom:6px; } .sh-empty{ font-size:12.5px; color:var(--ink-faint); } table.sh-table{ border-collapse:collapse; width:100%; font-size:12.5px; background:var(--surface); border:1px solid var(--border); border-radius:8px; } table.sh-table .sh-block{ overflow-x:auto; } .sh-money{ white-space:nowrap; color:#4a5666; } .ci-wait{ color:var(--ink-faint); font-size:12px; } .ci-gate{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:14px; letter-spacing:.04em; } .ci-v a{ color:var(--accent-ink); } div.sh-bl{ margin-top:4px; white-space:nowrap; } .sh-pushed{ display:inline-block; padding:2px 8px; border-radius:999px; background:#1f8a4c; color:#fff; font-size:11px; font-weight:600; } input.sh-in[readonly]{ background:#e9edf2 !important; border-color:#c3ccd7; }
+table.sc-table{ min-width:760px; } .sh-wrap{ min-width:0; max-width:100%; } .sh-wrap .sh-block{ max-width:100%; overflow-x:auto; } table.sh-table{ min-width:0 !important; table-layout:auto; } table.sh-table th, table.sh-table td{ padding-left:6px; padding-right:6px; } table.sh-table td{ overflow-wrap:break-word; } table.sh-table.sh-hist td:nth-child(2), table.sh-table.sh-hist td:last-child{ white-space:nowrap; } table.sh-table input.sh-in, table.sh-table textarea.sh-in{ width:100% !important; min-width:64px; max-width:130px; } table.sh-table textarea.sh-in.sh-notes{ max-width:none; min-width:110px; } table.sh-table input.sh-pn{ max-width:none; min-width:60px; } .sc-table .detail-row > td, .sc-table .detail-row .grid, .sc-table .detail-row > td > div{ min-width:0; max-width:100%; } .sh-wrap .v{ margin-top:4px; } .sh-sum{ font-size:12px; color:var(--ink-muted); margin-bottom:6px; } .sh-empty{ font-size:12.5px; color:var(--ink-faint); } table.sh-table{ border-collapse:collapse; width:100%; font-size:12.5px; background:var(--surface); border:1px solid var(--border); border-radius:8px; } table.sh-table .sh-block{ overflow-x:auto; } .sh-money{ white-space:nowrap; color:#4a5666; } .ci-wait{ color:var(--ink-faint); font-size:12px; } .ci-gate{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:14px; letter-spacing:.04em; } .ci-v a{ color:var(--accent-ink); } div.sh-bl{ margin-top:4px; white-space:nowrap; } .sh-pushed{ display:inline-block; padding:2px 8px; border-radius:999px; background:#1f8a4c; color:#fff; font-size:11px; font-weight:600; } input.sh-in[readonly]{ background:#e9edf2 !important; border-color:#c3ccd7; }
   .sh-pushbar{ display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:8px 12px; margin-top:8px; } .sh-bl-info{ font-size:12px; color:var(--ink-muted); } .sh-bl-msg{ font-size:12px; font-weight:600; color:#1e6b46; margin-right:auto; } .sh-pushbar .ct-btn.primary{ background:#1f8a4c; border-color:#1f8a4c; color:#fff; font-weight:600; } .sh-pushbar .ct-btn.primary:hover{ background:#187540; } .sh-push-done{ display:inline-block; padding:7px 14px; border-radius:7px; background:#1f8a4c; color:#fff; font-size:12.5px; font-weight:600; } .sh-pushbar .ct-btn:disabled{ opacity:.5; cursor:not-allowed; }
   .bl-table{ width:100%; border-collapse:separate; border-spacing:0; background:var(--surface); } .bl-amt{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; } .bl-table tfoot td{ padding:8px 9px; border-top:2px solid #1e3a5f; }
   input.sh-in.sh-vi{ width:130px; } .wx-kpis{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:10px; } .wx-kpi{ border:2px solid transparent; border-radius:10px; padding:8px 18px; min-width:96px; text-align:left; cursor:pointer; font-family:inherit; color:#fff; display:flex; flex-direction:column; } .wx-kpi .n{ font-size:24px; font-weight:700; line-height:1.1; } .wx-kpi .t{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; opacity:.95; } .wx-kpi.on{ border-color:#14202e; box-shadow:0 0 0 2px #fff inset; } .wx-none{ font-size:12px; color:var(--ink-muted); }
@@ -1151,15 +1152,19 @@ td.map-cell{ width:60px; text-align:center; }
       <label style="font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.04em;">Customer <select id="sc-customer"><option value="">All customers</option></select></label>
       <input type="search" id="sc-search" placeholder="Search store, address, customer, vendor, PM">
       <button class="ct-btn" id="cl-open" type="button" title="Private links: customer request page and PM Bidding view">&#128279; Private links</button>
+      <span class="sc-modes"><button type="button" class="sub-tab active" id="sc-mode-sites">Sites</button><button type="button" class="sub-tab" id="sc-mode-fin">Financial dashboard</button></span>
       <span class="vc-count" id="sc-count"></span>
     </div>
+    <div id="sc-sites-wrap">
     <div class="table-wrap" style="margin-top:10px">
       <table class="sc-table">
-        <thead><tr><th>Store #</th><th>Address</th><th>Customer</th><th>Region</th><th>PM</th><th>26/27 Vendor</th><th>Contract term</th><th>Vendor compliance</th><th>Services completed</th><th class="sc-num">Revenue</th><th class="sc-num">Profit</th><th class="sc-num">Margin</th></tr></thead>
+        <thead><tr><th>Store #</th><th>Address</th><th>Customer</th><th>Region</th><th>PM</th><th>26/27 Vendor</th><th>Services completed</th></tr></thead>
         <tbody id="sc-tbody"></tbody>
       </table>
     </div>
-    <div class="vc-note">Every site that has reached the stage picked under &ldquo;Sites&rdquo; (the same setting the Service tab uses). Click a row to expand it, just like on the Bidding tab. Vendor compliance comes from the Vendor Tracking List; services completed counts Completed requests on the Service tab.</div>
+    <div class="vc-note">Every site that has reached the stage picked under &ldquo;Sites&rdquo; (the same setting the Service tab uses). Click a row to expand it, just like on the Bidding tab. Services completed counts Completed requests on the Service tab. Revenue, profit and margin live on the Financial dashboard.</div>
+    </div>
+    <div id="sc-fin-wrap" hidden></div>
   </div>
 </div><!-- /view-sites -->
 
@@ -5992,7 +5997,7 @@ td.map-cell{ width:60px; text-align:center; }
     const sum = f => list.reduce((a, q) => a + (shNum(q[f]) || 0), 0);
     const money = (q, f) => `<span class="sh-money">$<input class="sh-in" data-f="${f}" inputmode="decimal" value="${escapeHtml(q[f] || '')}" placeholder="—"${q.pushedAt ? ' readonly title="Already pushed to billing"' : ''}></span>`;
     return `<div class="sh-sum">${list.length} service${list.length === 1 ? '' : 's'} logged &middot; FDI ${shMoney(sum('fdiAmount'))} &middot; Vendor ${shMoney(sum('vendorCost'))}</div>
-      <table class="sh-table"><thead><tr><th>Project #</th><th>Date</th><th>Service</th><th>Vendor</th><th>FDI Amount</th><th>Vendor Cost</th><th>Work Order #</th><th>Vendor Invoice #</th><th>Notes</th><th>Billing</th><th></th></tr></thead><tbody>`
+      <table class="sh-table sh-hist"><thead><tr><th>Project #</th><th>Date</th><th>Service</th><th>Vendor</th><th>FDI Amount</th><th>Vendor Cost</th><th>Work Order #</th><th>Vendor Invoice #</th><th>Notes</th><th>Billing</th><th></th></tr></thead><tbody>`
       + list.map(q => `<tr data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}"><td class="sh-pn">${escapeHtml(q.projectNo || '')}</td><td>${escapeHtml(shMdy(q.stormDate))}${q.pushedAt ? `<div class="sh-bl"><span class="sh-pushed" title="Pushed to owner + sub billing">Pushed to billing ${escapeHtml(shMdy(q.pushedAt))}</span></div>` : ''}</td><td>${escapeHtml(q.serviceItems || q.service || '')}${q.serviceItems && q.service ? `<div class="sh-items">${escapeHtml(q.service)}</div>` : ''}</td><td>${escapeHtml(q.vendor || '')}</td><td>${money(q, 'fdiAmount')}</td><td>${money(q, 'vendorCost')}</td><td><input class="sh-in sh-wo" data-f="workOrder" value="${escapeHtml(q.workOrder || '')}" placeholder="WO #"></td><td><input class="sh-in sh-vi" data-f="vendorInvoice" value="${escapeHtml(q.vendorInvoice || '')}" placeholder="Invoice #"></td><td><textarea class="sh-in sh-notes" data-f="notes" rows="1" placeholder="Add a note…">${escapeHtml(q.notes || '')}</textarea></td><td>${q.pushedAt ? '<span class="sh-pushed" title="Already in owner + sub billing">&#10003; In billing</span>' : `<button type="button" class="ct-btn sh-push-one" style="white-space:nowrap;padding:5px 10px"${blPending(q) ? '' : ' disabled'} title="${blPending(q) ? 'Send just this service to owner + sub billing' : 'Add an FDI amount or vendor cost first'}">Push to billing</button>`}</td><td><button type="button" class="ct-btn sh-del" title="Delete this service" style="padding:5px 10px;color:#c0392b">Delete</button></td></tr>`).join('')
       + '</tbody></table>' + blPushBarHtml(r, list);
   }
@@ -6910,26 +6915,50 @@ td.map-cell{ width:60px; text-align:center; }
     return { rev, cost, profit: rev - cost, margin: rev > 0 ? (rev - cost) / rev : null, n, noCost };
   }
   const scMoney = n => (n < 0 ? '-' : '') + shMoney(Math.abs(n));
-  function scFinCells(x){
-    if (!x.n && !x.cost) return '<td class="sc-num sc-rev" style="color:var(--ink-faint)">—</td><td class="sc-num sc-prof" style="color:var(--ink-faint)">—</td><td class="sc-num sc-mar" style="color:var(--ink-faint)">—</td>';
+  const scPct = x => x.margin === null ? '&mdash;' : (x.margin * 100).toFixed(1) + '%';
+  function scFinRow(label, x, extra){
     const flag = x.noCost ? ` <span class="sc-flag" title="${x.noCost} service${x.noCost === 1 ? ' has' : 's have'} an FDI amount but no vendor cost yet, so profit and margin look higher than they will end up.">*</span>` : '';
-    return `<td class="sc-num sc-rev">${scMoney(x.rev)}</td><td class="sc-num sc-prof${x.profit < 0 ? ' sc-neg' : ''}">${scMoney(x.profit)}${flag}</td><td class="sc-num sc-mar${x.margin !== null && x.margin < 0 ? ' sc-neg' : ''}">${x.margin === null ? '—' : (x.margin * 100).toFixed(1) + '%'}</td>`;
+    const empty = !x.n && !x.cost;
+    return `<tr${extra && extra.cls ? ` class="${extra.cls}"` : ''}>${label}<td class="sc-num">${empty ? '&mdash;' : scMoney(x.rev)}</td><td class="sc-num">${empty ? '&mdash;' : scMoney(x.cost)}</td><td class="sc-num${x.profit < 0 ? ' sc-neg' : ''}">${empty ? '&mdash;' : scMoney(x.profit) + flag}</td><td class="sc-num${x.margin !== null && x.margin < 0 ? ' sc-neg' : ''}">${empty ? '&mdash;' : scPct(x)}</td></tr>`;
   }
-  function scTotalRow(list){
-    let rev = 0, cost = 0; list.forEach(r => { const x = scFin(r); rev += x.rev; cost += x.cost; });
-    const x = { rev, cost, profit: rev - cost, margin: rev > 0 ? (rev - cost) / rev : null, n: 1, noCost: 0 };
-    return `<tr class="sc-total"><td colspan="8" style="text-align:right">Total &middot; ${list.length} site${list.length === 1 ? '' : 's'}</td><td></td>${scFinCells(x)}</tr>`;
+  function scSum(xs){
+    let rev = 0, cost = 0, n = 0, noCost = 0; xs.forEach(x => { rev += x.rev; cost += x.cost; n += x.n; noCost += x.noCost; });
+    return { rev, cost, profit: rev - cost, margin: rev > 0 ? (rev - cost) / rev : null, n, noCost };
   }
-  // update the money columns in place (so an open site detail / typing isn't disturbed)
-  function scRefreshFin(){
-    const body = document.getElementById('sc-tbody'); if (!body) return;
-    const list = []; body.querySelectorAll('tr[data-store]:not(.detail-row)').forEach(tr => {
-      const r = rows.find(x => normStore(x.store) === normStore(tr.dataset.store)); if (!r) return; list.push(r);
-      const cells = tr.querySelectorAll('td.sc-rev, td.sc-prof, td.sc-mar'); if (cells.length !== 3) return;
-      const tmp = document.createElement('tr'); tmp.innerHTML = scFinCells(scFin(r)); { const nw = Array.from(tmp.children); cells.forEach((c, i) => c.replaceWith(nw[i])); }
-    });
-    const tot = body.querySelector('tr.sc-total'); if (tot && list.length){ const tmp = document.createElement('tbody'); tmp.innerHTML = scTotalRow(list); tot.replaceWith(tmp.firstElementChild); }
+  let scMode = 'sites';
+  function scRenderFin(){
+    const host = document.getElementById('sc-fin-wrap'); if (!host || host.hidden) return;
+    const list = scVisible(); const fins = list.map(r => ({ r, x: scFin(r) })); const tot = scSum(fins.map(f => f.x));
+    const kpi = (t, n, s, neg) => `<div class="fd-kpi"><div class="t">${t}</div><div class="n${neg ? ' neg' : ''}">${n}</div><div class="s">${s}</div></div>`;
+    const sitesWith = fins.filter(f => f.x.n || f.x.cost).length;
+    let h = '<div class="fd-kpis">'
+      + kpi('Revenue (FDI)', scMoney(tot.rev), `${tot.n} service${tot.n === 1 ? '' : 's'} with an FDI amount`)
+      + kpi('Vendor cost', scMoney(tot.cost), 'on those services')
+      + kpi('Profit', scMoney(tot.profit), tot.noCost ? `${tot.noCost} service${tot.noCost === 1 ? '' : 's'} still missing a vendor cost` : 'revenue minus vendor cost', tot.profit < 0)
+      + kpi('Margin', scPct(tot), `${sitesWith} of ${list.length} site${list.length === 1 ? '' : 's'} with services`, tot.margin !== null && tot.margin < 0) + '</div>';
+    if (!list.length){ host.innerHTML = h + '<div class="ct-empty">No sites match these filters.</div>'; return; }
+    const head = first => `<thead><tr>${first}<th class="sc-num">Revenue</th><th class="sc-num">Vendor cost</th><th class="sc-num">Profit</th><th class="sc-num">Margin</th></tr></thead>`;
+    const byC = new Map(); fins.forEach(f => { const k = f.r.customer || '(no customer)'; if (!byC.has(k)) byC.set(k, []); byC.get(k).push(f); });
+    const cust = [...byC.entries()].map(([k, a]) => ({ k, sites: a.length, x: scSum(a.map(f => f.x)) })).sort((a, b) => b.x.rev - a.x.rev);
+    const maxRev = Math.max(1, ...cust.map(c => c.x.rev));
+    h += '<div class="fd-h">By customer</div><div class="table-wrap"><table class="sc-table fd-table">' + head('<th>Customer</th><th>Sites</th>')
+      + '<tbody>' + cust.map(c => scFinRow(`<td><b>${escapeHtml(c.k)}</b><div class="fd-bar"><i style="width:${Math.round(c.x.rev / maxRev * 100)}%"></i></div></td><td>${c.sites}</td>`, c.x)).join('')
+      + scFinRow(`<td style="text-align:right">Total</td><td>${list.length}</td>`, tot, { cls: 'sc-total' }) + '</tbody></table></div>';
+    const sites = fins.slice().sort((a, b) => b.x.rev - a.x.rev || String(a.r.store).localeCompare(String(b.r.store), undefined, { numeric: true }));
+    h += '<div class="fd-h">By site</div><div class="table-wrap"><table class="sc-table fd-table">' + head('<th>Store #</th><th>Address</th><th>Customer</th>')
+      + '<tbody>' + sites.map(f => scFinRow(`<td><b>${escapeHtml(f.r.store)}</b></td><td>${escapeHtml(f.r.address || '')}</td><td>${escapeHtml(f.r.customer || '')}</td>`, f.x)).join('')
+      + scFinRow(`<td colspan="3" style="text-align:right">Total &middot; ${list.length} site${list.length === 1 ? '' : 's'}</td>`, tot, { cls: 'sc-total' }) + '</tbody></table></div>'
+      + '<div class="vc-note">Revenue is the FDI amount on each service (cancelled services excluded); vendor cost is the vendor cost on those services; profit = revenue &minus; vendor cost. A <span class="sc-flag">*</span> means some services have an FDI amount but no vendor cost yet, so profit looks higher than it will end up. Uses the same Sites / PM / Region / Customer filters as the Sites view.</div>';
+    host.innerHTML = h;
   }
+  function scSetMode(m){
+    scMode = m; const fin = m === 'fin';
+    document.getElementById('sc-sites-wrap').hidden = fin; document.getElementById('sc-fin-wrap').hidden = !fin;
+    document.getElementById('sc-mode-sites').classList.toggle('active', !fin); document.getElementById('sc-mode-fin').classList.toggle('active', fin);
+    if (fin) scRenderFin();
+  }
+  // keep the dashboard current when service amounts change
+  function scRefreshFin(){ if (scMode === 'fin') scRenderFin(); }
   function scRender(){
     const body = document.getElementById('sc-tbody'); if (!body) return;
     const openDetail = body.querySelector('.detail-row');   // keep an expanded site open across refreshes
@@ -6938,14 +6967,14 @@ td.map-cell{ width:60px; text-align:center; }
     if (cuSel){ const cs = [...new Set(rows.filter(ctEligible).map(r => r.customer).filter(Boolean))].sort(); const key = cs.join('|'); if (cuSel.dataset.k !== key){ const cur = cuSel.value; cuSel.dataset.k = key; cuSel.innerHTML = '<option value="">All customers</option>' + cs.map(c => `<option${c === cur ? ' selected' : ''}>${escapeHtml(c)}</option>`).join(''); } }
     const list = scVisible(); const total = rows.filter(ctEligible).length;
     document.getElementById('sc-count').textContent = `${list.length} of ${total} contracted sites`;
-    if (!total){ body.innerHTML = '<tr><td colspan="13" class="ct-empty">No sites have reached this stage yet. Sites show up here once Customer Status is <b>Contract Accepted</b> and the vendor contract is signed. (Change the stage under &ldquo;Sites&rdquo; above.)</td></tr>'; return; }
-    if (!list.length){ body.innerHTML = '<tr><td colspan="13" class="ct-empty">No sites match these filters.</td></tr>'; return; }
+    scRenderFin();
+    if (!total){ body.innerHTML = '<tr><td colspan="7" class="ct-empty">No sites have reached this stage yet. Sites show up here once Customer Status is <b>Contract Accepted</b> and the vendor contract is signed. (Change the stage under &ldquo;Sites&rdquo; above.)</td></tr>'; return; }
+    if (!list.length){ body.innerHTML = '<tr><td colspan="7" class="ct-empty">No sites match these filters.</td></tr>'; return; }
     body.innerHTML = list.map(r => {
       const ns = normStore(r.store); const reqs = ctReqs.filter(x => normStore(x.store) === ns); const done = reqs.filter(x => x.status === 'Completed').length;
-      const tm = contractTermForRow(r);
       return `<tr data-store="${escapeHtml(r.store)}"><td><b>${escapeHtml(r.store)}</b></td><td>${escapeHtml(r.address || '')}</td><td class="sc-cust">${customerSelectHtml(r)}</td><td class="sc-reg">${regionSelectHtml(r)}</td><td>${escapeHtml(pmShort(r.pm))}</td>
-        <td>${r.vendor2627 ? escapeHtml(r.vendor2627) : '<span class="ct-novendor">no vendor</span>'}</td><td style="white-space:nowrap">${escapeHtml(tm.beginMonthDay)} – ${escapeHtml(tm.endMonthDay)}, 20${escapeHtml(tm.endYear2)}</td><td>${scCompliance(r)}</td><td>${done} / ${reqs.length}</td>${scFinCells(scFin(r))}</tr>`;
-    }).join('') + scTotalRow(list);
+        <td>${r.vendor2627 ? escapeHtml(r.vendor2627) : '<span class="ct-novendor">no vendor</span>'}</td><td>${done} / ${reqs.length}</td></tr>`;
+    }).join('');
     if (openDetail){ const tr = Array.from(body.querySelectorAll('tr[data-store]')).find(x => x.dataset.store === openDetail.dataset.store); if (tr){ tr.classList.add('active'); tr.after(openDetail); } }
   }
 
@@ -6972,6 +7001,8 @@ td.map-cell{ width:60px; text-align:center; }
       if (sel.value === '__new__'){ scRender(); dmOpenNew(r, () => scRender()); return; }
       dmSetCustomer(r, sel.value, sel.value ? dmEmailFor(sel.value) : ''); scRender();
     });
+    document.getElementById('sc-mode-sites').addEventListener('click', () => scSetMode('sites'));
+    document.getElementById('sc-mode-fin').addEventListener('click', () => scSetMode('fin'));
     document.getElementById('sc-tbody').addEventListener('click', e => {
       if (e.target.closest('tr.detail-row') || e.target.closest('select.region-select') || e.target.closest('select.dm-select')) return;
       const tr = e.target.closest('tr[data-store]'); if (!tr) return; const store = tr.dataset.store;
