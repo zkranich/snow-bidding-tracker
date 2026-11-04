@@ -315,3 +315,9 @@ Every site's New service list now also offers **Plow**, **Salt**, **Push** and *
 
 ## Service table columns
 Store #, Address, Customer, Vendor, Status, Service, Date & time (service date plus the time of the latest event: requested / dispatched / vendor replied / on site / completed), Notes — plus the row checkbox and Delete. The Snow (in), Pushes, Salt, PM and Season columns were removed from this table (any values already in the sheet are untouched).
+
+## Service row drop-down
+Click a service row (anywhere except a dropdown/box/button) to open the detail under it: FDI amount, Work order #, Project # (read-only) on the left; the vendor's name with Vendor cost and Vendor invoice # paired together on the right; Notes below. Edits save to the sheet like the rest. Once a service is pushed to billing the amounts are read-only. Click the row again to close; open rows stay open when the table refreshes.
+
+## Push to billing from the Service tab
+When a service's status is **Completed**, its row shows a green **Push to billing** button (also inside the row's drop-down). It's greyed out until there's an FDI amount or vendor cost (open the row to enter them). Clicking it sends that service to Owner billing and Sub billing, same as the button in Service history; the row then shows "✓ In billing <date>" and the amounts lock.
