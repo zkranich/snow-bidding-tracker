@@ -329,3 +329,6 @@ The row drop-down now has a light panel (readable in dark mode too). New **Contr
 - The Service history table in an expanded site now stays inside the panel (it shrinks/wraps instead of running past the right edge).
 - The main site row now shows only Store #, Address, Customer, Region, PM, 26/27 Vendor, Services completed. Contract term, Vendor compliance, Revenue, Profit and Margin were removed from it.
 - New **Financial dashboard** toggle (next to Private links): Revenue (FDI), Vendor cost, Profit and Margin tiles, plus By customer and By site tables with totals. It uses the same Sites / PM / Region / Customer / search filters and updates live when you edit amounts in a site's Service history.
+
+## Contracted Sites: Site financials strip
+Expanding a contracted site now shows **Site financials** above Service history: Total FDI revenue, Vendor COGS, Gross profit and Margin, totalled from that site's service history (cancelled services excluded). It updates live as you edit FDI amounts or vendor costs, and flags services that still have no vendor cost.
