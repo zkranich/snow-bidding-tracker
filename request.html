@@ -80,7 +80,7 @@
         <select id="store" required>${sites.length > 1 ? '<option value="">Choose a site&hellip;</option>' : ''}${sites.map(s => `<option value="${esc(s.store)}">${esc(s.store)}${s.address ? ' — ' + esc(s.address) : ''}</option>`).join('')}</select>
         <div class="lbl" style="margin-top:14px">Service needed</div>
         <div class="opts" id="svc">
-          ${['Plow','Salt','Plow + Salt','Other'].map((o, i) => `<label class="opt" style="margin:0"><input type="radio" name="service" value="${esc(o)}"${i === 0 ? ' checked' : ''}><span>${esc(o)}</span></label>`).join('')}
+          ${['Push','Salt','Push + Salt','Other'].map((o, i) => `<label class="opt" style="margin:0"><input type="radio" name="service" value="${esc(o)}"${i === 0 ? ' checked' : ''}><span>${esc(o)}</span></label>`).join('')}
         </div>
         <label for="notes">Details <span style="font-weight:400;color:var(--muted)">(where, what you&rsquo;re seeing, anything we should know)</span></label>
         <textarea id="notes" maxlength="1000"></textarea>

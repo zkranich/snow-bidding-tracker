@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Vendor Portal</title>
+<style>
+  :root{ --bg:#f3f5f8; --card:#fff; --ink:#14202e; --muted:#5b6b7d; --line:#d5dce5; --accent:#1c6e8c; --bad:#b3261e; --ok:#1e7a46; --warn:#9a6200; --row:#f7f9fb; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
+  .wrap{ max-width:720px; margin:0 auto; padding:16px 16px 56px; }
+  h1{ font-size:22px; margin:6px 0 2px; } .sub{ color:var(--muted); margin:0 0 16px; }
+  h2{ font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:22px 0 8px; }
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin-bottom:12px; }
+  .top{ display:flex; gap:8px; align-items:flex-start; justify-content:space-between; }
+  .store{ font-weight:700; font-size:17px; }
+  .pill{ display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600; background:#e6ebf1; color:#33445a; white-space:nowrap; }
+  .pill.go{ background:#d9f0e2; color:#14572f; } .pill.mid{ background:#fdecc8; color:#7a4f00; } .pill.bad{ background:#f6d6d3; color:#8a1d15; }
+  .addr a{ color:var(--accent); text-decoration:none; } .addr{ margin:2px 0 8px; }
+  .svc{ font-weight:600; } .meta{ color:var(--muted); font-size:13px; }
+  .info{ margin:10px 0 4px; background:var(--row); border:1px solid var(--line); border-radius:10px; padding:10px 12px; display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-size:14px; }
+  .info dt{ color:var(--muted); } .info dd{ margin:0; font-weight:600; word-break:break-word; }
+  .info a{ color:var(--accent); text-decoration:none; }
+  .gate{ font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:16px; letter-spacing:.04em; }
+  .locked{ color:var(--muted); font-weight:400; font-size:13px; }
+  .notes{ margin:8px 0 0; font-size:13px; color:var(--muted); white-space:pre-wrap; }
+  .issue{ margin:8px 0 0; font-size:13px; color:var(--bad); font-weight:600; }
+  .acts{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  button{ font:inherit; font-weight:600; padding:11px 16px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer; min-height:44px; }
+  button.p{ background:var(--accent); border-color:var(--accent); color:#fff; } button.ok{ background:var(--ok); border-color:var(--ok); color:#fff; }
+  button.w{ color:var(--bad); } button:disabled{ opacity:.5; cursor:default; }
+  textarea{ width:100%; font:inherit; padding:10px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); margin-top:10px; min-height:70px; }
+  .row-msg{ font-size:13px; margin-top:8px; min-height:16px; } .row-msg.bad{ color:var(--bad); } .row-msg.ok{ color:var(--ok); }
+  .done{ display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); font-size:14px; } .done:last-child{ border-bottom:0; }
+  .err{ text-align:center; padding:40px 10px; color:var(--bad); } .empty{ text-align:center; padding:28px; color:var(--muted); }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#10161d; --card:#18212b; --ink:#e8eef5; --muted:#9aa9b9; --line:#2c3948; --accent:#3a9bbd; --row:#1d2833; --ok:#2f9a5e; --warn:#e0a63a; }
+    .pill{ background:#2b3846; color:#cfd9e4; } .pill.go{ background:#17402a; color:#a5e3bf; } .pill.mid{ background:#4a3a10; color:#f5d98f; } .pill.bad{ background:#4a1d19; color:#f4b4ae; }
+    .issue,.row-msg.bad,button.w{ color:#f4948c; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="ttl">Vendor Portal</h1>
+  <p class="sub" id="sub">Your open services for Farmer Development</p>
+  <div id="main"><div class="empty">Loading your services&hellip;</div></div>
+</div>
+<script src="config.js"></script>
+<script>
+(function(){
+  const cfg = window.SNOW_CONFIG || {};
+  const WORKER = String(cfg.workerUrl || '').replace(/\/$/, '');
+  const qs = new URLSearchParams(location.search);
+  const V = qs.get('v') || '', T = qs.get('t') || '';
+  const main = document.getElementById('main');
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  const PILL = { 'Requested':'', 'Dispatched':'mid', 'Vendor Replied':'mid', 'On Site':'go', 'Issue':'bad', 'Completed':'go' };
+  let data = null, openNote = null; // openNote = { rowId, action }
+
+  function fail(msg){ main.innerHTML = `<div class="err">${esc(msg)}</div>`; }
+  function fmtDate(s){
+    if (!s) return '';
+    const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(s) ? s + 'T12:00:00' : s);
+    return isNaN(d) ? s : d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+  }
+  const tel = p => String(p).replace(/[^\d+]/g, '');
+
+  function cardHtml(o){
+    const maps = o.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.address)}` : '';
+    const rows = [];
+    if (o.contact) rows.push(`<dt>On-site contact</dt><dd>${esc(o.contact)}</dd>`);
+    if (o.phone) rows.push(`<dt>Phone</dt><dd><a href="tel:${esc(tel(o.phone))}">${esc(o.phone)}</a></dd>`);
+    if (o.email) rows.push(`<dt>Email</dt><dd><a href="mailto:${esc(o.email)}">${esc(o.email)}</a></dd>`);
+    if (o.gate) rows.push(`<dt>Gate code</dt><dd class="gate">${esc(o.gate)}</dd>`);
+    else if (o.gateHidden) rows.push(`<dt>Gate code</dt><dd class="locked">Shown once this service is dispatched</dd>`);
+    const noteOpen = openNote && openNote.rowId === o.rowId;
+    const live = o.status === 'Dispatched' || o.status === 'Vendor Replied' || o.status === 'On Site' || o.status === 'Issue';
+    return `<div class="card" data-id="${esc(o.rowId)}">
+      <div class="top"><div class="store">${esc(o.store)}</div><span class="pill ${PILL[o.status] || ''}">${esc(o.status)}</span></div>
+      <div class="addr">${maps ? `<a href="${maps}" target="_blank" rel="noopener">${esc(o.address)}</a>` : ''}</div>
+      <div><span class="svc">${esc(o.service || 'Service')}</span>${o.serviceDate ? ` <span class="meta">&middot; ${esc(fmtDate(o.serviceDate))}</span>` : ''}</div>
+      ${rows.length ? `<dl class="info">${rows.join('')}</dl>` : ''}
+      ${o.issue ? `<div class="issue">Issue: ${esc(o.issue)}</div>` : ''}
+      ${o.notes ? `<div class="notes">${esc(o.notes)}</div>` : ''}
+      ${noteOpen ? `<textarea placeholder="${openNote.action === 'issue' ? 'What happened? (required)' : 'Add a note for Farmer Development'}"></textarea>
+        <div class="acts"><button class="${openNote.action === 'issue' ? 'w' : 'p'}" data-act="send" data-id="${esc(o.rowId)}">${openNote.action === 'issue' ? 'Report issue' : 'Send note'}</button><button data-act="cancel">Cancel</button></div>`
+      : (live ? `<div class="acts">
+          ${o.status !== 'On Site' ? `<button class="p" data-act="onsite" data-id="${esc(o.rowId)}">I'm on site</button>` : ''}
+          <button class="ok" data-act="complete" data-id="${esc(o.rowId)}">Completed</button>
+          <button class="w" data-act="issue" data-id="${esc(o.rowId)}">Problem</button>
+          <button data-act="note" data-id="${esc(o.rowId)}">Add note</button></div>` : '')}
+      <div class="row-msg"></div>
+    </div>`;
+  }
+
+  function render(){
+    document.getElementById('ttl').textContent = data.vendor || 'Vendor Portal';
+    const act = data.active || [], done = data.done || [];
+    document.title = (data.vendor || 'Vendor') + ' – Portal';
+    main.innerHTML = '<h2>Open services' + (act.length ? ' (' + act.length + ')' : '') + '</h2>'
+      + (act.length ? act.map(cardHtml).join('') : '<div class="card empty">Nothing open right now. New requests show up here as soon as they are dispatched.</div>')
+      + (done.length ? '<h2>Recently completed</h2><div class="card">' + done.map(o => `<div class="done"><div><b>${esc(o.store)}</b><div class="meta">${esc(o.service || '')}</div></div><div class="meta">${esc(fmtDate(o.serviceDate))}</div></div>`).join('') + '</div>' : '');
+  }
+
+  async function load(){
+    if (!WORKER){ fail('This page is not connected yet.'); return; }
+    if (!V || !T){ fail('This link is not valid. Ask Farmer Development for a new one.'); return; }
+    try {
+      const r = await fetch(`${WORKER}/vendor/portal?v=${encodeURIComponent(V)}&t=${encodeURIComponent(T)}`);
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.ok){ fail(j.error || 'Could not load your services right now.'); return; }
+      data = j; render();
+    } catch(e){ fail('Could not reach the server. Check your connection and refresh.'); }
+  }
+
+  async function send(id, action, note, card){
+    const msg = card.querySelector('.row-msg'); msg.className = 'row-msg'; msg.textContent = 'Saving…';
+    card.querySelectorAll('button').forEach(b => { b.disabled = true; });
+    try {
+      const r = await fetch(WORKER + '/vendor/update', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ v:V, t:T, rowId:Number(id), action, note: note || '' }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.ok) throw new Error(j.error || 'Could not save that.');
+      openNote = null; await load();
+    } catch(e){
+      card.querySelectorAll('button').forEach(b => { b.disabled = false; });
+      msg.className = 'row-msg bad'; msg.textContent = String((e && e.message) || e);
+    }
+  }
+
+  main.addEventListener('click', e => {
+    const b = e.target.closest('button[data-act]'); if (!b) return;
+    const card = b.closest('.card'), act = b.dataset.act, id = b.dataset.id;
+    if (act === 'cancel'){ openNote = null; render(); return; }
+    if (act === 'issue' || act === 'note'){ openNote = { rowId: Number(id) || id, action: act }; render(); const ta = main.querySelector('textarea'); if (ta) ta.focus(); return; }
+    if (act === 'send'){
+      const note = (card.querySelector('textarea') || {}).value || '';
+      send(id, openNote.action, note.trim(), card); return;
+    }
+    send(id, act, '', card);
+  });
+  load();
+})();
+</script>
+</body>
+</html>

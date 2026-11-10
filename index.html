@@ -466,7 +466,7 @@ table.ct-table select.st-Completed{ border-color:#2f9e6e; } table.ct-table selec
 .iv-quick-btn:hover{ filter:brightness(.96); }
 .iv-quick-msg{ font-size:12px; color:var(--ink-muted); } .iv-quick-msg.bad{ color:#b91c1c; }
 .toolbar input.vendor-search{ flex:0 1 190px; min-width:140px; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px 11px; font-size:13px; color:var(--ink); }
-.toolbar input.vendor-search.active{ border-color:var(--accent,#2e6b4a); background:#f1f8f3; }
+.toolbar input.vendor-search.active{ border-color:var(--accent,#2e6b4a); background:#f1f8f3 !important; color:#000 !important; -webkit-text-fill-color:#000; caret-color:#000; font-weight:500; }
 .toolbar select{
   background:var(--surface); border:1px solid var(--border); border-radius:8px;
   padding:8px 10px; font-size:13px; color:var(--ink);
@@ -4103,6 +4103,29 @@ td.map-cell{ width:60px; text-align:center; }
   // CubeSmart's Exhibit A above).
   const DSS_EXHIBIT_A_PAGE = 7;
 
+  // Storage King (SK-prefixed stores, e.g. "SK Pontiac"): Storage King's "Snowplowing Contract -
+  // Managed Property". Like Devon's, the PDF has no form fields, so text is drawn at the measured
+  // blanks (PDF points, y from the bottom of a 612x792 page). The per-accumulation fee table uses
+  // 4"-8" / 9"-13" / ... tiers that don't match the dashboard's depth tiers, so it is left blank
+  // for manual entry (except "Each Additional inch" when a per-inch rate is on file). De-Icer is
+  // filled from the Deicer parameter.
+  const SK_CONTRACT_TEMPLATE = { file: 'templates/storageking.pdf', filenameSuffix: 'Storage King' };
+  const SK_FIELDS = {
+    serviceProvider: { page: 0, x: 398, y: 687,   maxWidth: 172, size: 9 },
+    storeName:       { page: 0, x: 124, y: 651.5, maxWidth: 330, size: 10 },
+    termMonths:      { page: 0, x: 162, y: 642.5, maxWidth: 28,  size: 9 },
+    beginMonthDay:   { page: 0, x: 275, y: 642.5, maxWidth: 46,  size: 9 },
+    beginYear:       { page: 0, x: 339.8, y: 642.5, maxWidth: 10, size: 8.5 },
+    endMonthDay:     { page: 0, x: 417, y: 642.5, maxWidth: 64,  size: 9 },
+    endYear:         { page: 0, x: 500.5, y: 642.5, maxWidth: 12, size: 9 },
+    deicerAmount:    { page: 0, x: 178, y: 121.8, maxWidth: 36,  size: 9 },
+    eachInchFee:     { page: 0, x: 156, y: 177.2, maxWidth: 44,  size: 9 },
+    eachInchTotal:   { page: 0, x: 510, y: 177.2, maxWidth: 50,  size: 9 },
+  };
+  const SK_CHECKBOXES = { term: { page: 0, x: 141.4, y: 641.8 }, deicerPer: { page: 0, x: 60.4, y: 122.0 } };
+  const SK_SIGNATURE_BOX = { page: 1, x: 180, y: 96, w: 220, h: 17 };   // "Service Provider Signature:" line on page 2
+  const SK_DATE_POS = { page: 1, x: 436, y: 101 };
+
   // Contract Start/Contract End are now per-store fields (editable in the
   // detail panel, staged/synced like the other contract parameters). These
   // are just the fallback for a store that hasn't had its dates set yet —
@@ -4346,6 +4369,7 @@ td.map-cell{ width:60px; text-align:center; }
     if (cs) return cs;
     if ((store || '').trim().toUpperCase().startsWith('DSS')) return 'dss';
     if (/^MP\s*\d/i.test((store || '').trim())) return 'myplace';
+    if (/^SK(\s|\d|$)/i.test((store || '').trim())) return 'sk';   // Storage King
     return null;
   }
 
@@ -4380,7 +4404,7 @@ td.map-cell{ width:60px; text-align:center; }
     if (side === 'vendor') return createSubcontractForRow(r, btnEl, arguments[3]);
     const kind = contractKind(r.store);
     if (!kind){
-      alert('Auto-fill contracts are only set up for CubeSmart (CS), Devon Self Storage (DSS) and MyPlace (MP) stores right now.');
+      alert('Auto-fill contracts are only set up for CubeSmart (CS), Devon Self Storage (DSS), MyPlace (MP) and Storage King (SK) stores right now.');
       return;
     }
     const origLabel = btnEl ? btnEl.textContent : null;
@@ -4537,6 +4561,45 @@ td.map-cell{ width:60px; text-align:center; }
         const safeStore = (r.store || 'store').replace(/[^A-Za-z0-9_\- ]/g, '').trim();
         const filename = `${safeStore} - Snowplowing Contract (${DSS_CONTRACT_TEMPLATE.filenameSuffix}).pdf`;
         await savePdfBlob(filename, blob);
+        return;
+      }
+
+      if (kind === 'sk'){
+        const bytes = await fetchTemplateBytes(SK_CONTRACT_TEMPLATE.file);
+        const pdfDoc = await PDFLib.PDFDocument.load(bytes);
+        const font = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+        const pages = pdfDoc.getPages();
+        const drawFit = (key, text) => {
+          if (text === null || text === undefined || text === '') return;
+          const f = SK_FIELDS[key]; let size = f.size; const str = String(text);
+          while (size > 5 && font.widthOfTextAtSize(str, size) > f.maxWidth) size -= 0.5;
+          pages[f.page].drawText(str, { x: f.x, y: f.y, size, font });
+        };
+        const tick = key => { const c = SK_CHECKBOXES[key]; pages[c.page].drawText('X', { x: c.x, y: c.y, size: 9, font: font }); };
+        drawFit('serviceProvider', SERVICE_PROVIDER_NAME);
+        drawFit('storeName', r.store ? (r.address ? `${r.store}  -  ${r.address}` : r.store) : (r.address || ''));
+        tick('term');
+        drawFit('termMonths', term.months);
+        drawFit('beginMonthDay', term.beginMonthDay); drawFit('beginYear', term.beginYear2);
+        drawFit('endMonthDay', term.endMonthDay);     drawFit('endYear', term.endYear2);
+        const deicerSk = moneyForPdf(effectiveContractValue(r, 'deicer'));
+        if (deicerSk){ tick('deicerPer'); drawFit('deicerAmount', deicerSk); }
+        const perInchSk = moneyForPdf(effectiveContractValue(r, 'perInchRate'));
+        if (perInchSk){ drawFit('eachInchFee', perInchSk); drawFit('eachInchTotal', perInchSk); }
+        const savedSigSk = loadSavedSignature();
+        if (savedSigSk && savedSigSk.dataUrl){
+          try {
+            const sigPng = await pdfDoc.embedPng(savedSigSk.dataUrl);
+            const { x: bx, y: by, w: bw, h: bh, page: bp } = SK_SIGNATURE_BOX;
+            const sc = Math.min(bw / sigPng.width, bh / sigPng.height);
+            const w2 = sigPng.width * sc, h2 = sigPng.height * sc;
+            pages[bp].drawImage(sigPng, { x: bx, y: by + (bh - h2) / 2, width: w2, height: h2 });
+            pages[SK_DATE_POS.page].drawText(new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }), { x: SK_DATE_POS.x, y: SK_DATE_POS.y, size: 10, font });
+          } catch(e){ console.warn('could not stamp saved signature', e); }
+        }
+        const outBytes = await pdfDoc.save();
+        const safeStoreSk = (r.store || 'store').replace(/[^A-Za-z0-9_\- ]/g, '').trim();
+        await savePdfBlob(`${safeStoreSk} - Snowplowing Contract (${SK_CONTRACT_TEMPLATE.filenameSuffix}).pdf`, new Blob([outBytes], { type: 'application/pdf' }));
         return;
       }
 
@@ -4786,7 +4849,7 @@ td.map-cell{ width:60px; text-align:center; }
     let contracted = false; try { contracted = ctEligible(r); } catch(e){}
     const innerHtml = `<div class="detail-grid">
       <div style="grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-        ${!contracted && contractKind(r.store)?`<button type="button" class="contract-btn" data-idx="${idx}" data-side="owner" title="Generate a filled ${csKind(r.store)?(csKind(r.store)==='owned'?'Owned':'Managed'):(contractKind(r.store)==='myplace'?'MyPlace bid request':'Devon Self Storage')} snowplowing contract PDF for ${escapeHtml(r.store)}">Create Owner Contract</button>`:''}
+        ${!contracted && contractKind(r.store)?`<button type="button" class="contract-btn" data-idx="${idx}" data-side="owner" title="Generate a filled ${csKind(r.store)?(csKind(r.store)==='owned'?'Owned':'Managed'):(contractKind(r.store)==='myplace'?'MyPlace bid request':contractKind(r.store)==='sk'?'Storage King':'Devon Self Storage')} snowplowing contract PDF for ${escapeHtml(r.store)}">Create Owner Contract</button>`:''}
         <span class="vsub-wrap"${vsubState(r).ok ? '' : ' hidden'}>
         <button type="button" class="contract-btn" data-idx="${idx}" data-side="vendor" title="Fill the FDI subcontract that matches this store's contract parameters">Create Vendor Subcontract</button>
         <select class="contract-kind-select is-placeholder" data-idx="${idx}" title="Vendor contract type — leave on the grey label to use the auto-picked template">
@@ -6908,6 +6971,15 @@ td.map-cell{ width:60px; text-align:center; }
     rows.forEach(r => { if (!r.customer || effectiveLost(r) || effectiveCustomerStatus(r) !== 'Contract Accepted') return; m.set(r.customer, (m.get(r.customer) || 0) + 1); });
     return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
   }
+  const PILOT_VENDOR = 'ZK Snow Removal';
+  function clVendors(){
+    const m = new Map(); // lowercase -> {name, n}
+    const add = (nm, n) => { nm = String(nm || '').trim(); if (!nm || nm === '-') return; const k = nm.toLowerCase().replace(/\s+/g, ' '); const x = m.get(k) || { name: nm, n: 0 }; x.n += n; m.set(k, x); };
+    rows.forEach(r => { if (r.vendor2627 && !effectiveLost(r)) add(r.vendor2627, 1); });
+    (typeof ctReqs !== 'undefined' ? ctReqs : []).forEach(q => { if (q.vendor) add(q.vendor, 0); });
+    add(PILOT_VENDOR, 0);
+    return [...m.values()].sort((a, b) => (b.name === PILOT_VENDOR) - (a.name === PILOT_VENDOR) || a.name.localeCompare(b.name));
+  }
   async function clOpen(){
     const back = document.getElementById('cl-back'), list = document.getElementById('cl-list'), msg = document.getElementById('cl-msg');
     back.hidden = false; msg.textContent = ''; msg.classList.remove('bad');
@@ -6915,13 +6987,15 @@ td.map-cell{ width:60px; text-align:center; }
     if (!SMARTSHEET_WORKER_URL){ list.innerHTML = '<div class="sh-empty">Connect the dashboard to the Worker first (Bidding tab).</div>'; return; }
     list.innerHTML = '<div class="sh-empty">Creating links…</div>';
     try {
-      const resp = await fetch(vtBase() + '/portal-links', { method: 'POST', headers: vtHdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ customers: cs.map(x => x[0]), pms: PM_LIST.map(p => p.name) }) });
+      const resp = await fetch(vtBase() + '/portal-links', { method: 'POST', headers: vtHdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ customers: cs.map(x => x[0]), pms: PM_LIST.map(p => p.name), vendors: clVendors().map(v => v.name) }) });
       const data = await resp.json().catch(() => ({}));
       if (!resp.ok || !data.ok) throw new Error(data.error || ('HTTP ' + resp.status + (resp.status === 404 ? ' (deploy the latest worker.js)' : '')));
-      const base = clBase(), pmBase = base.replace(/request\.html$/, 'pm.html');
+      const base = clBase(), pmBase = base.replace(/request\.html$/, 'pm.html'), vnBase = base.replace(/request\.html$/, 'vendor.html');
       const rowH = (name, n, url) => `<tr><td><b>${escapeHtml(name)}</b></td><td>${n}</td><td><input class="cl-url" readonly value="${escapeHtml(url)}" style="width:100%;min-width:260px"></td><td style="white-space:nowrap"><button type="button" class="ct-btn cl-copy">Copy</button> <a class="ct-btn" href="${escapeHtml(url)}" target="_blank" rel="noopener">Open</a></td></tr>`;
       const pmRows = PM_LIST.filter(p => data.pmLinks && data.pmLinks[p.name]).map(p => rowH(p.name, rows.filter(r => r.pm === p.name && !effectiveLost(r)).length, `${pmBase}?p=${encodeURIComponent(p.name)}&t=${encodeURIComponent(data.pmLinks[p.name])}`)).join('');
       list.innerHTML = '<div class="dh-t" style="font-weight:600;margin:4px 0">PM links (Bidding view)</div><table class="sh-table"><thead><tr><th>PM</th><th>Sites</th><th>Private link</th><th></th></tr></thead><tbody>' + (pmRows || '<tr><td colspan="4">PM links need the latest worker.js.</td></tr>') + '</tbody></table>'
+        + '<div class="dh-t" style="font-weight:600;margin:16px 0 4px">Vendor links (their open services, gate codes, status updates)</div>'
+        + (data.vendorLinks ? '<table class="sh-table"><thead><tr><th>Vendor</th><th>Sites</th><th>Private link</th><th></th></tr></thead><tbody>' + clVendors().filter(v => data.vendorLinks[v.name]).map(v => rowH(v.name, v.n, `${vnBase}?v=${encodeURIComponent(v.name)}&t=${encodeURIComponent(data.vendorLinks[v.name])}`)).join('') + '</tbody></table>' : '<div class="sh-empty">Vendor links need the latest worker.js.</div>')
         + '<div class="dh-t" style="font-weight:600;margin:16px 0 4px">Customer links (request a service)</div>' + (cs.length ? '<table class="sh-table"><thead><tr><th>Customer</th><th>Sites</th><th>Private link</th><th></th></tr></thead><tbody>' + cs.map(([name, n]) => {
         const url = `${base}?c=${encodeURIComponent(name)}&t=${encodeURIComponent(data.links[name] || '')}`;
         return rowH(name, n, url);

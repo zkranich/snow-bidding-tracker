@@ -346,3 +346,16 @@ In an expanded contracted site these four boxes are now editable. They start fil
 ## New service dialog: Request date, Push instead of Plow
 - New **Request date** field (defaults to today) above Service date(s). It is saved as the request's Requested At, so a service logged after the fact keeps the right request day. Service history now has separate **Request date** and **Service date** columns.
 - Everything that said Plow now says **Push** (service dropdown, "Push + Salt", "Push — 2–4"" contract parameters). The separate single "Plow" checkbox is gone; Push stays. Older entries that were saved as Plow are shown as Push. The Service picklist on the 26/27 Snow PBR Tracker sheet was updated to Push / Salt / Push + Salt / Haul / Stack / Other. (Contract PDF names such as "Snowplowing Contract" are unchanged.)
+
+## Storage King (SK) owner contract
+Stores whose name starts with **SK** (e.g. "SK Pontiac") now get Storage King's "Snowplowing Contract - Managed Property" from the **Create Owner Contract** button (template: templates/storageking.pdf). It fills Service Provider (Farmer Development, LLC), Store Name (name + address), contract term (months, begin and end dates), the "De-Icer is $ ___ per application" option from the Deicer parameter, "Each Additional inch" if a per-inch rate is on file, and stamps your saved signature + today's date on the Service Provider line. The 4"-8" / 9"-13" / ... fee table uses depth tiers that differ from the dashboard's, so it is left blank to fill in by hand. Store Number is left blank (SK stores don't have one). **Upload the new templates/storageking.pdf along with index.html.**
+
+## Vendor search text
+The text you type in the Bidding tab's "Search vendor…" box is now black (it was grey on the light highlight in dark mode).
+
+## Vendor portal (pilot: ZK Snow Removal)
+New page **vendor.html**: a phone-friendly private page for one vendor. Link format: `vendor.html?v=<vendor name>&t=<token>`. It shows only that vendor's open services from the 26/27 Snow PBR Tracker (store, address with a Maps link, service, date, notes), plus the **on-site contact, phone (tap to call), email and gate code**. Gate code is only released once a service is **Dispatched / Vendor Replied / On Site** (a Requested service says "Shown once this service is dispatched"; completed ones show no site info at all). On-site details come from the bidding sheet's On-Site columns first, then the Customer Information sheet.
+The vendor can tap **I'm on site**, **Completed**, **Problem** (note required) or **Add note**. Those write Status / On Site At / Completed At / Issue / Notes straight onto the dispatch log row, so they show up in the dashboard's Service history. The Worker re-checks every write: the row must belong to that vendor and still be open.
+Get the link: **Private links** dialog -> new **Vendor links** section (ZK Snow Removal is pinned first; other vendors appear once they have sites or dispatches).
+**Setup:** paste the latest worker.js into Cloudflare, make sure the `PORTAL_SECRET` secret is set, upload vendor.html next to index.html.
+Revoking: a link is a signature of the vendor name, so it can't be turned off alone. Rotating PORTAL_SECRET kills every private link (customer, PM and vendor); if you want per-vendor revocation, a "link version" per vendor is a small add.

@@ -96,3 +96,6 @@ To use `request.html` (customer self-service requests), add a third secret on th
 After pasting a new worker.js, click Deploy; no secrets change.
 
 - `POST /dispatch-delete {rowId}` — deletes one service row from the 26/27 Snow PBR Tracker (used by Service history → Delete).
+
+## Vendor portal
+Upload `vendor.html` next to `index.html`. It needs the same `PORTAL_SECRET` as the customer/PM links. Public routes: `GET /vendor/portal` and `POST /vendor/update` (token-checked, no dashboard key). Mint links from the dashboard: Contracted Sites -> Private links -> Vendor links.

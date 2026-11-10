@@ -284,13 +284,74 @@ async function gmailRefStatus(ref, me, access) {
   return out;
 }
 
+// ---- Vendor portal (public page: vendor.html) ----
+// Each vendor gets a private link: vendor.html?v=<vendor name>&t=<token>, signed like the customer
+// and PM links (HMAC of 'vendor:<name>'). The Worker returns ONLY that vendor's own services from
+// the dispatch log, with the site contact + gate code attached just for services that are live
+// (Dispatched / Vendor Replied / On Site). The vendor can mark On Site / Completed / Issue and add
+// a note; the Worker re-checks on every write that the row really belongs to that vendor.
+const VENDOR_OPEN = ['Requested', 'Dispatched', 'Vendor Replied', 'On Site', 'Issue'];
+const VENDOR_LIVE = ['Dispatched', 'Vendor Replied', 'On Site'];
+const wNormStore = (s) => String(s == null ? '' : s).trim().toUpperCase().replace(/\s+/g, ' ');
+const CUSTOMER_INFO_COLS = { store: 732008696205188, storePhone: 2983808509890436, gate: 3891767884599172, email: 8364191376166788, contact: 7487408137260932, contactCell: 1857908603047812 };
+const cellVal = (row, id) => { const c = (row.cells || []).find(x => x.columnId === id); return c && c.value !== undefined && c.value !== null ? String(c.value).trim() : ''; };
+async function vendorSiteInfo(env, stores) {
+  // on-site details per store: what was typed on the bidding sheet wins, else the Customer Information sheet
+  const H = { Authorization: `Bearer ${env.SMARTSHEET_TOKEN}` };
+  const want = new Set(stores.map(wNormStore));
+  const out = {};
+  const [bs, ci] = await Promise.all([
+    fetch(`https://api.smartsheet.com/2.0/sheets/${SHEET_ID}?columnIds=${[ADD_ROW_COLUMN_IDS.store, FIELD_COLUMN_IDS.siteContact, FIELD_COLUMN_IDS.sitePhone, FIELD_COLUMN_IDS.siteEmail, FIELD_COLUMN_IDS.siteGate].join(',')}`, { headers: H }).then(r => r.json()).catch(() => ({})),
+    fetch(`https://api.smartsheet.com/2.0/sheets/${CUSTOMER_INFO_SHEET_ID}?columnIds=${Object.values(CUSTOMER_INFO_COLS).join(',')}`, { headers: H }).then(r => r.json()).catch(() => ({})),
+  ]);
+  (ci.rows || []).forEach(row => {
+    const k = wNormStore(cellVal(row, CUSTOMER_INFO_COLS.store)); if (!want.has(k)) return;
+    const o = out[k] || (out[k] = {});
+    o.contact = o.contact || cellVal(row, CUSTOMER_INFO_COLS.contact); o.phone = o.phone || cellVal(row, CUSTOMER_INFO_COLS.contactCell) || cellVal(row, CUSTOMER_INFO_COLS.storePhone);
+    o.email = o.email || cellVal(row, CUSTOMER_INFO_COLS.email); o.gate = o.gate || cellVal(row, CUSTOMER_INFO_COLS.gate);
+  });
+  (bs.rows || []).forEach(row => {
+    const k = wNormStore(cellVal(row, ADD_ROW_COLUMN_IDS.store)); if (!want.has(k)) return;
+    const o = out[k] || (out[k] = {});
+    const f = (key, id) => { const v = cellVal(row, id); if (v) o[key] = v; };
+    f('contact', FIELD_COLUMN_IDS.siteContact); f('phone', FIELD_COLUMN_IDS.sitePhone); f('email', FIELD_COLUMN_IDS.siteEmail); f('gate', FIELD_COLUMN_IDS.siteGate);
+  });
+  return out;
+}
+async function vendorServices(env, vendor) {
+  const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${DISPATCH_SHEET_ID}`, { headers: { Authorization: `Bearer ${env.SMARTSHEET_TOKEN}` } });
+  const data = await resp.json();
+  if (!resp.ok || !Array.isArray(data.rows)) throw new Error('Could not read the dispatch log');
+  const byId = {}; Object.entries(DISPATCH_COLS).forEach(([k, id]) => { byId[id] = k; });
+  const mine = [];
+  for (const row of data.rows) {
+    const o = { rowId: row.id };
+    (row.cells || []).forEach(c => { const k = byId[c.columnId]; if (k && c.value !== undefined && c.value !== null) o[k] = String(c.value); });
+    if (!o.store || portalNorm(o.vendor) !== portalNorm(vendor)) continue;
+    mine.push(o);
+  }
+  const live = mine.filter(o => VENDOR_OPEN.includes(o.status));
+  const info = live.length ? await vendorSiteInfo(env, live.map(o => o.store)) : {};
+  const shape = (o, withSite) => {
+    const si = info[wNormStore(o.store)] || {};
+    const x = { rowId: o.rowId, status: o.status || '', store: o.store, address: o.address || '', service: (o.serviceItems || o.service || '').replace(/ — /g, ': '), serviceDate: o.stormDate || '', requestedAt: o.requestedAt || '', notes: o.notes || '', issue: o.issue || '', projectNo: o.projectNo || '' };
+    if (withSite){ x.contact = si.contact || ''; x.phone = si.phone || ''; x.email = si.email || ''; if (VENDOR_LIVE.includes(o.status)) x.gate = si.gate || ''; else x.gateHidden = !!si.gate; }
+    return x;
+  };
+  const order = { 'On Site': 0, 'Vendor Replied': 1, 'Dispatched': 2, 'Issue': 3, 'Requested': 4 };
+  return {
+    active: live.map(o => shape(o, true)).sort((a, b) => (order[a.status] - order[b.status]) || String(a.serviceDate).localeCompare(String(b.serviceDate))),
+    done: mine.filter(o => o.status === 'Completed').sort((a, b) => String(b.completedAt || '').localeCompare(String(a.completedAt || ''))).slice(0, 25).map(o => shape(o, false)),
+  };
+}
+
 // ---- Customer request portal (public page: request.html) ----
 // Each customer/DM gets a private link: request.html?c=<customer>&t=<token>. The token is an
 // HMAC of the customer name made with the PORTAL_SECRET Worker secret, so it can't be guessed
 // or made up for another customer. These two routes are the ONLY ones that work without the
 // dashboard key, and they can only (a) list that customer's accepted sites and (b) add a
 // "Requested" row to the dispatch log for one of those sites.
-const PORTAL_SERVICES = ['Plow', 'Salt', 'Plow + Salt', 'Other'];
+const PORTAL_SERVICES = ['Push', 'Salt', 'Push + Salt', 'Other'];
 const portalNorm = (x) => String(x || '').trim().toLowerCase().replace(/\s+/g, ' ');
 async function portalToken(secret, customer) {
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
@@ -396,6 +457,41 @@ export default {
         if (!(await portalTokenOk(env, c, t))) return json({ error: 'This link is not valid. Please ask Farmer Development for a new one.' }, 403, headers);
         try { const sites = await portalSites(env, c); return json({ ok: true, customer: c, sites: sites.map(x => ({ store: x.store, address: x.address })) }, 200, headers); }
         catch (e) { return json({ error: 'Could not load your sites right now' }, 502, headers); }
+      }
+      if (pu.pathname === '/vendor/portal' && request.method === 'GET') {
+        if (!env.SMARTSHEET_TOKEN || !env.PORTAL_SECRET) return json({ error: 'The vendor page is not set up yet' }, 503, headers);
+        const v = pu.searchParams.get('v') || '', t = pu.searchParams.get('t') || '';
+        if (!(await portalTokenOk(env, 'vendor:' + v, t))) return json({ error: 'This link is not valid. Ask Farmer Development for a new one.' }, 403, headers);
+        try { return json(Object.assign({ ok: true, vendor: v }, await vendorServices(env, v)), 200, headers); }
+        catch (e) { return json({ error: 'Could not load your services right now' }, 502, headers); }
+      }
+      if (pu.pathname === '/vendor/update' && request.method === 'POST') {
+        if (!env.SMARTSHEET_TOKEN || !env.PORTAL_SECRET) return json({ error: 'The vendor page is not set up yet' }, 503, headers);
+        let b; try { b = await request.json(); } catch (e) { return json({ error: 'Bad request' }, 400, headers); }
+        b = b || {};
+        const v = String(b.v || '');
+        if (!(await portalTokenOk(env, 'vendor:' + v, String(b.t || '')))) return json({ error: 'This link is not valid. Ask Farmer Development for a new one.' }, 403, headers);
+        const rowId = Number(b.rowId), action = String(b.action || ''), note = String(b.note || '').trim().slice(0, 500);
+        if (!rowId || !['onsite', 'complete', 'issue', 'note'].includes(action)) return json({ error: 'Bad request' }, 400, headers);
+        try {
+          const H = { Authorization: `Bearer ${env.SMARTSHEET_TOKEN}` };
+          const rr = await fetch(`https://api.smartsheet.com/2.0/sheets/${DISPATCH_SHEET_ID}/rows/${rowId}`, { headers: H });
+          const row = await rr.json();
+          if (!rr.ok || portalNorm(cellVal(row, DISPATCH_COLS.vendor)) !== portalNorm(v)) return json({ error: 'That service is not assigned to you.' }, 403, headers);
+          const status = cellVal(row, DISPATCH_COLS.status);
+          if (!VENDOR_OPEN.includes(status)) return json({ error: 'That service is already closed.' }, 409, headers);
+          const now = new Date().toISOString(); const cells = [];
+          const put = (k, val) => cells.push({ columnId: DISPATCH_COLS[k], value: val });
+          if (action === 'onsite'){ put('status', 'On Site'); if (!cellVal(row, DISPATCH_COLS.onSiteAt)) put('onSiteAt', now); }
+          else if (action === 'complete'){ put('status', 'Completed'); if (!cellVal(row, DISPATCH_COLS.onSiteAt)) put('onSiteAt', now); put('completedAt', now); }
+          else if (action === 'issue'){ if (!note) return json({ error: 'Tell us what happened.' }, 400, headers); put('status', 'Issue'); put('issue', note); }
+          if (note && action !== 'issue'){ const old = cellVal(row, DISPATCH_COLS.notes); put('notes', (old ? old + ' | ' : '') + 'Vendor: ' + note); }
+          if (!cells.length) return json({ error: 'Add a note first.' }, 400, headers);
+          const resp = await fetch(`https://api.smartsheet.com/2.0/sheets/${DISPATCH_SHEET_ID}/rows`, { method: 'PUT', headers: Object.assign({ 'Content-Type': 'application/json' }, H), body: JSON.stringify([{ id: rowId, cells }]) });
+          const data = await resp.json();
+          if (resp.ok && data.resultCode === 0) return json({ ok: true, rowId, status: cells.find(c => c.columnId === DISPATCH_COLS.status) ? cells.find(c => c.columnId === DISPATCH_COLS.status).value : status }, 200, headers);
+          return json({ error: 'Could not save that.' }, 502, headers);
+        } catch (e) { return json({ error: 'Could not save that.' }, 502, headers); }
       }
       if (pu.pathname === '/pm/sites' && request.method === 'GET') {
         if (!env.SMARTSHEET_TOKEN || !env.PORTAL_SECRET) return json({ error: 'The PM view is not set up yet' }, 503, headers);
@@ -560,7 +656,9 @@ export default {
         for (const nm of list) { const n = String(nm || '').trim(); if (n) links[n] = await portalToken(env.PORTAL_SECRET, n); }
         const pmLinks = {};
         for (const nm of (Array.isArray(body && body.pms) ? body.pms.slice(0, 50) : [])) { const pmx = pmFind(nm); if (pmx) pmLinks[pmx.name] = await portalToken(env.PORTAL_SECRET, 'pm:' + pmx.name); }
-        return json({ ok: true, links, pmLinks }, 200, headers);
+        const vendorLinks = {};
+        for (const nm of (Array.isArray(body && body.vendors) ? body.vendors.slice(0, 200) : [])) { const n = String(nm || '').trim(); if (n) vendorLinks[n] = await portalToken(env.PORTAL_SECRET, 'vendor:' + n); }
+        return json({ ok: true, links, pmLinks, vendorLinks }, 200, headers);
       }
 
       // ---- Storm dispatch log (Contracted tab) ----
