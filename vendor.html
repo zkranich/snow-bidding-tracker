@@ -32,6 +32,9 @@
   button.w{ color:var(--bad); } button:disabled{ opacity:.5; cursor:default; }
   textarea{ width:100%; font:inherit; padding:10px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); margin-top:10px; min-height:70px; }
   .row-msg{ font-size:13px; margin-top:8px; min-height:16px; } .row-msg.bad{ color:var(--bad); } .row-msg.ok{ color:var(--ok); }
+  .tabs{ display:flex; gap:6px; margin:4px 0 14px; } .tabs button{ flex:1; min-height:42px; } .tabs button.on{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .srch{ width:100%; font:inherit; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:var(--card); color:var(--ink); margin-bottom:12px; }
+  .srch:focus{ outline:2px solid var(--accent); outline-offset:1px; }
   .done{ display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); font-size:14px; } .done:last-child{ border-bottom:0; }
   .err{ text-align:center; padding:40px 10px; color:var(--bad); } .empty{ text-align:center; padding:28px; color:var(--muted); }
   @media (prefers-color-scheme: dark){
@@ -57,7 +60,7 @@
   const main = document.getElementById('main');
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
   const PILL = { 'Requested':'', 'Dispatched':'mid', 'Vendor Replied':'mid', 'On Site':'go', 'Issue':'bad', 'Completed':'go' };
-  let data = null, openNote = null; // openNote = { rowId, action }
+  let data = null, openNote = null, tab = 'open', query = ''; // openNote = { rowId, action }
 
   function fail(msg){ main.innerHTML = `<div class="err">${esc(msg)}</div>`; }
   function fmtDate(s){
@@ -74,7 +77,6 @@
     if (o.phone) rows.push(`<dt>Phone</dt><dd><a href="tel:${esc(tel(o.phone))}">${esc(o.phone)}</a></dd>`);
     if (o.email) rows.push(`<dt>Email</dt><dd><a href="mailto:${esc(o.email)}">${esc(o.email)}</a></dd>`);
     if (o.gate) rows.push(`<dt>Gate code</dt><dd class="gate">${esc(o.gate)}</dd>`);
-    else if (o.gateHidden) rows.push(`<dt>Gate code</dt><dd class="locked">Shown once this service is dispatched</dd>`);
     const noteOpen = openNote && openNote.rowId === o.rowId;
     const live = o.status === 'Dispatched' || o.status === 'Vendor Replied' || o.status === 'On Site' || o.status === 'Issue';
     return `<div class="card" data-id="${esc(o.rowId)}">
@@ -95,11 +97,31 @@
     </div>`;
   }
 
+  function siteCard(s){
+    const maps = s.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.address)}` : '';
+    const rows = [];
+    if (s.contact) rows.push(`<dt>On-site contact</dt><dd>${esc(s.contact)}</dd>`);
+    if (s.phone) rows.push(`<dt>Phone</dt><dd><a href="tel:${esc(tel(s.phone))}">${esc(s.phone)}</a></dd>`);
+    if (s.email) rows.push(`<dt>Email</dt><dd><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></dd>`);
+    rows.push(`<dt>Gate code</dt>` + (s.gate ? `<dd class="gate">${esc(s.gate)}</dd>` : `<dd class="locked">None on file</dd>`));
+    return `<div class="card"><div class="top"><div class="store">${esc(s.store)}</div>${s.region ? `<span class="pill">${esc(s.region)}</span>` : ''}</div>
+      <div class="addr">${maps ? `<a href="${maps}" target="_blank" rel="noopener">${esc(s.address)}</a>` : esc(s.address)}</div><dl class="info">${rows.join('')}</dl></div>`;
+  }
+  function sitesHtml(){
+    const all = data.sites || [], q = query.trim().toLowerCase();
+    const hit = q ? all.filter(s => [s.store, s.address, s.region, s.contact, s.phone, s.email, s.gate].join(' ').toLowerCase().includes(q)) : all;
+    return `<input class="srch" id="srch" type="search" placeholder="Search store, address, contact, gate code\u2026" value="${esc(query)}" autocomplete="off">`
+      + `<div class="meta" style="margin:-4px 2px 10px">${hit.length} of ${all.length} site${all.length === 1 ? '' : 's'}</div>`
+      + (hit.length ? hit.map(siteCard).join('') : `<div class="card empty">${all.length ? 'No sites match that search.' : 'No sites are assigned to you yet.'}</div>`);
+  }
   function render(){
     document.getElementById('ttl').textContent = data.vendor || 'Vendor Portal';
     const act = data.active || [], done = data.done || [];
     document.title = (data.vendor || 'Vendor') + ' – Portal';
-    main.innerHTML = '<h2>Open services' + (act.length ? ' (' + act.length + ')' : '') + '</h2>'
+    const nSites = (data.sites || []).length;
+    const tabs = `<div class="tabs"><button data-tab="open" class="${tab === 'open' ? 'on' : ''}">Open services${act.length ? ' (' + act.length + ')' : ''}</button><button data-tab="sites" class="${tab === 'sites' ? 'on' : ''}">All my sites${nSites ? ' (' + nSites + ')' : ''}</button></div>`;
+    if (tab === 'sites'){ const had = document.activeElement && document.activeElement.id === 'srch'; main.innerHTML = tabs + sitesHtml(); if (had){ const i = document.getElementById('srch'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); } return; }
+    main.innerHTML = tabs + '<h2>Open services' + (act.length ? ' (' + act.length + ')' : '') + '</h2>'
       + (act.length ? act.map(cardHtml).join('') : '<div class="card empty">Nothing open right now. New requests show up here as soon as they are dispatched.</div>')
       + (done.length ? '<h2>Recently completed</h2><div class="card">' + done.map(o => `<div class="done"><div><b>${esc(o.store)}</b><div class="meta">${esc(o.service || '')}</div></div><div class="meta">${esc(fmtDate(o.serviceDate))}</div></div>`).join('') + '</div>' : '');
   }
@@ -129,7 +151,9 @@
     }
   }
 
+  main.addEventListener('input', e => { if (e.target.id === 'srch'){ query = e.target.value; render(); } });
   main.addEventListener('click', e => {
+    const tb = e.target.closest('button[data-tab]'); if (tb){ tab = tb.dataset.tab; render(); return; }
     const b = e.target.closest('button[data-act]'); if (!b) return;
     const card = b.closest('.card'), act = b.dataset.act, id = b.dataset.id;
     if (act === 'cancel'){ openNote = null; render(); return; }

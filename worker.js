@@ -295,15 +295,18 @@ const VENDOR_LIVE = ['Dispatched', 'Vendor Replied', 'On Site'];
 const wNormStore = (s) => String(s == null ? '' : s).trim().toUpperCase().replace(/\s+/g, ' ');
 const CUSTOMER_INFO_COLS = { store: 732008696205188, storePhone: 2983808509890436, gate: 3891767884599172, email: 8364191376166788, contact: 7487408137260932, contactCell: 1857908603047812 };
 const cellVal = (row, id) => { const c = (row.cells || []).find(x => x.columnId === id); return c && c.value !== undefined && c.value !== null ? String(c.value).trim() : ''; };
-async function vendorSiteInfo(env, stores) {
+async function vendorSiteInfo(env, stores, vendor) {
   // on-site details per store: what was typed on the bidding sheet wins, else the Customer Information sheet
   const H = { Authorization: `Bearer ${env.SMARTSHEET_TOKEN}` };
   const want = new Set(stores.map(wNormStore));
   const out = {};
-  const [bs, ci] = await Promise.all([
-    fetch(`https://api.smartsheet.com/2.0/sheets/${SHEET_ID}?columnIds=${[ADD_ROW_COLUMN_IDS.store, FIELD_COLUMN_IDS.siteContact, FIELD_COLUMN_IDS.sitePhone, FIELD_COLUMN_IDS.siteEmail, FIELD_COLUMN_IDS.siteGate].join(',')}`, { headers: H }).then(r => r.json()).catch(() => ({})),
-    fetch(`https://api.smartsheet.com/2.0/sheets/${CUSTOMER_INFO_SHEET_ID}?columnIds=${Object.values(CUSTOMER_INFO_COLS).join(',')}`, { headers: H }).then(r => r.json()).catch(() => ({})),
-  ]);
+  const mine = []; // every site assigned to this vendor in the 26/27 Vendor column (not Lost)
+  const bs = await fetch(`https://api.smartsheet.com/2.0/sheets/${SHEET_ID}?columnIds=${[ADD_ROW_COLUMN_IDS.store, ADD_ROW_COLUMN_IDS.address, ADD_ROW_COLUMN_IDS.region, FIELD_COLUMN_IDS.vendor2627, FIELD_COLUMN_IDS.lost, FIELD_COLUMN_IDS.siteContact, FIELD_COLUMN_IDS.sitePhone, FIELD_COLUMN_IDS.siteEmail, FIELD_COLUMN_IDS.siteGate].join(',')}`, { headers: H }).then(r => r.json()).catch(() => ({}));
+  (bs.rows || []).forEach(row => {
+    const store = cellVal(row, ADD_ROW_COLUMN_IDS.store); if (!store) return;
+    if (vendor && portalNorm(cellVal(row, FIELD_COLUMN_IDS.vendor2627)) === portalNorm(vendor) && cellVal(row, FIELD_COLUMN_IDS.lost) !== 'true'){ mine.push({ store, address: cellVal(row, ADD_ROW_COLUMN_IDS.address), region: cellVal(row, ADD_ROW_COLUMN_IDS.region) }); want.add(wNormStore(store)); }
+  });
+  const ci = await fetch(`https://api.smartsheet.com/2.0/sheets/${CUSTOMER_INFO_SHEET_ID}?columnIds=${Object.values(CUSTOMER_INFO_COLS).join(',')}`, { headers: H }).then(r => r.json()).catch(() => ({}));
   (ci.rows || []).forEach(row => {
     const k = wNormStore(cellVal(row, CUSTOMER_INFO_COLS.store)); if (!want.has(k)) return;
     const o = out[k] || (out[k] = {});
@@ -316,6 +319,7 @@ async function vendorSiteInfo(env, stores) {
     const f = (key, id) => { const v = cellVal(row, id); if (v) o[key] = v; };
     f('contact', FIELD_COLUMN_IDS.siteContact); f('phone', FIELD_COLUMN_IDS.sitePhone); f('email', FIELD_COLUMN_IDS.siteEmail); f('gate', FIELD_COLUMN_IDS.siteGate);
   });
+  out.__mine = mine;
   return out;
 }
 async function vendorServices(env, vendor) {
@@ -331,15 +335,18 @@ async function vendorServices(env, vendor) {
     mine.push(o);
   }
   const live = mine.filter(o => VENDOR_OPEN.includes(o.status));
-  const info = live.length ? await vendorSiteInfo(env, live.map(o => o.store)) : {};
+  const info = await vendorSiteInfo(env, live.map(o => o.store), vendor);
   const shape = (o, withSite) => {
     const si = info[wNormStore(o.store)] || {};
     const x = { rowId: o.rowId, status: o.status || '', store: o.store, address: o.address || '', service: (o.serviceItems || o.service || '').replace(/ — /g, ': '), serviceDate: o.stormDate || '', requestedAt: o.requestedAt || '', notes: o.notes || '', issue: o.issue || '', projectNo: o.projectNo || '' };
-    if (withSite){ x.contact = si.contact || ''; x.phone = si.phone || ''; x.email = si.email || ''; if (VENDOR_LIVE.includes(o.status)) x.gate = si.gate || ''; else x.gateHidden = !!si.gate; }
+    if (withSite){ x.contact = si.contact || ''; x.phone = si.phone || ''; x.email = si.email || ''; x.gate = si.gate || ''; }
     return x;
   };
   const order = { 'On Site': 0, 'Vendor Replied': 1, 'Dispatched': 2, 'Issue': 3, 'Requested': 4 };
+  const sites = (info.__mine || []).map(s => { const si = info[wNormStore(s.store)] || {}; return { store: s.store, address: s.address, region: s.region, contact: si.contact || '', phone: si.phone || '', email: si.email || '', gate: si.gate || '' }; })
+    .sort((a, b) => a.store.localeCompare(b.store, undefined, { numeric: true }));
   return {
+    sites,
     active: live.map(o => shape(o, true)).sort((a, b) => (order[a.status] - order[b.status]) || String(a.serviceDate).localeCompare(String(b.serviceDate))),
     done: mine.filter(o => o.status === 'Completed').sort((a, b) => String(b.completedAt || '').localeCompare(String(a.completedAt || ''))).slice(0, 25).map(o => shape(o, false)),
   };
