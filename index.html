@@ -460,6 +460,18 @@ table.ct-table select.st-Completed{ border-color:#2f9e6e; } table.ct-table selec
 #ct-f-more-dates{ display:contents; }
 .ct-dates .ct-extra-date{ display:inline-flex; align-items:center; gap:3px; }
 .ct-dates .ct-extra-date button{ border:none; background:none; cursor:pointer; font-size:16px; color:var(--ink-faint); line-height:1; }
+.iv-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.iv-find-btn{ font:inherit; font-size:12px; font-weight:700; border:1px solid var(--accent,#1c6e8c); color:var(--accent,#1c6e8c); background:#fff; border-radius:6px; padding:3px 10px; cursor:pointer; text-transform:none; letter-spacing:0; }
+.iv-find-btn:hover{ background:var(--accent,#1c6e8c); color:#fff; } .iv-find-btn:disabled{ opacity:.5; cursor:not-allowed; }
+.iv-find-panel{ border:1px solid var(--border); border-radius:8px; background:#fff; padding:8px 10px; margin-bottom:10px; }
+.iv-find-note{ font-size:12px; color:var(--ink-muted); margin-bottom:6px; }
+.iv-find-item{ display:flex; gap:10px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; padding:7px 0; border-top:1px solid var(--border); }
+.iv-find-item:first-of-type{ border-top:0; }
+.iv-find-main{ flex:1 1 280px; min-width:0; } .iv-find-name{ font-weight:700; font-size:13px; }
+.iv-find-why{ font-size:12px; color:var(--ink-muted); } .iv-find-contact{ font-size:12px; }
+.iv-find-acts{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+.iv-find-acts button{ font:inherit; font-size:12px; font-weight:600; border:1px solid var(--border); border-radius:6px; padding:5px 10px; background:var(--surface-alt,#eef1ef); cursor:pointer; }
+.iv-find-acts button:disabled{ opacity:.5; cursor:not-allowed; }
 .iv-quick{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:8px; }
 .iv-quick-input{ flex:1 1 240px; min-width:180px; font:inherit; font-size:12.5px; border:1px solid var(--border); border-radius:6px; padding:6px 9px; background:#fff; color:#000; }
 .iv-quick-btn{ font:inherit; font-size:12.5px; font-weight:600; border:1px solid var(--border); border-radius:6px; padding:6px 11px; background:var(--surface-alt,#eef1ef); cursor:pointer; }
@@ -679,6 +691,9 @@ input.row-select, input#select-all{ cursor:pointer; width:14px; height:14px; }
   font:inherit; font-weight:600; font-size:13px; border:1px solid var(--border-soft); border-radius:4px;
   padding:4px 8px; width:220px; max-width:100%; background:#fff; color:#000;
 }
+.site-edit{ font:inherit; font-weight:600; font-size:13px; border:1px solid var(--border-soft); border-radius:4px; padding:4px 8px; width:100%; max-width:420px; background:#fff; color:#000; box-sizing:border-box; }
+.site-edit:focus{ outline:2px solid var(--warn,#b45309); outline-offset:1px; }
+.site-edit:disabled{ background:transparent; border-color:transparent; color:var(--ink-faint); cursor:not-allowed; }
 .v27-input:focus{ outline:2px solid var(--warn,#b45309); outline-offset:1px; }
 .v27-input.cp-pending{ border-color:var(--warn,#b45309); background:#fff8ec; }
 .v27-input:disabled{ background:transparent; border-color:transparent; color:var(--ink-faint); cursor:not-allowed; }
@@ -794,7 +809,12 @@ td.map-cell{ width:60px; text-align:center; }
 .row-thumb{ width:54px; height:38px; object-fit:cover; border:1px solid var(--border-soft); border-radius:5px; background:var(--surface-alt); cursor:zoom-in; display:block; margin:0 auto; }
 .row-thumb-pdf{ display:inline-block; font-size:11px; font-weight:700; color:#14683a; background:#d9dedb; border:1px solid #c3cbc7; border-radius:5px; padding:6px 8px; cursor:pointer; }
 .row-thumb-n{ font-size:10px; color:var(--ink-faint); }
-.vt-head{ display:flex; flex-wrap:wrap; gap:6px 10px; align-items:baseline; }
+.vt-head{ display:flex; flex-wrap:wrap; gap:6px 10px; align-items:baseline; cursor:pointer; user-select:none; }
+.vt-chev{ display:inline-block; width:14px; color:var(--ink-faint); font-size:12px; transition:transform .15s; transform:rotate(90deg); }
+.vt-card.vt-collapsed .vt-chev{ transform:rotate(0deg); }
+.vt-card.vt-collapsed{ gap:0; }
+.vt-card.vt-collapsed > :not(.vt-head){ display:none !important; }
+.vt-card.vt-collapsed .vt-sites{ display:none; }
 .vt-name{ font-size:15px; font-weight:700; }
 .vt-sites{ font-size:11.5px; color:var(--ink-faint); flex-basis:100%; }
 .vt-chip{ font-size:11px; font-weight:600; padding:2px 9px; border-radius:999px; white-space:nowrap; }
@@ -1362,6 +1382,8 @@ td.map-cell{ width:60px; text-align:center; }
         </select>
       </label>
       <button type="button" id="vt-refresh" class="vt-btn">Refresh</button>
+      <button type="button" id="vt-collapse" class="vt-btn" title="Collapse every vendor card shown">Collapse all</button>
+      <button type="button" id="vt-expand" class="vt-btn" title="Expand every vendor card shown">Expand all</button>
       <span class="vc-count" id="vt-count"></span>
     </div>
     <div class="vc-note" id="vt-status"></div>
@@ -1595,6 +1617,7 @@ td.map-cell{ width:60px; text-align:center; }
       else if (e.field === 'pm') r.pm = pmFromCell(e.value, '');
       else if (e.field === 'customer'){ if (e.value) r.customer = String(e.value); }
       else if (e.field === 'customerEmail') r.customerEmail = e.value ? String(e.value) : '';
+      else if (e.field === 'store' || e.field === 'address'){ if (e.value) r[e.field] = String(e.value); }
       else if (e.field === 'siteContact' || e.field === 'sitePhone' || e.field === 'siteEmail' || e.field === 'siteGate') r[e.field] = e.value ? String(e.value) : '';
       else if (Object.prototype.hasOwnProperty.call(INTERESTED_COLUMNS, e.field)){ if (!r.interested) r.interested = {}; r.interested[e.field] = e.value ? String(e.value) : ''; }
       else if (Object.prototype.hasOwnProperty.call(LIVE_CONTRACT_COLUMNS, e.field)){
@@ -1748,7 +1771,7 @@ td.map-cell{ width:60px; text-align:center; }
   const LIVE_COL = { customerStatus: 7113215152263044, vendorStatus: 1483715618049924, lost: 5987315245420420, region: 260677394796420, vendor2627: 7903831494791044, customer: 4342064557100932, customerEmail: 8178725658857348, siteContact: 803364493102980, sitePhone: 5306964120473476, siteEmail: 3055164306788228, siteGate: 7558763934158724, fdiLocked: 10645392887684, vendorLocked: 4514245020258180 };
   // A cheap fingerprint of everything a refresh can change, so the screen is only rebuilt when something actually differs.
   function rowsSig(){
-    return rows.length + '#' + rows.map(r => [r.rowId, r.customerStatus, r.vendorStatus, r.lost ? 1 : 0, r.region, r.vendor2627, r.pm, r.customer, r.customerEmail, r.siteContact, r.sitePhone, r.siteEmail, r.siteGate, r.fdiLocked ? 1 : 0, r.vendorLocked ? 1 : 0,
+    return rows.length + '#' + rows.map(r => [r.rowId, r.customerStatus, r.vendorStatus, r.lost ? 1 : 0, r.store, r.address, r.region, r.vendor2627, r.pm, r.customer, r.customerEmail, r.siteContact, r.sitePhone, r.siteEmail, r.siteGate, r.fdiLocked ? 1 : 0, r.vendorLocked ? 1 : 0,
       JSON.stringify(r.contractParams || null), JSON.stringify(r.interested || null)].join('|')).join('\n');
   }
   let lastAttSig = '';
@@ -1824,6 +1847,8 @@ td.map-cell{ width:60px; text-align:center; }
         r.vendorLocked = !!c[LIVE_COL.vendorLocked];
         if (c[LIVE_COL.region]) r.region = String(c[LIVE_COL.region]);
         if (c[LIVE_COL.customer]) r.customer = String(c[LIVE_COL.customer]);
+        if (c[AS_COL.store] && String(c[AS_COL.store]).trim()) r.store = String(c[AS_COL.store]).trim();
+        if (c[AS_COL.address] && String(c[AS_COL.address]).trim()) r.address = String(c[AS_COL.address]).trim();
         r.customerEmail = c[LIVE_COL.customerEmail] ? String(c[LIVE_COL.customerEmail]) : '';
         ['siteContact', 'sitePhone', 'siteEmail', 'siteGate'].forEach(k => { r[k] = c[LIVE_COL[k]] ? String(c[LIVE_COL[k]]) : ''; });
       });
@@ -2167,6 +2192,33 @@ td.map-cell{ width:60px; text-align:center; }
   function updateVsub(r){
     const idx = rows.indexOf(r), st = vsubState(r);
     document.querySelectorAll(`.detail-row[data-idx="${idx}"]`).forEach(d => { d.querySelectorAll('.vsub-wrap').forEach(w => { w.hidden = !st.ok; }); d.querySelectorAll('.vsub-hint').forEach(w => { w.hidden = st.ok; w.textContent = st.msg; }); });
+  }
+  // Store # / Site address edits: always ask first. OK keeps the change (saved to the Bidding sheet and,
+  // so history isn't orphaned, to that site's service-history rows); Cancel puts the old value back.
+  async function stageSiteEdit(r, inp){
+    const field = inp.dataset.f, label = field === 'store' ? 'Store #' : 'Site address';
+    const oldV = String(r[field] || '').trim(), newV = inp.value.trim();
+    if (newV === oldV){ inp.value = oldV; return; }
+    if (!newV){ inp.value = oldV; window.alert(label + ' can\u2019t be blank.'); return; }
+    let hist = [];
+    try { hist = serviceHistoryRows(r); } catch(e){}
+    if (field === 'store' && rows.some(x => x !== r && normStore(x.store) === normStore(newV))){ inp.value = oldV; window.alert('Another site already uses Store # ' + newV + '. Nothing was changed.'); return; }
+    const openReqs = hist.filter(q => !/^(Completed|Cancelled)$/i.test(q.status || ''));
+    const note = field === 'store'
+      ? (hist.length ? `\n\nThis also renames the ${hist.length} service-history entr${hist.length === 1 ? 'y' : 'ies'} for this site. The Customer Information sheet is read-only, so on-site info pulled from it will stop matching until that sheet uses the new number.` : '\n\nThe Customer Information sheet is read-only, so on-site info pulled from it will stop matching until that sheet uses the new number.')
+      : (openReqs.length ? `\n\nThis also updates the address on ${openReqs.length} open service request${openReqs.length === 1 ? '' : 's'} (finished ones keep the address they had).` : '');
+    if (!window.confirm(`Change ${label} from\n"${oldV}"\nto\n"${newV}"?${note}\n\nOK = keep the change\nCancel = leave it as it was`)){ inp.value = oldV; return; }
+    r[field] = newV;
+    syncFieldToSmartsheet(r.rowId, field, newV);
+    if (field === 'store'){
+      hist.forEach(q => { ctSetField(q, 'store', newV); const rq = String(q.request || ''), i = rq.lastIndexOf(' | '); if (i >= 0) ctSetField(q, 'request', rq.slice(0, i + 3) + newV); });
+    } else openReqs.forEach(q => ctSetField(q, 'address', newV));
+    if (hist.length && typeof ctFlush === 'function') ctFlush();
+    refreshVisibleViews();
+    try {
+      const sv = document.getElementById('view-sites');
+      if (sv && !sv.hidden && !document.querySelector('#sc-tbody .detail-row')){ const tr = [...document.querySelectorAll('#sc-tbody tr[data-store]')].find(t => t.dataset.store === normStore(r.store)); if (tr) tr.click(); }
+    } catch(e){}
   }
   async function stageVendorChange(r, inputEl, rawValue){
     if (r.rowId == null) return;
@@ -3437,6 +3489,114 @@ td.map-cell{ width:60px; text-align:center; }
     say('Added ' + ent.name + ' as vendor ' + slot + (ent.email || ent.phone ? '' : ' (no email/phone on file — add them in the row)') + '.', false);
     return true;
   }
+  // ---------- Find vendor: ranked suggestions for one site ----------
+  const IV_STATE_NAMES = { ohio:'OH', michigan:'MI', indiana:'IN', illinois:'IL', kansas:'KS', missouri:'MO', pennsylvania:'PA', maryland:'MD', delaware:'DE', wisconsin:'WI', nebraska:'NE', kentucky:'KY', minnesota:'MN', iowa:'IA', 'new york':'NY', 'new jersey':'NJ', virginia:'VA' };
+  function ivParseLoc(addr){
+    let a = String(addr || '').replace(/\s+/g, ' ').trim(), state = '', city = '', idx = -1;
+    let m = a.match(/\b([A-Z]{2})\b\.?,?\s*\d{5}/);
+    if (m){ state = m[1]; idx = m.index; }
+    else { m = a.match(/\b(ohio|michigan|indiana|illinois|kansas|missouri|pennsylvania|maryland|delaware|wisconsin|nebraska|kentucky|minnesota|iowa|new york|new jersey|virginia)\b,?\s*\d{5}/i); if (m){ state = IV_STATE_NAMES[m[1].toLowerCase()]; idx = m.index; } }
+    if (idx >= 0){
+      let before = a.slice(0, idx).replace(/[,\s]+$/, '');
+      if (before.indexOf(',') >= 0) city = before.slice(before.lastIndexOf(',') + 1).trim();
+      else city = before.replace(/^.*\b(St|Street|Rd|Road|Ave|Avenue|Dr|Drive|Blvd|Boulevard|Hwy|Highway|Pkwy|Parkway|Ln|Lane|Ct|Court|Way|Pl|Place|Pike|Trl|Trail|Cir|Circle)\b\.?\s+/i, '').trim();
+      if (!city || /^\d/.test(city) || city.length > 30) city = '';
+    }
+    return { state, city: city.toLowerCase(), cityRaw: city };
+  }
+  function ivSuggestions(r){
+    const loc = ivParseLoc(r.address), region = String(effectiveRegion(r) || '').trim().toLowerCase();
+    const taken = new Set(); const iv0 = r.interested || {};
+    for (let n = 1; n <= 3; n++) taken.add(vtNorm(iv0['iv' + n + 'Name']));
+    taken.add(vtNorm(effectiveVendor2627(r))); taken.delete('');
+    const cand = new Map();
+    const get = (name, email, phone) => {
+      name = String(name || '').trim(); const k = vtNorm(name); if (!k || taken.has(k)) return null;
+      let c = cand.get(k); if (!c){ c = { name, key: k, email: '', phone: '', score: 0, why: [], f: {} }; cand.set(k, c); }
+      if (!c.email && email && String(email).indexOf('@') > 0) c.email = String(email).trim();
+      if (!c.phone && phone) c.phone = String(phone).trim();
+      return c;
+    };
+    // contact details from the Vendor Tracking List / other sites
+    const dir = ivDirectory();
+    const fill = c => { if (!c) return c; const e = dir.get(String(c.name).toLowerCase().replace(/\s+/g, ' ').trim()); if (e){ if (!c.email && e.email && e.email.indexOf('@') > 0) c.email = e.email; if (!c.phone && e.phone) c.phone = e.phone; } return c; };
+    const last = fill(get(r.vendor)); if (last){ last.score += 100; last.why.push('Was the 25/26 vendor here'); }
+    (typeof vtRows !== 'undefined' && vtRows ? vtRows : []).forEach(v => {
+      const vl = ivParseLoc(v.address); let pts = 0, txt = '';
+      if (loc.city && vl.city && vl.city === loc.city && vl.state === loc.state){ pts = 40; txt = 'Based in ' + vl.cityRaw + ', ' + vl.state; }
+      else if (!vl.city && loc.city && String(v.address).toLowerCase().indexOf(loc.city) >= 0){ pts = 30; txt = 'Address mentions ' + loc.cityRaw; }
+      else if (loc.state && vl.state === loc.state){ pts = 15; txt = 'Based in ' + vl.state; }
+      if (pts){ const c = fill(get(v.name, v.email, v.phone)); if (c){ c.score += pts; c.why.push(txt); c.f.vt = true; } }
+    });
+    const tally = new Map();   // key -> counts
+    const T = (name, kind) => { const k = vtNorm(name); if (!k || taken.has(k)) return; let t = tally.get(k); if (!t){ t = { name: String(name).trim(), cityServe: 0, regServe: 0, stateServe: 0, regInt: 0, prior: 0 }; tally.set(k, t); } t[kind]++; };
+    rows.forEach(o => {
+      if (o === r || effectiveLost(o)) return;
+      const sameReg = region && String(effectiveRegion(o) || '').trim().toLowerCase() === region;
+      const ol = ivParseLoc(o.address);
+      const sameCity = loc.city && ol.city === loc.city && ol.state === loc.state;
+      const sameState = loc.state && ol.state === loc.state;
+      if (!sameReg && !sameState) return;
+      const cur = effectiveVendor2627(o);
+      if (cur){ if (sameCity) T(cur, 'cityServe'); if (sameReg) T(cur, 'regServe'); else T(cur, 'stateServe'); }
+      if (o.vendor && sameReg) T(o.vendor, 'prior');
+      const oi = o.interested || {}; if (sameReg) for (let n = 1; n <= 3; n++) T(oi['iv' + n + 'Name'], 'regInt');
+    });
+    tally.forEach(t => {
+      const c = fill(get(t.name)); if (!c) return;
+      const bits = [];
+      if (t.cityServe){ c.score += Math.min(36, t.cityServe * 12); bits.push('serves ' + t.cityServe + ' site' + (t.cityServe > 1 ? 's' : '') + ' in ' + loc.cityRaw); }
+      if (t.regServe){ c.score += Math.min(40, t.regServe * 10); bits.push('serves ' + t.regServe + ' site' + (t.regServe > 1 ? 's' : '') + ' in ' + (effectiveRegion(r) || 'this region')); }
+      else if (t.stateServe){ c.score += Math.min(16, t.stateServe * 4); bits.push('serves ' + t.stateServe + ' site' + (t.stateServe > 1 ? 's' : '') + ' in ' + loc.state); }
+      if (t.prior){ c.score += Math.min(15, t.prior * 3); bits.push('ran ' + t.prior + ' site' + (t.prior > 1 ? 's' : '') + ' here last year'); }
+      if (t.regInt){ c.score += Math.min(10, t.regInt * 2); bits.push('interested on ' + t.regInt + ' more'); }
+      if (bits.length){ const s0 = bits.join(', '); c.why.push(s0.charAt(0).toUpperCase() + s0.slice(1)); }
+    });
+    return [...cand.values()].filter(c => c.score > 0).sort((a, b) => b.score - a.score || a.name.localeCompare(b.name)).slice(0, 8);
+  }
+  function ivFindRender(detail, r){
+    const panel = detail.querySelector('.iv-find-panel'); if (!panel || panel.hidden) return;
+    const list = ivSuggestions(r);
+    const loc = ivParseLoc(r.address);
+    const head = `<div class="iv-find-note">Best matches for ${escapeHtml(r.store || 'this site')}${loc.cityRaw ? ' (' + escapeHtml(loc.cityRaw + (loc.state ? ', ' + loc.state : '')) + ')' : ''}${effectiveRegion(r) ? ' &middot; ' + escapeHtml(effectiveRegion(r)) : ''}. Compliance isn&rsquo;t required to get a bid request.</div>`;
+    if (!list.length){ panel.innerHTML = head + '<div class="iv-find-note">No matches yet &mdash; nothing on the Vendor Tracking List or other sites lines up with this address/region. Use Quick add below to type one in.</div>'; return; }
+    const full = [1, 2, 3].every(n => String((r.interested || {})['iv' + n + 'Name'] || '').trim());
+    panel.innerHTML = head + list.map(c => {
+      const row = (typeof vtFindRow === 'function') ? vtFindRow(c.name) : null;
+      const comp = !row ? '<span class="iv-chip na">Not on tracking list</span>' : (vtIssues(row).length ? '<span class="iv-chip na" title="' + escapeHtml('Missing or expired: ' + vtIssues(row).join(', ')) + '">Needs paperwork</span>' : '<span class="iv-chip ok">Compliant</span>');
+      const contact = [c.email ? escapeHtml(c.email) : '<i>no email on file</i>', c.phone ? escapeHtml(c.phone) : ''].filter(Boolean).join(' &middot; ');
+      return `<div class="iv-find-item" data-name="${escapeHtml(c.name)}"><div class="iv-find-main"><div class="iv-find-name">${escapeHtml(c.name)} ${comp}</div><div class="iv-find-why">${escapeHtml(c.why.join(' · '))}</div><div class="iv-find-contact">${contact}</div></div>`
+        + `<div class="iv-find-acts"><button type="button" class="iv-find-add"${full ? ' disabled title="All 3 vendor slots are full"' : ''}>+ Add</button><button type="button" class="iv-find-mail"${(full || !c.email) ? ' disabled title="' + (full ? 'All 3 vendor slots are full' : 'No email on file for this vendor') + '"' : ''}>&#9993; Add &amp; draft email</button></div></div>`;
+    }).join('');
+  }
+  async function ivFindToggle(detail, r){
+    const panel = detail.querySelector('.iv-find-panel'); if (!panel) return;
+    if (!panel.hidden){ panel.hidden = true; return; }
+    panel.hidden = false; panel.innerHTML = '<div class="iv-find-note">Looking&hellip;</div>';
+    if (SMARTSHEET_WORKER_URL && typeof vtEnsureRows === 'function'){ try { await vtEnsureRows(); } catch(e){} }
+    ivFillQuickList(); ivFindRender(detail, r);
+  }
+  function ivFindWire(detail, r){
+    const btn = detail.querySelector('button.iv-find-btn'), panel = detail.querySelector('.iv-find-panel'); if (!btn || !panel) return;
+    ['click','mousedown','keyup'].forEach(ev => { btn.addEventListener(ev, e => e.stopPropagation()); panel.addEventListener(ev, e => e.stopPropagation()); });
+    btn.addEventListener('click', e => { e.preventDefault(); ivFindToggle(detail, r); });
+    panel.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b || b.disabled) return;
+      const item = b.closest('.iv-find-item'); if (!item) return;
+      e.preventDefault();
+      const name = item.dataset.name;
+      if (!ivQuickAdd(detail, r, name)) return;
+      let slot = 0; const iv = r.interested || {};
+      for (let n = 1; n <= 3; n++) if (vtNorm(iv['iv' + n + 'Name']) === vtNorm(name)){ slot = n; break; }
+      const em = slot ? detail.querySelector(`input.iv-input[data-field="iv${slot}Email"]`) : null;
+      if (em) em.dispatchEvent(new Event('input'));
+      ivFindRender(detail, r);
+      if (b.classList.contains('iv-find-mail') && slot){
+        const mb = detail.querySelector(`button.iv-mail[data-n="${slot}"]`);
+        if (mb) ivDraftEmail(detail, r, slot, mb);
+      }
+    });
+  }
   function ivSet(r, field, value){
     if (!r.interested) r.interested = {};
     r.interested[field] = (value === null || value === undefined) ? '' : String(value);
@@ -3880,7 +4040,8 @@ td.map-cell{ width:60px; text-align:center; }
       <div class="iv-est-files" data-n="${n}"></div>`;
     }
     const quick = canEdit ? `<div class="iv-quick"><input type="text" class="iv-quick-input" list="iv-quick-list" placeholder="Quick add: type or pick a vendor&hellip;" autocomplete="off" title="Pick a vendor from your Vendor Tracking List (or anyone already used on another site) and press Enter — their email and phone fill in too"><button type="button" class="iv-quick-btn">&#43; Add vendor</button><span class="iv-quick-msg"></span></div>` : '';
-    return `<div class="contract-params"><div class="k">Vendors Interested</div><div class="v iv-list">${quick}${rowsHtml}<div class="iv-compare">${ivCompareInner(r)}</div><div class="iv-mail-msg"></div></div></div>`;
+    const findBtn = canEdit ? `<button type="button" class="iv-find-btn" title="Suggest vendors for this site: last year's vendor, vendors based nearby, and vendors already working this region">&#128269; Find vendor</button>` : '';
+    return `<div class="contract-params"><div class="k iv-head">Vendors Interested ${findBtn}</div><div class="v iv-list"><div class="iv-find-panel" hidden></div>${quick}${rowsHtml}<div class="iv-compare">${ivCompareInner(r)}</div><div class="iv-mail-msg"></div></div></div>`;
   }
 
   function vendor2627InputHtml(r){
@@ -4200,7 +4361,7 @@ td.map-cell{ width:60px; text-align:center; }
 
   function hasVal(v){ return v !== null && v !== undefined && v !== '' && !Number.isNaN(Number(v)); }
   function subcontractKindForRow(r){
-    if (csKind(r.store)) return 'cubesmart';
+    if (csKind(r.store) || /^SK(\s|\d|$)/i.test((r.store || '').trim())) return 'cubesmart';   // Storage King (SK) vendor subcontract = the CS one
     const vs = effectiveContractValue(r, 'vendorSeasonal');
     if (hasVal(vs) && Number(vs) > 0) return 'seasonal';
     return 'perpush';
@@ -4859,6 +5020,8 @@ td.map-cell{ width:60px; text-align:center; }
         </span>
         <span class="vsub-hint"${vsubState(r).ok ? ' hidden' : ''} style="font-size:12px;color:var(--ink-muted)">${escapeHtml(vsubState(r).msg)}</span>
       </div>
+      <div><div class="k">Store #</div><div class="v"><input type="text" class="site-edit" data-f="store" data-rowid="${r.rowId != null ? escapeHtml(String(r.rowId)) : ''}" value="${escapeHtml(r.store || '')}"${r.rowId != null ? '' : ' disabled title="No Smartsheet row id on file — can\'t sync"'} style="max-width:160px"></div></div>
+      <div style="grid-column:span 2"><div class="k">Site address</div><div class="v"><input type="text" class="site-edit" data-f="address" data-rowid="${r.rowId != null ? escapeHtml(String(r.rowId)) : ''}" value="${escapeHtml(r.address || '')}"${r.rowId != null ? '' : ' disabled title="No Smartsheet row id on file — can\'t sync"'}></div></div>
       <div><div class="k">Region</div><div class="v">${regionSelectHtml(r)}</div></div>
       <div><div class="k">PM</div><div class="v">${pmSelectHtml(r)}</div></div>
       <div><div class="k">Customer (DM)</div><div class="v">${customerSelectHtml(r)}</div></div>
@@ -5009,6 +5172,7 @@ td.map-cell{ width:60px; text-align:center; }
       ['click','mousedown'].forEach(ev => inp.addEventListener(ev, e => e.stopPropagation()));
       inp.addEventListener('change', e => { e.stopPropagation(); if (!inp.dataset.rowid) return; dmSetEmail(r, inp.value); });
     });
+    ivFindWire(detail, r);
     { const qi = detail.querySelector('input.iv-quick-input'), qb = detail.querySelector('button.iv-quick-btn');
       if (qi && qb){
         ivFillQuickList();
@@ -5029,6 +5193,12 @@ td.map-cell{ width:60px; text-align:center; }
         syncFieldToSmartsheet(r.rowId, inp.dataset.field, v);
         ivTrackRender(detail, r);
       });
+    });
+    detail.querySelectorAll('input.site-edit').forEach(inp => {
+      inp.addEventListener('click', e => e.stopPropagation());
+      inp.addEventListener('mousedown', e => e.stopPropagation());
+      inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Escape'){ inp.value = String(r[inp.dataset.f] || ''); inp.blur(); } });
+      inp.addEventListener('change', e => { e.stopPropagation(); if (inp.dataset.rowid) stageSiteEdit(r, inp); });
     });
     detail.querySelectorAll('input.v27-input').forEach(inp => {
       inp.addEventListener('click', e => e.stopPropagation());
@@ -5552,6 +5722,9 @@ td.map-cell{ width:60px; text-align:center; }
   let vtRows = null, vtState = 'idle', vtError = '', vtQuery = '', vtFilter = 'all';
   const vtFiles = new Map();   // rowId -> [{id,name}]
   const vtSaveMsg = new Map(); // key -> {text,bad}
+  const VT_COLLAPSE_KEY = 'fdiVtCollapsed';
+  const vtCollapsed = new Set((() => { try { return JSON.parse(localStorage.getItem(VT_COLLAPSE_KEY) || '[]'); } catch(e){ return []; } })());
+  const vtCollapseSave = () => { try { localStorage.setItem(VT_COLLAPSE_KEY, JSON.stringify([...vtCollapsed])); } catch(e){} };
   const vtEntries = new Map(); // key -> entry
   function vtNorm(n){
     return String(n || '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9 ]+/g, ' ')
@@ -5712,10 +5885,11 @@ td.map-cell{ width:60px; text-align:center; }
   }
   function vtCardHtml(v){
     const stores = v.stores.slice(0, 8).join(', ') + (v.stores.length > 8 ? ` +${v.stores.length - 8} more` : '');
-    const head = `<div class="vt-head"><span class="vt-name">${escapeHtml(v.name)}</span>`;
+    const col = vtCollapsed.has(v.key) ? ' vt-collapsed' : '';
+    const head = `<div class="vt-head" title="Click to collapse or expand"><span class="vt-chev">&#9654;</span><span class="vt-name">${escapeHtml(v.name)}</span>`;
     if (!v.row){
       const sv0 = vtSaveMsg.get(v.key);
-      return `<div class="vt-card vt-bad" data-key="${escapeHtml(v.key)}">${head}<span class="vt-chip na">not in Vendor Tracking List</span><span class="vt-sites">${v.stores.length} site${v.stores.length === 1 ? '' : 's'}: ${escapeHtml(stores)}</span></div>
+      return `<div class="vt-card vt-bad${col}" data-key="${escapeHtml(v.key)}">${head}<span class="vt-chip na">not in Vendor Tracking List</span><span class="vt-sites">${v.stores.length} site${v.stores.length === 1 ? '' : 's'}: ${escapeHtml(stores)}</span></div>
         <button type="button" class="vt-btn vt-add" data-key="${escapeHtml(v.key)}">Add &ldquo;${escapeHtml(v.name)}&rdquo; to the Vendor Tracking List</button>
         <div class="vt-save${sv0 && sv0.bad ? ' bad' : ''}">${sv0 ? escapeHtml(sv0.text) : ''}</div>
       </div>`;
@@ -5731,7 +5905,7 @@ td.map-cell{ width:60px; text-align:center; }
     };
     const other = files.filter(f => vtKindOf(f.name) === 'other');
     const sv = vtSaveMsg.get(v.key);
-    return `<div class="vt-card ${issues.length ? 'vt-bad' : 'vt-ok'}" data-key="${escapeHtml(v.key)}">${head}${chip}<span class="vt-sites">${v.stores.length} site${v.stores.length === 1 ? '' : 's'}: ${escapeHtml(stores)}</span></div>
+    return `<div class="vt-card ${issues.length ? 'vt-bad' : 'vt-ok'}${col}" data-key="${escapeHtml(v.key)}">${head}${chip}<span class="vt-sites">${v.stores.length} site${v.stores.length === 1 ? '' : 's'}: ${escapeHtml(stores)}</span></div>
       <div class="vt-grid">
         ${inp('address', 'Address', 'text', 'wide')}
         ${inp('contact', 'Contact', 'text')}
@@ -5806,6 +5980,15 @@ td.map-cell{ width:60px; text-align:center; }
     document.getElementById('vt-search').addEventListener('input', e => { vtQuery = e.target.value; renderCompliance(); });
     document.getElementById('vt-filter').addEventListener('change', e => { vtFilter = e.target.value; renderCompliance(); });
     document.getElementById('vt-refresh').addEventListener('click', () => vtLoad());
+    const vtShownKeys = () => [...list.querySelectorAll('.vt-card[data-key]')].map(c => c.dataset.key);
+    document.getElementById('vt-collapse').addEventListener('click', () => { vtShownKeys().forEach(k => vtCollapsed.add(k)); vtCollapseSave(); list.querySelectorAll('.vt-card').forEach(c => c.classList.add('vt-collapsed')); });
+    document.getElementById('vt-expand').addEventListener('click', () => { vtShownKeys().forEach(k => vtCollapsed.delete(k)); vtCollapseSave(); list.querySelectorAll('.vt-card').forEach(c => c.classList.remove('vt-collapsed')); });
+    list.addEventListener('click', e => {
+      const hd = e.target.closest('.vt-head'); if (!hd) return;
+      const card = hd.closest('.vt-card'); if (!card) return;
+      const on = card.classList.toggle('vt-collapsed'); const k = card.dataset.key;
+      if (on) vtCollapsed.add(k); else vtCollapsed.delete(k); vtCollapseSave();
+    });
     list.addEventListener('change', e => {
       const t = e.target; const key = t.dataset && t.dataset.key; const v = key && vtEntries.get(key);
       if (!v || !v.row) return;
