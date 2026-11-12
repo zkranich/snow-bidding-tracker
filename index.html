@@ -460,18 +460,6 @@ table.ct-table select.st-Completed{ border-color:#2f9e6e; } table.ct-table selec
 #ct-f-more-dates{ display:contents; }
 .ct-dates .ct-extra-date{ display:inline-flex; align-items:center; gap:3px; }
 .ct-dates .ct-extra-date button{ border:none; background:none; cursor:pointer; font-size:16px; color:var(--ink-faint); line-height:1; }
-.iv-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-.iv-find-btn{ font:inherit; font-size:12px; font-weight:700; border:1px solid var(--accent,#1c6e8c); color:var(--accent,#1c6e8c); background:#fff; border-radius:6px; padding:3px 10px; cursor:pointer; text-transform:none; letter-spacing:0; }
-.iv-find-btn:hover{ background:var(--accent,#1c6e8c); color:#fff; } .iv-find-btn:disabled{ opacity:.5; cursor:not-allowed; }
-.iv-find-panel{ border:1px solid var(--border); border-radius:8px; background:#fff; padding:8px 10px; margin-bottom:10px; }
-.iv-find-note{ font-size:12px; color:var(--ink-muted); margin-bottom:6px; }
-.iv-find-item{ display:flex; gap:10px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; padding:7px 0; border-top:1px solid var(--border); }
-.iv-find-item:first-of-type{ border-top:0; }
-.iv-find-main{ flex:1 1 280px; min-width:0; } .iv-find-name{ font-weight:700; font-size:13px; }
-.iv-find-why{ font-size:12px; color:var(--ink-muted); } .iv-find-contact{ font-size:12px; }
-.iv-find-acts{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
-.iv-find-acts button{ font:inherit; font-size:12px; font-weight:600; border:1px solid var(--border); border-radius:6px; padding:5px 10px; background:var(--surface-alt,#eef1ef); cursor:pointer; }
-.iv-find-acts button:disabled{ opacity:.5; cursor:not-allowed; }
 .iv-quick{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:8px; }
 .iv-quick-input{ flex:1 1 240px; min-width:180px; font:inherit; font-size:12.5px; border:1px solid var(--border); border-radius:6px; padding:6px 9px; background:#fff; color:#000; }
 .iv-quick-btn{ font:inherit; font-size:12.5px; font-weight:600; border:1px solid var(--border); border-radius:6px; padding:6px 11px; background:var(--surface-alt,#eef1ef); cursor:pointer; }
@@ -3489,114 +3477,6 @@ td.map-cell{ width:60px; text-align:center; }
     say('Added ' + ent.name + ' as vendor ' + slot + (ent.email || ent.phone ? '' : ' (no email/phone on file — add them in the row)') + '.', false);
     return true;
   }
-  // ---------- Find vendor: ranked suggestions for one site ----------
-  const IV_STATE_NAMES = { ohio:'OH', michigan:'MI', indiana:'IN', illinois:'IL', kansas:'KS', missouri:'MO', pennsylvania:'PA', maryland:'MD', delaware:'DE', wisconsin:'WI', nebraska:'NE', kentucky:'KY', minnesota:'MN', iowa:'IA', 'new york':'NY', 'new jersey':'NJ', virginia:'VA' };
-  function ivParseLoc(addr){
-    let a = String(addr || '').replace(/\s+/g, ' ').trim(), state = '', city = '', idx = -1;
-    let m = a.match(/\b([A-Z]{2})\b\.?,?\s*\d{5}/);
-    if (m){ state = m[1]; idx = m.index; }
-    else { m = a.match(/\b(ohio|michigan|indiana|illinois|kansas|missouri|pennsylvania|maryland|delaware|wisconsin|nebraska|kentucky|minnesota|iowa|new york|new jersey|virginia)\b,?\s*\d{5}/i); if (m){ state = IV_STATE_NAMES[m[1].toLowerCase()]; idx = m.index; } }
-    if (idx >= 0){
-      let before = a.slice(0, idx).replace(/[,\s]+$/, '');
-      if (before.indexOf(',') >= 0) city = before.slice(before.lastIndexOf(',') + 1).trim();
-      else city = before.replace(/^.*\b(St|Street|Rd|Road|Ave|Avenue|Dr|Drive|Blvd|Boulevard|Hwy|Highway|Pkwy|Parkway|Ln|Lane|Ct|Court|Way|Pl|Place|Pike|Trl|Trail|Cir|Circle)\b\.?\s+/i, '').trim();
-      if (!city || /^\d/.test(city) || city.length > 30) city = '';
-    }
-    return { state, city: city.toLowerCase(), cityRaw: city };
-  }
-  function ivSuggestions(r){
-    const loc = ivParseLoc(r.address), region = String(effectiveRegion(r) || '').trim().toLowerCase();
-    const taken = new Set(); const iv0 = r.interested || {};
-    for (let n = 1; n <= 3; n++) taken.add(vtNorm(iv0['iv' + n + 'Name']));
-    taken.add(vtNorm(effectiveVendor2627(r))); taken.delete('');
-    const cand = new Map();
-    const get = (name, email, phone) => {
-      name = String(name || '').trim(); const k = vtNorm(name); if (!k || taken.has(k)) return null;
-      let c = cand.get(k); if (!c){ c = { name, key: k, email: '', phone: '', score: 0, why: [], f: {} }; cand.set(k, c); }
-      if (!c.email && email && String(email).indexOf('@') > 0) c.email = String(email).trim();
-      if (!c.phone && phone) c.phone = String(phone).trim();
-      return c;
-    };
-    // contact details from the Vendor Tracking List / other sites
-    const dir = ivDirectory();
-    const fill = c => { if (!c) return c; const e = dir.get(String(c.name).toLowerCase().replace(/\s+/g, ' ').trim()); if (e){ if (!c.email && e.email && e.email.indexOf('@') > 0) c.email = e.email; if (!c.phone && e.phone) c.phone = e.phone; } return c; };
-    const last = fill(get(r.vendor)); if (last){ last.score += 100; last.why.push('Was the 25/26 vendor here'); }
-    (typeof vtRows !== 'undefined' && vtRows ? vtRows : []).forEach(v => {
-      const vl = ivParseLoc(v.address); let pts = 0, txt = '';
-      if (loc.city && vl.city && vl.city === loc.city && vl.state === loc.state){ pts = 40; txt = 'Based in ' + vl.cityRaw + ', ' + vl.state; }
-      else if (!vl.city && loc.city && String(v.address).toLowerCase().indexOf(loc.city) >= 0){ pts = 30; txt = 'Address mentions ' + loc.cityRaw; }
-      else if (loc.state && vl.state === loc.state){ pts = 15; txt = 'Based in ' + vl.state; }
-      if (pts){ const c = fill(get(v.name, v.email, v.phone)); if (c){ c.score += pts; c.why.push(txt); c.f.vt = true; } }
-    });
-    const tally = new Map();   // key -> counts
-    const T = (name, kind) => { const k = vtNorm(name); if (!k || taken.has(k)) return; let t = tally.get(k); if (!t){ t = { name: String(name).trim(), cityServe: 0, regServe: 0, stateServe: 0, regInt: 0, prior: 0 }; tally.set(k, t); } t[kind]++; };
-    rows.forEach(o => {
-      if (o === r || effectiveLost(o)) return;
-      const sameReg = region && String(effectiveRegion(o) || '').trim().toLowerCase() === region;
-      const ol = ivParseLoc(o.address);
-      const sameCity = loc.city && ol.city === loc.city && ol.state === loc.state;
-      const sameState = loc.state && ol.state === loc.state;
-      if (!sameReg && !sameState) return;
-      const cur = effectiveVendor2627(o);
-      if (cur){ if (sameCity) T(cur, 'cityServe'); if (sameReg) T(cur, 'regServe'); else T(cur, 'stateServe'); }
-      if (o.vendor && sameReg) T(o.vendor, 'prior');
-      const oi = o.interested || {}; if (sameReg) for (let n = 1; n <= 3; n++) T(oi['iv' + n + 'Name'], 'regInt');
-    });
-    tally.forEach(t => {
-      const c = fill(get(t.name)); if (!c) return;
-      const bits = [];
-      if (t.cityServe){ c.score += Math.min(36, t.cityServe * 12); bits.push('serves ' + t.cityServe + ' site' + (t.cityServe > 1 ? 's' : '') + ' in ' + loc.cityRaw); }
-      if (t.regServe){ c.score += Math.min(40, t.regServe * 10); bits.push('serves ' + t.regServe + ' site' + (t.regServe > 1 ? 's' : '') + ' in ' + (effectiveRegion(r) || 'this region')); }
-      else if (t.stateServe){ c.score += Math.min(16, t.stateServe * 4); bits.push('serves ' + t.stateServe + ' site' + (t.stateServe > 1 ? 's' : '') + ' in ' + loc.state); }
-      if (t.prior){ c.score += Math.min(15, t.prior * 3); bits.push('ran ' + t.prior + ' site' + (t.prior > 1 ? 's' : '') + ' here last year'); }
-      if (t.regInt){ c.score += Math.min(10, t.regInt * 2); bits.push('interested on ' + t.regInt + ' more'); }
-      if (bits.length){ const s0 = bits.join(', '); c.why.push(s0.charAt(0).toUpperCase() + s0.slice(1)); }
-    });
-    return [...cand.values()].filter(c => c.score > 0).sort((a, b) => b.score - a.score || a.name.localeCompare(b.name)).slice(0, 8);
-  }
-  function ivFindRender(detail, r){
-    const panel = detail.querySelector('.iv-find-panel'); if (!panel || panel.hidden) return;
-    const list = ivSuggestions(r);
-    const loc = ivParseLoc(r.address);
-    const head = `<div class="iv-find-note">Best matches for ${escapeHtml(r.store || 'this site')}${loc.cityRaw ? ' (' + escapeHtml(loc.cityRaw + (loc.state ? ', ' + loc.state : '')) + ')' : ''}${effectiveRegion(r) ? ' &middot; ' + escapeHtml(effectiveRegion(r)) : ''}. Compliance isn&rsquo;t required to get a bid request.</div>`;
-    if (!list.length){ panel.innerHTML = head + '<div class="iv-find-note">No matches yet &mdash; nothing on the Vendor Tracking List or other sites lines up with this address/region. Use Quick add below to type one in.</div>'; return; }
-    const full = [1, 2, 3].every(n => String((r.interested || {})['iv' + n + 'Name'] || '').trim());
-    panel.innerHTML = head + list.map(c => {
-      const row = (typeof vtFindRow === 'function') ? vtFindRow(c.name) : null;
-      const comp = !row ? '<span class="iv-chip na">Not on tracking list</span>' : (vtIssues(row).length ? '<span class="iv-chip na" title="' + escapeHtml('Missing or expired: ' + vtIssues(row).join(', ')) + '">Needs paperwork</span>' : '<span class="iv-chip ok">Compliant</span>');
-      const contact = [c.email ? escapeHtml(c.email) : '<i>no email on file</i>', c.phone ? escapeHtml(c.phone) : ''].filter(Boolean).join(' &middot; ');
-      return `<div class="iv-find-item" data-name="${escapeHtml(c.name)}"><div class="iv-find-main"><div class="iv-find-name">${escapeHtml(c.name)} ${comp}</div><div class="iv-find-why">${escapeHtml(c.why.join(' · '))}</div><div class="iv-find-contact">${contact}</div></div>`
-        + `<div class="iv-find-acts"><button type="button" class="iv-find-add"${full ? ' disabled title="All 3 vendor slots are full"' : ''}>+ Add</button><button type="button" class="iv-find-mail"${(full || !c.email) ? ' disabled title="' + (full ? 'All 3 vendor slots are full' : 'No email on file for this vendor') + '"' : ''}>&#9993; Add &amp; draft email</button></div></div>`;
-    }).join('');
-  }
-  async function ivFindToggle(detail, r){
-    const panel = detail.querySelector('.iv-find-panel'); if (!panel) return;
-    if (!panel.hidden){ panel.hidden = true; return; }
-    panel.hidden = false; panel.innerHTML = '<div class="iv-find-note">Looking&hellip;</div>';
-    if (SMARTSHEET_WORKER_URL && typeof vtEnsureRows === 'function'){ try { await vtEnsureRows(); } catch(e){} }
-    ivFillQuickList(); ivFindRender(detail, r);
-  }
-  function ivFindWire(detail, r){
-    const btn = detail.querySelector('button.iv-find-btn'), panel = detail.querySelector('.iv-find-panel'); if (!btn || !panel) return;
-    ['click','mousedown','keyup'].forEach(ev => { btn.addEventListener(ev, e => e.stopPropagation()); panel.addEventListener(ev, e => e.stopPropagation()); });
-    btn.addEventListener('click', e => { e.preventDefault(); ivFindToggle(detail, r); });
-    panel.addEventListener('click', e => {
-      const b = e.target.closest('button'); if (!b || b.disabled) return;
-      const item = b.closest('.iv-find-item'); if (!item) return;
-      e.preventDefault();
-      const name = item.dataset.name;
-      if (!ivQuickAdd(detail, r, name)) return;
-      let slot = 0; const iv = r.interested || {};
-      for (let n = 1; n <= 3; n++) if (vtNorm(iv['iv' + n + 'Name']) === vtNorm(name)){ slot = n; break; }
-      const em = slot ? detail.querySelector(`input.iv-input[data-field="iv${slot}Email"]`) : null;
-      if (em) em.dispatchEvent(new Event('input'));
-      ivFindRender(detail, r);
-      if (b.classList.contains('iv-find-mail') && slot){
-        const mb = detail.querySelector(`button.iv-mail[data-n="${slot}"]`);
-        if (mb) ivDraftEmail(detail, r, slot, mb);
-      }
-    });
-  }
   function ivSet(r, field, value){
     if (!r.interested) r.interested = {};
     r.interested[field] = (value === null || value === undefined) ? '' : String(value);
@@ -4040,8 +3920,7 @@ td.map-cell{ width:60px; text-align:center; }
       <div class="iv-est-files" data-n="${n}"></div>`;
     }
     const quick = canEdit ? `<div class="iv-quick"><input type="text" class="iv-quick-input" list="iv-quick-list" placeholder="Quick add: type or pick a vendor&hellip;" autocomplete="off" title="Pick a vendor from your Vendor Tracking List (or anyone already used on another site) and press Enter — their email and phone fill in too"><button type="button" class="iv-quick-btn">&#43; Add vendor</button><span class="iv-quick-msg"></span></div>` : '';
-    const findBtn = canEdit ? `<button type="button" class="iv-find-btn" title="Suggest vendors for this site: last year's vendor, vendors based nearby, and vendors already working this region">&#128269; Find vendor</button>` : '';
-    return `<div class="contract-params"><div class="k iv-head">Vendors Interested ${findBtn}</div><div class="v iv-list"><div class="iv-find-panel" hidden></div>${quick}${rowsHtml}<div class="iv-compare">${ivCompareInner(r)}</div><div class="iv-mail-msg"></div></div></div>`;
+    return `<div class="contract-params"><div class="k">Vendors Interested</div><div class="v iv-list">${quick}${rowsHtml}<div class="iv-compare">${ivCompareInner(r)}</div><div class="iv-mail-msg"></div></div></div>`;
   }
 
   function vendor2627InputHtml(r){
@@ -5172,7 +5051,6 @@ td.map-cell{ width:60px; text-align:center; }
       ['click','mousedown'].forEach(ev => inp.addEventListener(ev, e => e.stopPropagation()));
       inp.addEventListener('change', e => { e.stopPropagation(); if (!inp.dataset.rowid) return; dmSetEmail(r, inp.value); });
     });
-    ivFindWire(detail, r);
     { const qi = detail.querySelector('input.iv-quick-input'), qb = detail.querySelector('button.iv-quick-btn');
       if (qi && qb){
         ivFillQuickList();
