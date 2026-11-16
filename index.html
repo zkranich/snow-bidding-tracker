@@ -429,6 +429,11 @@ button.sh-push-one:disabled{ opacity:.55; cursor:not-allowed; }
 .ct-detail-row > td{ background:#e8eef5 !important; padding:12px 14px !important; cursor:default; color:#1b2733; } .ct-dgrid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; } .ct-dgroup{ border:1px solid #c5d0dc; border-radius:9px; padding:10px 12px; background:#f8fafc; color:#1b2733; } .ct-dgroup h4{ margin:0 0 8px; font-size:11px; letter-spacing:.05em; text-transform:uppercase; color:#4a5b6c; } .ct-drow{ display:grid; grid-template-columns:130px 1fr; align-items:center; gap:8px; margin-bottom:7px; font-size:12.5px; } .ct-drow:last-child{ margin-bottom:0; } .ct-drow label{ color:#4a5b6c; } .ct-drow .v{ color:#1b2733; font-weight:600; } .ct-detail-row .sh-money{ color:#4a5b6c; } .ct-detail-row input.sh-in, .ct-detail-row textarea.sh-in{ width:100%; box-sizing:border-box; background:#fff !important; color:#1b2733 !important; -webkit-text-fill-color:#1b2733 !important; border:1px solid #b6c3d1 !important; border-radius:6px; padding:6px 8px; } .ct-detail-row input.sh-in[readonly]{ background:#eef2f6 !important; color:#5b6b7b !important; -webkit-text-fill-color:#5b6b7b !important; } .ct-dnotes{ grid-column:1 / -1; } .ct-dnote-pushed{ font-size:11.5px; color:#4a5b6c; margin-top:8px; }
 .ct-prms{ display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:6px 14px; } .ct-prm{ display:flex !important; align-items:center; gap:8px; font-size:12.5px; color:#1b2733 !important; cursor:pointer; padding:5px 8px; border:1px solid #d3dce6; border-radius:7px; background:#fff; margin:0 !important; } .ct-prm input{ width:auto !important; margin:0; } .ct-prm-amt{ margin-left:auto; color:#4a5b6c; font-size:11.5px; white-space:nowrap; }
 @media (max-width:760px){ .ct-dgrid{ grid-template-columns:1fr; } }
+.ct-dfiles .svc-bar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:8px; } .ct-dfiles .svc-upl{ cursor:pointer; } .ct-dfiles .svc-sub{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#5b6b7b; margin:8px 0 4px; }
+.ct-dfiles .svc-f{ display:flex; align-items:center; gap:8px; padding:3px 0; font-size:13px; } .ct-dfiles .svc-f a{ color:#1f5f99; cursor:pointer; text-decoration:underline; word-break:break-all; } .ct-dfiles .svc-meta{ color:#6b7a89; font-size:11px; white-space:nowrap; }
+.ct-dfiles .svc-grid{ display:flex; flex-wrap:wrap; gap:8px; } .ct-dfiles .svc-th{ position:relative; width:92px; height:92px; border-radius:8px; overflow:hidden; background:#dfe6ee; border:1px solid #c5d0dc; } .ct-dfiles .svc-th img{ width:100%; height:100%; object-fit:cover; cursor:pointer; display:block; }
+.ct-dfiles .svc-th .svc-del{ position:absolute; top:3px; right:3px; } .ct-dfiles .svc-del{ border:0; background:rgba(0,0,0,.55); color:#fff; width:20px; height:20px; border-radius:50%; cursor:pointer; line-height:20px; padding:0; font-size:13px; } .ct-dfiles .svc-f .svc-del{ background:#c0392b; }
+.ct-dfiles .svc-msg{ font-size:12px; color:#2d6a3e; } .ct-dfiles .svc-msg.bad{ color:#c0392b; }
 .ct-banner.bad{ background:var(--warn-soft); color:var(--warn); border-color:color-mix(in srgb, var(--warn) 40%, var(--border)); }
 .ct-bulk{ margin:10px 0 0; display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:12.5px; }
 .ct-bulk select{ background:var(--surface-alt); border:1px solid var(--border); border-radius:6px; padding:6px 8px; font-size:12.5px; color:var(--ink); }
@@ -6513,6 +6518,104 @@ td.map-cell{ width:60px; text-align:center; }
     return `<div class="ct-prms">${items.map(i => `<label class="ct-prm"><input type="checkbox" class="ct-param" data-label="${escapeHtml(i.label)}"${cur.has(i.label) ? ' checked' : ''}${q.pushedAt ? ' disabled' : ''}> <span>${escapeHtml(i.label)}</span><span class="ct-prm-amt">FDI ${money(i.fdi)} &middot; Vendor ${money(i.vendor)}</span></label>`).join('')}</div>
       <div class="ct-dnote-pushed">${q.pushedAt ? 'Already in billing.' : 'Tick what was actually done: the ticked rates fill in the FDI amount and vendor cost above (you can still adjust them), and that’s what Push to billing sends.'}</div>`;
   }
+  // ---- Invoices & photos on a service: files attached to the service's row in the dispatch log ----
+  const svcFiles = new Map();   // rowId -> { state: 'loading'|'ok'|'error', list: [], msg, bad, busy }
+  const svcBlobs = new Map();   // attId -> Promise<{url,type}>
+  const SVC_INV = 'Invoice - ', SVC_PH = 'Photo - ', SVC_MAX = 25 * 1024 * 1024;
+  const svcBase = () => SMARTSHEET_WORKER_URL.replace(/\/$/, '');
+  const svcIsImg = a => /^image\//i.test(a.mime || '') || /\.(jpe?g|png|gif|webp|heic|heif)$/i.test(a.name || '');
+  const svcLabel = n => String(n || '').replace(/^(Invoice - |Photo - |VP_)/, '');
+  const svcKb = kb => kb >= 1024 ? (kb / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(kb)) + ' KB';
+  function svcBlob(attId){
+    attId = String(attId);
+    if (!svcBlobs.has(attId)) svcBlobs.set(attId, fetch(svcBase() + '/dispatch-file?attId=' + encodeURIComponent(attId), { headers: ctHdr() })
+      .then(resp => { if (!resp.ok) throw new Error('HTTP ' + resp.status + (resp.status === 404 ? ' (deploy the latest worker.js)' : '')); return resp.blob(); })
+      .then(b => ({ url: URL.createObjectURL(b), type: b.type || '' }))
+      .catch(e => { svcBlobs.delete(attId); throw e; }));
+    return svcBlobs.get(attId);
+  }
+  function svcFilesInner(q){
+    if (!SMARTSHEET_WORKER_URL) return '<div class="ct-dnote-pushed">Connect to Smartsheet (Worker URL on the Bidding tab) to attach files.</div>';
+    if (q.rowId == null) return '<div class="ct-dnote-pushed">This service is still saving to Smartsheet. Files can be added in a moment.</div>';
+    const e = svcFiles.get(String(q.rowId));
+    const bar = `<div class="svc-bar"><label class="ct-btn svc-upl" title="Upload the vendor's invoice (PDF or a photo of it)">+ Invoice<input type="file" class="svc-file" data-kind="invoice" accept="application/pdf,image/*" multiple hidden></label>
+      <label class="ct-btn svc-upl" title="Upload photos of the work">+ Photos<input type="file" class="svc-file" data-kind="photo" accept="image/*" multiple hidden></label>
+      ${e && e.msg ? `<span class="svc-msg${e.bad ? ' bad' : ''}">${escapeHtml(e.msg)}</span>` : ''}</div>`;
+    if (!e || e.state === 'loading') return bar + '<div class="ct-dnote-pushed">Loading files…</div>';
+    if (e.state === 'error') return bar + `<div class="ct-dnote-pushed" style="color:#c0392b">Could not load files${e.err ? ' (' + escapeHtml(e.err) + ')' : ''}.</div>`;
+    const inv = e.list.filter(a => a.name.startsWith(SVC_INV) || !svcIsImg(a)), ph = e.list.filter(a => !inv.includes(a));
+    const del = a => `<button type="button" class="svc-del" data-att="${escapeHtml(a.id)}" title="Remove this file">&times;</button>`;
+    const invHtml = inv.length ? `<div class="svc-sub">Invoices</div>` + inv.map(a => `<div class="svc-f"><a class="svc-open" data-att="${escapeHtml(a.id)}">${escapeHtml(svcLabel(a.name))}</a><span class="svc-meta">${escapeHtml(svcKb(a.kb))}${a.at ? ' · ' + escapeHtml(ctFmt(a.at)) : ''}</span>${del(a)}</div>`).join('') : '';
+    const phHtml = ph.length ? `<div class="svc-sub">Photos (${ph.length})</div><div class="svc-grid">` + ph.map(a => `<div class="svc-th" title="${escapeHtml(svcLabel(a.name))}${/^VP_/.test(a.name) ? ' (from vendor)' : ''}"><img class="svc-open" data-att="${escapeHtml(a.id)}" alt="">${del(a)}</div>`).join('') + '</div>' : '';
+    return bar + (invHtml || phHtml ? invHtml + phHtml : '<div class="ct-dnote-pushed">No invoices or photos yet.</div>');
+  }
+  function svcRefresh(q){
+    if (q.rowId == null) return;
+    document.querySelectorAll('#ct-tbody .ct-dfiles').forEach(g => { if (g.dataset.rid !== String(q.rowId)) return; const b = g.querySelector('.svc-body'); if (b) b.innerHTML = svcFilesInner(q); svcThumbs(g); });
+  }
+  function svcThumbs(g){
+    g.querySelectorAll('img.svc-open').forEach(im => { if (im.getAttribute('src')) return; svcBlob(im.dataset.att).then(b => { if (im.isConnected) im.src = b.url; }).catch(() => { im.alt = 'preview not available'; }); });
+  }
+  async function svcLoad(q, quiet){
+    const k = String(q.rowId); const prev = svcFiles.get(k);
+    const e = prev || { state: 'loading', list: [] }; svcFiles.set(k, e); if (!quiet) { e.state = 'loading'; svcRefresh(q); }
+    try {
+      const resp = await fetch(svcBase() + '/dispatch-attachments?rowId=' + encodeURIComponent(q.rowId), { headers: ctHdr() });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status + (resp.status === 404 ? ' (deploy the latest worker.js)' : ''));
+      const d = await resp.json();
+      e.list = (d.data || []).filter(a => !a.attachmentType || a.attachmentType === 'FILE').map(a => ({ id: String(a.id), name: String(a.name || ''), mime: a.mimeType || '', kb: a.sizeInKb || 0, at: a.createdAt || '' }))
+        .sort((a, b) => String(a.at).localeCompare(String(b.at)));
+      e.state = 'ok'; e.err = '';
+    } catch (err) { e.state = 'error'; e.err = String(err.message || err); }
+    svcRefresh(q);
+  }
+  // open detail panels: load their file lists the first time they are shown
+  function svcHydrate(){
+    if (!SMARTSHEET_WORKER_URL) return;
+    document.querySelectorAll('#ct-tbody .ct-dfiles').forEach(g => {
+      if (!g.dataset.rid) return; const q = ctReqs.find(x => String(x.rowId) === g.dataset.rid); if (!q) return;
+      if (!svcFiles.has(g.dataset.rid)) svcLoad(q); else svcThumbs(g);
+    });
+  }
+  // photos are shrunk before upload (long edge 1800px, JPEG) so phone pictures stay small
+  async function svcPrep(file){
+    try {
+      if (!/^image\/(jpeg|png|webp)$/i.test(file.type) || file.size < 600 * 1024 || typeof createImageBitmap !== 'function') return file;
+      const bmp = await createImageBitmap(file); const sc = Math.min(1, 1800 / Math.max(bmp.width, bmp.height));
+      const cv = document.createElement('canvas'); cv.width = Math.round(bmp.width * sc); cv.height = Math.round(bmp.height * sc);
+      const cx = cv.getContext('2d'); if (!cx) return file; cx.drawImage(bmp, 0, 0, cv.width, cv.height);
+      const blob = await new Promise(res => cv.toBlob(res, 'image/jpeg', 0.82));
+      if (!blob || blob.size >= file.size) return file;
+      return new File([blob], file.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' });
+    } catch (e) { return file; }
+  }
+  async function svcUpload(q, files, kind){
+    const k = String(q.rowId); const e = svcFiles.get(k) || { state: 'ok', list: [] }; svcFiles.set(k, e);
+    if (e.busy) return; e.busy = true; e.bad = false; let ok = 0, fail = 0, last = '';
+    for (let i = 0; i < files.length; i++){
+      e.msg = `Uploading ${i + 1} of ${files.length}…`; svcRefresh(q);
+      try {
+        if (files[i].size > SVC_MAX) throw new Error(files[i].name + ' is over 25 MB');
+        const f = await svcPrep(files[i]); const name = (kind === 'invoice' ? SVC_INV : SVC_PH) + f.name;
+        const resp = await fetch(svcBase() + '/dispatch-attach?rowId=' + encodeURIComponent(q.rowId) + '&name=' + encodeURIComponent(name), { method: 'POST', headers: ctHdr({ 'Content-Type': f.type || 'application/octet-stream' }), body: f });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status + (resp.status === 404 ? ' (deploy the latest worker.js)' : ''));
+        ok++;
+      } catch (err) { fail++; last = String(err.message || err); }
+    }
+    e.busy = false; e.bad = !ok;
+    await svcLoad(q, true);
+    e.msg = ok ? `Added ${ok} file${ok === 1 ? '' : 's'}.` + (fail ? ` ${fail} failed (${last}).` : '') : `Upload failed: ${last}`; svcRefresh(q);
+  }
+  async function svcDelete(q, attId){
+    const e = svcFiles.get(String(q.rowId)); if (!e) return; const a = e.list.find(x => x.id === attId); if (!a) return;
+    if (!window.confirm(`Remove ${svcLabel(a.name)} from this service?\n\nThis deletes the file from Smartsheet too.`)) return;
+    try {
+      const resp = await fetch(svcBase() + '/dispatch-attach-delete?attId=' + encodeURIComponent(attId), { method: 'POST', headers: ctHdr() });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status + (resp.status === 404 ? ' (deploy the latest worker.js)' : ''));
+      e.list = e.list.filter(x => x.id !== attId); e.msg = 'Removed.'; e.bad = false;
+    } catch (err) { e.msg = 'Could not remove: ' + (err.message || err); e.bad = true; }
+    svcRefresh(q);
+  }
   // Drop-down under a service row: FDI side, vendor side (cost + invoice paired), notes
   function ctDetailHtml(q, ns, r){
     const m = (f, ph) => `<span class="sh-money">$<input class="sh-in" data-f="${f}" inputmode="decimal" value="${escapeHtml(q[f] || '')}" placeholder="${ph}"${q.pushedAt ? ' readonly title="Already pushed to billing"' : ''}></span>`;
@@ -6526,6 +6629,7 @@ td.map-cell{ width:60px; text-align:center; }
         <div class="ct-drow"><label>Vendor invoice #</label><input class="sh-in sh-vi" data-f="vendorInvoice" value="${escapeHtml(q.vendorInvoice || '')}" placeholder="Invoice #"></div></div>
       <div class="ct-dgroup ct-dnotes"><h4>Contract parameters to bill</h4>${ctParamsHtml(q, r)}</div>
       ${q.status === 'Completed' ? `<div class="ct-dgroup ct-dnotes ct-dpush"><h4>Billing</h4>${ctPushHtml(q)}<span class="ct-dnote-pushed" style="margin-left:10px">${q.pushedAt ? '' : 'Completed — send the amounts above to owner billing and sub billing.'}</span></div>` : ''}
+      <div class="ct-dgroup ct-dnotes ct-dfiles" data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}"><h4>Invoices &amp; photos</h4><div class="svc-body">${svcFilesInner(q)}</div></div>
       <div class="ct-dgroup ct-dnotes"><h4>Notes</h4><textarea class="sh-in sh-notes" data-f="notes" rows="2" placeholder="Special requests, what happened…">${escapeHtml(q.notes || '')}</textarea>${q.pushedAt ? `<div class="ct-dnote-pushed">Pushed to billing ${escapeHtml(ctFmt(q.pushedAt))} — amounts are locked.</div>` : ''}</div>
     </div></td></tr>`;
   }
@@ -6585,6 +6689,7 @@ td.map-cell{ width:60px; text-align:center; }
           <td style="white-space:nowrap">${ctPushHtml(q)} ${q ? '<button type="button" class="ct-btn ct-del" data-act="delete" title="Delete this site\'s request for this service" style="padding:4px 9px;color:#c0392b">Delete</button>' : ''}</td></tr>${isOpen ? ctDetailHtml(q, ns, r) : ''}`;
       }).join('');
     }
+    try { svcHydrate(); } catch(e){}
     const nSel = [...ctSel].length; const bulk = document.getElementById('ct-bulk');
     bulk.hidden = nSel === 0; document.getElementById('ct-bulk-n').textContent = nSel;
     { const br = document.getElementById('ct-bulk-request'); if (br) br.hidden = ctViewAll;
@@ -7490,6 +7595,16 @@ td.map-cell{ width:60px; text-align:center; }
       const ns = b.closest('tr').dataset.store; const r = rows.find(x => normStore(x.store) === ns); if (!r || !ctStorm || ctViewAll) return;
       const info = ctStorms().find(s => s.name === ctStorm) || {};
       ctNewRequest(r, ctStorm, info.date || ctToday()); ctRender(); ctFlush().then(ctRender);
+    });
+    tb.addEventListener('change', e => {
+      const el = e.target; if (!el.classList || !el.classList.contains('svc-file')) return;
+      const q = ctReqOfTr(el.closest('tr')); const files = [...(el.files || [])]; el.value = ''; if (q && files.length) svcUpload(q, files, el.dataset.kind);
+    });
+    tb.addEventListener('click', e => {
+      const del = e.target.closest('.svc-del'); if (del){ const q = ctReqOfTr(del.closest('tr')); if (q) svcDelete(q, del.dataset.att); return; }
+      const op = e.target.closest('.svc-open'); if (!op) return; e.preventDefault();
+      const w = window.open('', '_blank');
+      svcBlob(op.dataset.att).then(b => { if (w) w.location.href = b.url; else window.open(b.url, '_blank'); }).catch(err => { if (w) w.close(); alert('Could not open that file: ' + (err.message || err)); });
     });
     document.getElementById('ct-select-all').addEventListener('change', e => { ctFlash = ''; ctShownKeys.forEach(k => { if (e.target.checked) ctSel.add(k); else ctSel.delete(k); }); ctRender(); ctRenderBanner(); });
     document.getElementById('ct-bulk-clear').addEventListener('click', () => { ctSel.clear(); ctFlash = ''; ctRender(); ctRenderBanner(); });
