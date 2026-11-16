@@ -6570,13 +6570,18 @@ td.map-cell{ width:60px; text-align:center; }
     try { const bv = document.getElementById('view-billing'); if (bv && !bv.hidden) blRender(); } catch(e){}
   }
 
-  // Unique project numbers: S (snow) + 26 (season year) + running number, e.g. S26000, S26001...
-  const CT_PROJ_PREFIX = 'S26';
+  // Unique project numbers: S (snow) + 2-digit calendar year + running number, e.g. S26003, then S27000 in 2027.
+  // The year rolls over on its own (Jan 1). CT_PROJ_AR_USED is the highest number already used in the Accounts
+  // Receivable sheet for each year (checked Nov 2026: AR holds S26000-S26002), so the dashboard never reissues one.
+  // Numbering also continues after anything already in the dispatch log. A new year starts at 000.
+  const CT_PROJ_AR_USED = { S26: 2 };
+  function ctProjPrefix(){ return 'S' + String(new Date().getFullYear()).slice(-2); }
   function ctNextProjectNo(){
-    let max = -1;
-    const re = new RegExp('^' + CT_PROJ_PREFIX + '(\\d+)$');
+    const prefix = ctProjPrefix();
+    let max = (prefix in CT_PROJ_AR_USED) ? CT_PROJ_AR_USED[prefix] : -1;
+    const re = new RegExp('^' + prefix + '(\\d+)$');
     (ctReqs || []).forEach(q => { const m = re.exec(String(q.projectNo || '').trim()); if (m) max = Math.max(max, parseInt(m[1], 10)); });
-    const n = max + 1; return CT_PROJ_PREFIX + (n < 1000 ? String(n).padStart(3, '0') : String(n));
+    const n = max + 1; return prefix + (n < 1000 ? String(n).padStart(3, '0') : String(n));
   }
   function ctNewRequest(r, storm, stormDate, extra){
     const key = 'ct' + Date.now() + Math.random().toString(36).slice(2, 7);
