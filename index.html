@@ -724,7 +724,7 @@ footer{
 table.sc-table{ min-width:760px; } .sh-wrap{ min-width:0; max-width:100%; } .sh-wrap .sh-block{ max-width:100%; overflow-x:auto; } table.sh-table{ min-width:0 !important; table-layout:auto; } table.sh-table th, table.sh-table td{ padding-left:6px; padding-right:6px; } table.sh-table td{ overflow-wrap:break-word; } table.sh-table.sh-hist td:nth-child(2), table.sh-table.sh-hist td:nth-child(3), table.sh-table.sh-hist td:last-child{ white-space:nowrap; } table.sh-table input.sh-in, table.sh-table textarea.sh-in{ width:100% !important; min-width:64px; max-width:130px; } table.sh-table textarea.sh-in.sh-notes{ max-width:none; min-width:110px; } table.sh-table input.sh-pn{ max-width:none; min-width:60px; } .sc-table .detail-row > td, .sc-table .detail-row .grid, .sc-table .detail-row > td > div{ min-width:0; max-width:100%; } .sh-wrap .v{ margin-top:4px; } .sh-sum{ font-size:12px; color:var(--ink-muted); margin-bottom:6px; } .sh-empty{ font-size:12.5px; color:var(--ink-faint); } table.sh-table{ border-collapse:collapse; width:100%; font-size:12.5px; background:var(--surface); border:1px solid var(--border); border-radius:8px; } table.sh-table .sh-block{ overflow-x:auto; } .sh-money{ white-space:nowrap; color:#4a5666; } .ci-wait{ color:var(--ink-faint); font-size:12px; } .ci-gate{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:14px; letter-spacing:.04em; } .ci-v a{ color:var(--accent-ink); } div.sh-bl{ margin-top:4px; white-space:nowrap; } .sh-pushed{ display:inline-block; padding:2px 8px; border-radius:999px; background:#1f8a4c; color:#fff; font-size:11px; font-weight:600; } input.sh-in[readonly]{ background:#e9edf2 !important; border-color:#c3ccd7; }
   .sh-pushbar{ display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:8px 12px; margin-top:8px; } .sh-bl-info{ font-size:12px; color:var(--ink-muted); } .sh-bl-msg{ font-size:12px; font-weight:600; color:#1e6b46; margin-right:auto; } .sh-pushbar .ct-btn.primary{ background:#1f8a4c; border-color:#1f8a4c; color:#fff; font-weight:600; } .sh-pushbar .ct-btn.primary:hover{ background:#187540; } .sh-push-done{ display:inline-block; padding:7px 14px; border-radius:7px; background:#1f8a4c; color:#fff; font-size:12.5px; font-weight:600; } .sh-pushbar .ct-btn:disabled{ opacity:.5; cursor:not-allowed; }
   .bl-table{ width:100%; border-collapse:separate; border-spacing:0; background:var(--surface); } .bl-amt{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; } .bl-table tfoot td{ padding:8px 9px; border-top:2px solid #1e3a5f; }
-  input.sh-in.sh-vi{ width:130px; } .wx-kpis{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:10px; } .wx-kpi{ border:2px solid transparent; border-radius:10px; padding:8px 18px; min-width:96px; text-align:left; cursor:pointer; font-family:inherit; color:#fff; display:flex; flex-direction:column; } .wx-kpi .n{ font-size:24px; font-weight:700; line-height:1.1; } .wx-kpi .t{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; opacity:.95; } .wx-kpi.on{ border-color:#14202e; box-shadow:0 0 0 2px #fff inset; } .wx-none{ font-size:12px; color:var(--ink-muted); }
+  input.sh-in.sh-date{ width:132px; } input.sh-in.sh-vi{ width:130px; } .wx-kpis{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:10px; } .wx-kpi{ border:2px solid transparent; border-radius:10px; padding:8px 18px; min-width:96px; text-align:left; cursor:pointer; font-family:inherit; color:#fff; display:flex; flex-direction:column; } .wx-kpi .n{ font-size:24px; font-weight:700; line-height:1.1; } .wx-kpi .t{ font-size:11px; text-transform:uppercase; letter-spacing:.05em; opacity:.95; } .wx-kpi.on{ border-color:#14202e; box-shadow:0 0 0 2px #fff inset; } .wx-none{ font-size:12px; color:var(--ink-muted); }
 .wx-map{ border:1px solid var(--border,#d8dee6); border-radius:8px; margin-bottom:12px; background:var(--surface,#fff); }
 .wx-map>summary{ cursor:pointer; padding:8px 12px; font-weight:700; font-size:13px; }
 .wx-map-bar{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:0 12px 8px; font-size:12px; color:var(--ink-muted); }
@@ -6169,7 +6169,7 @@ td.map-cell{ width:60px; text-align:center; }
     const money = (q, f) => `<span class="sh-money">$<input class="sh-in" data-f="${f}" inputmode="decimal" value="${escapeHtml(q[f] || '')}" placeholder="—"${q.pushedAt ? ' readonly title="Already pushed to billing"' : ''}></span>`;
     return `<div class="sh-sum">${list.length} service${list.length === 1 ? '' : 's'} logged &middot; FDI ${shMoney(sum('fdiAmount'))} &middot; Vendor ${shMoney(sum('vendorCost'))}</div>
       <table class="sh-table sh-hist"><thead><tr><th>Project #</th><th>Request date</th><th>Service date</th><th>Service</th><th>Vendor</th><th>FDI Amount</th><th>Vendor Cost</th><th>Work Order #</th><th>Vendor Invoice #</th><th>Notes</th><th>Billing</th><th></th></tr></thead><tbody>`
-      + list.map(q => `<tr data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}"><td class="sh-pn">${escapeHtml(q.projectNo || '')}</td><td>${escapeHtml(shReqDate(q))}</td><td>${escapeHtml(shMdy(q.stormDate))}${q.pushedAt ? `<div class="sh-bl"><span class="sh-pushed" title="Pushed to owner + sub billing">Pushed to billing ${escapeHtml(shMdy(q.pushedAt))}</span></div>` : ''}</td><td>${escapeHtml(q.serviceItems || q.service || '')}${q.serviceItems && q.service ? `<div class="sh-items">${escapeHtml(q.service)}</div>` : ''}</td><td>${escapeHtml(q.vendor || '')}</td><td>${money(q, 'fdiAmount')}</td><td>${money(q, 'vendorCost')}</td><td><input class="sh-in sh-wo" data-f="workOrder" value="${escapeHtml(q.workOrder || '')}" placeholder="WO #"></td><td><input class="sh-in sh-vi" data-f="vendorInvoice" value="${escapeHtml(q.vendorInvoice || '')}" placeholder="Invoice #"></td><td><textarea class="sh-in sh-notes" data-f="notes" rows="1" placeholder="Add a note…">${escapeHtml(q.notes || '')}</textarea></td><td>${q.pushedAt ? '<span class="sh-pushed" title="Already in owner + sub billing">&#10003; In billing</span>' : `<button type="button" class="ct-btn sh-push-one" style="white-space:nowrap;padding:5px 10px"${blPending(q) ? '' : ' disabled'} title="${blPending(q) ? 'Send just this service to owner + sub billing' : 'Add an FDI amount or vendor cost first'}">Push to billing</button>`}</td><td style="white-space:nowrap"><button type="button" class="ct-btn sh-edit" title="Edit every detail of this service" style="padding:5px 10px">Edit</button> <button type="button" class="ct-btn sh-del" title="Delete this service" style="padding:5px 10px;color:#c0392b">Delete</button></td></tr>`).join('')
+      + list.map(q => `<tr data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}"><td class="sh-pn">${escapeHtml(q.projectNo || '')}</td><td>${escapeHtml(shReqDate(q))}</td><td><input type="date" class="sh-in sh-date" data-f="stormDate" value="${/^\d{4}-\d{2}-\d{2}/.test(String(q.stormDate || '')) ? escapeHtml(String(q.stormDate).slice(0, 10)) : ''}" title="Click to change the service date">${q.pushedAt ? `<div class="sh-bl"><span class="sh-pushed" title="Pushed to owner + sub billing">Pushed to billing ${escapeHtml(shMdy(q.pushedAt))}</span></div>` : ''}</td><td>${escapeHtml(q.serviceItems || q.service || '')}${q.serviceItems && q.service ? `<div class="sh-items">${escapeHtml(q.service)}</div>` : ''}</td><td>${escapeHtml(q.vendor || '')}</td><td>${money(q, 'fdiAmount')}</td><td>${money(q, 'vendorCost')}</td><td><input class="sh-in sh-wo" data-f="workOrder" value="${escapeHtml(q.workOrder || '')}" placeholder="WO #"></td><td><input class="sh-in sh-vi" data-f="vendorInvoice" value="${escapeHtml(q.vendorInvoice || '')}" placeholder="Invoice #"></td><td><textarea class="sh-in sh-notes" data-f="notes" rows="1" placeholder="Add a note…">${escapeHtml(q.notes || '')}</textarea></td><td>${q.pushedAt ? '<span class="sh-pushed" title="Already in owner + sub billing">&#10003; In billing</span>' : `<button type="button" class="ct-btn sh-push-one" style="white-space:nowrap;padding:5px 10px"${blPending(q) ? '' : ' disabled'} title="${blPending(q) ? 'Send just this service to owner + sub billing' : 'Add an FDI amount or vendor cost first'}">Push to billing</button>`}</td><td style="white-space:nowrap"><button type="button" class="ct-btn sh-edit" title="Edit every detail of this service" style="padding:5px 10px">Edit</button> <button type="button" class="ct-btn sh-del" title="Delete this service" style="padding:5px 10px;color:#c0392b">Delete</button></td></tr>`).join('')
       + '</tbody></table>' + blPushBarHtml(r, list);
   }
   // ----- Push to billing: owner billing gets the FDI amount only, sub billing gets the vendor cost only
@@ -6196,6 +6196,17 @@ td.map-cell{ width:60px; text-align:center; }
       const done = v => { b.hidden = true; ok.onclick = null; no.onclick = null; res(v); };
       ok.onclick = () => done(true); no.onclick = () => done(false); b.hidden = false; (infoOnly ? ok : no).focus();
     });
+  }
+  // Change a service's date. If its group name is the auto one ("Service 2026-11-16"), rename it to match the new date
+  // (this service only; other stores' services from the same storm keep their group). Custom storm names are left alone.
+  function svcSetDate(q, date){
+    ctSetField(q, 'stormDate', date);
+    if (/^Service \d{4}-\d{2}-\d{2}( \(\d+\))?$/.test(String(q.storm || ''))){
+      const base = 'Service ' + date; let name = base, n = 2;
+      while (ctReqs.some(x => x !== q && x.storm === name && normStore(x.store) === normStore(q.store))) name = `${base} (${n++})`;
+      if (name !== q.storm){ ctSetField(q, 'storm', name); ctSetField(q, 'request', name + ' | ' + q.store); }
+    }
+    try { ctPickStorm(); } catch(e){}
   }
   // ----- Edit one service (Service history > Edit): every detail in one form
   function svcEditOpen(q){
@@ -6239,9 +6250,10 @@ td.map-cell{ width:60px; text-align:center; }
       if (!locked){
         for (const [id, f] of [['se-fdi', 'fdiAmount'], ['se-ven', 'vendorCost']]){ const raw = v(id), n = shNum(raw); if (raw !== '' && n === null){ msg.textContent = 'Amounts must be numbers.'; return; } next[f] = n === null ? '' : String(n); }
       }
-      const dt = v('se-date'); if (dt) next.stormDate = dt;
+      const dt = v('se-date');
       const rq = v('se-req'); if (rq && rq !== day(q.requestedAt)) next.requestedAt = new Date(rq + 'T12:00:00').toISOString();
       let changed = 0;
+      if (dt && dt !== sd){ svcSetDate(q, dt); changed++; }
       Object.keys(next).forEach(f => { if (String(next[f]) !== String(q[f] == null ? '' : q[f])){ ctSetField(q, f, next[f]); changed++; } });
       close();
       if (!changed) return;
@@ -7314,6 +7326,11 @@ td.map-cell{ width:60px; text-align:center; }
       const q = ctReqs.find(x => (rid && String(x.rowId) === rid) || (key && x.key === key)); if (!q) return;
       let v = el.value.trim(); const f = el.dataset.f;
       if (f === 'fdiAmount' || f === 'vendorCost'){ const n = shNum(v); if (v !== '' && n === null){ el.value = q[f] || ''; return; } v = n === null ? '' : String(n); el.value = v; }
+      if (f === 'stormDate'){
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(v)){ el.value = String(q.stormDate || '').slice(0, 10); return; }
+        if (v === String(q.stormDate || '').slice(0, 10)) return;
+        svcSetDate(q, v); try { scRefreshHistory(); } catch(x){} try { ctRender(); } catch(x){} ctFlush().then(ctRenderBanner); return;
+      }
       ctSetField(q, f, v);
       if (f === 'fdiAmount' || f === 'vendorCost'){ try { scRefreshFin(); } catch(x){} }
       { const p1 = tr.querySelector('.sh-push-one'); if (p1){ p1.disabled = !blPending(q); p1.title = p1.disabled ? 'Add an FDI amount or vendor cost first' : 'Send just this service to owner + sub billing'; } }
