@@ -6532,10 +6532,16 @@ td.map-cell{ width:60px; text-align:center; }
       const vk = 'vendor' + k.charAt(0).toUpperCase() + k.slice(1); const vv = Number(cp[vk]); const extra = { fdi: Number(cp[k]), vendor: (cp[vk] !== null && cp[vk] !== undefined && cp[vk] !== '' && !isNaN(vv)) ? vv : null };
       if (k === 'deicer') items.push(Object.assign({ label: 'Salt — Deicer', kind: 'salt', money }, extra));
       else if (k === 'saltingOfficeGate') items.push(Object.assign({ label: 'Salt — Office/gate', kind: 'salt', money }, extra));
-      else if (k === 'seasonal') items.push(Object.assign({ label: 'Seasonal (push + salt)', kind: 'seasonal', money }, extra));
+      else if (k === 'seasonal'){
+        items.push(Object.assign({ label: 'Seasonal (push + salt)', kind: 'seasonal', money }, extra));
+        // Monthly service = the seasonal amount split over the contract's monthly installments (same divisor the contract panel / Projections use)
+        let div = 4; try { div = monthlyDivisor(r) || 4; } catch(e){}
+        const mf = Math.round(Number(cp[k]) / div * 100) / 100, mv = extra.vendor === null ? null : Math.round(extra.vendor / div * 100) / 100;
+        items.push({ label: 'Monthly service', kind: 'monthly', money: '$' + mf.toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' (÷' + div + ')', fdi: mf, vendor: mv });
+      }
       else items.push(Object.assign({ label: 'Push — ' + (CT_PARAM_LABELS[k] || k), kind: 'plow', money }, extra));
     });
-    const order = { plow: 0, salt: 1, seasonal: 2 }; items.sort((a, b) => order[a.kind] - order[b.kind]);
+    const order = { plow: 0, salt: 1, seasonal: 2, monthly: 3 }; items.sort((a, b) => order[a.kind] - order[b.kind]);
     const plow = items.some(i => i.kind === 'plow'), salt = items.some(i => i.kind === 'salt'), seasonal = items.some(i => i.kind === 'seasonal');
     let service = ''; if (seasonal || (plow && salt)) service = 'Push + Salt'; else if (plow) service = 'Push'; else if (salt) service = 'Salt';
     return { service, items };
@@ -6543,19 +6549,20 @@ td.map-cell{ width:60px; text-align:center; }
   // Picklist value for the Service column, from the individual items picked.
   function ctServiceFromItems(items){
     const t = items.map(i => i.kind);
-    const plow = t.includes('plow') || t.includes('push'), salt = t.includes('salt'), seasonal = t.includes('seasonal');
+    const plow = t.includes('plow') || t.includes('push'), salt = t.includes('salt'), seasonal = t.includes('seasonal') || t.includes('monthly');
     if (seasonal || (plow && salt)) return 'Push + Salt'; if (plow) return 'Push'; if (salt) return 'Salt';
     if (t.includes('haul')) return 'Haul / Stack'; return 'Other';
   }
   const CT_EXTRA_ITEMS = [{ label: 'Haul / Stack', kind: 'haul', money: '' }, { label: 'Other', kind: 'other', money: '' }];
   // Offered for every site (even when the depth isn't known yet): generic Push / Salt and Walks
-  const CT_GENERIC_ITEMS = [{ label: 'Push', kind: 'plow', money: '' }, { label: 'Salt', kind: 'salt', money: '' }, { label: 'Walks', kind: 'walk', money: '' }];
+  const CT_GENERIC_ITEMS = [{ label: 'Push', kind: 'plow', money: '' }, { label: 'Salt', kind: 'salt', money: '' }, { label: 'Walks', kind: 'walk', money: '' }, { label: 'Monthly service', kind: 'monthly', money: '' }];
   // Sites picked in the New service dialog (search by customer / store / address, then tick each site that needs service)
-  let ctNewPick = new Set(), ctLastSingle = '', ctEmailSet = null;
+  let ctNewPick = new Set(), ctLastSingle = '', ctEmailSet = null, ctPickLock = '';   // ctPickLock: opened from one site -> list shows only that site until the search box is edited
   const ctByStore = (a, b) => String(a.store).localeCompare(String(b.store), undefined, { numeric: true });
   function ctNewSites(){ return rows.filter(r => ctEligible(r) && ctNewPick.has(normStore(r.store))).sort(ctByStore); }
   function ctPickShown(){
     const q = document.getElementById('ct-f-search').value.trim().toLowerCase(), cu = document.getElementById('ct-f-cust').value;
+    if (ctPickLock){ const one = rows.filter(r => ctEligible(r) && normStore(r.store) === ctPickLock); if (one.length) return one; }
     return rows.filter(r => ctEligible(r) && (!cu || (r.customer || '(unassigned)') === cu) && (!q || [r.store, r.address, r.customer, r.pm, r.region].join(' ').toLowerCase().includes(q))).sort(ctByStore);
   }
   function ctRenderPick(){
@@ -6585,9 +6592,9 @@ td.map-cell{ width:60px; text-align:center; }
       // Contract parameters that exist on any selected store (each store bills at its own rate for a ticked parameter).
       const union = new Map();
       sites.forEach(r => ctContractInfo(r).items.forEach(it => { const u = union.get(it.label) || { label: it.label, kind: it.kind, money: '', multiParam: true, n: 0 }; u.n++; union.set(it.label, u); }));
-      const order = { plow: 0, salt: 1, seasonal: 2 };
+      const order = { plow: 0, salt: 1, seasonal: 2, monthly: 3 };
       const params = [...union.values()].sort((a, b) => (order[a.kind] - order[b.kind]) || a.label.localeCompare(b.label, undefined, { numeric: true }));
-      const list = [{ label: 'Per each store’s contract', kind: 'auto', money: '' }].concat(CT_GENERIC_ITEMS, params, CT_EXTRA_ITEMS);
+      const list = [{ label: 'Per each store’s contract', kind: 'auto', money: '' }].concat(CT_GENERIC_ITEMS.filter(g => !union.has(g.label)), params, CT_EXTRA_ITEMS);
       box._items = list;
       box.innerHTML = list.map((it, i) => chk('i' + i, it.label, it.multiParam ? `${it.n} store${it.n === 1 ? '' : 's'}` : '', i === 0)).join('');
       hint.innerHTML = sites.length ? `${sites.length} stores selected. &ldquo;Per each store&rsquo;s contract&rdquo; gives each one the service its own contract covers. To pick specific contract parameters (rates shown in the list exist on at least one selected store), untick it and tick the parameters &mdash; each store gets the ones its contract has, billed at its own rate; stores without any ticked parameter are skipped. Pick a single store to edit the amounts.` : 'Tick the sites above that need this service.';
@@ -6632,7 +6639,10 @@ td.map-cell{ width:60px; text-align:center; }
     ctNewPick = new Set(pre ? [pre] : rows.filter(r => ctEligible(r) && ctSel.has(normStore(r.store))).map(r => normStore(r.store)));
     const counts = {}; rows.forEach(r => { if (ctEligible(r)){ const c = r.customer || '(unassigned)'; counts[c] = (counts[c] || 0) + 1; } });
     document.getElementById('ct-f-cust').innerHTML = '<option value="">All customers (' + Object.values(counts).reduce((a, b) => a + b, 0) + ')</option>' + Object.keys(counts).sort((a, b) => a.localeCompare(b)).map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)} (${counts[c]})</option>`).join('');
-    document.getElementById('ct-f-search').value = '';
+    { const pr = pre ? rows.find(r => normStore(r.store) === normStore(pre)) : null;
+      ctPickLock = pr ? normStore(pr.store) : '';
+      document.getElementById('ct-f-search').value = pr ? String(pr.store || '') : ''; }
+    document.getElementById('ct-f-cust').value = '';
     document.getElementById('ct-f-email').checked = false;
     { const nt = document.getElementById('ct-f-notes'); if (nt) nt.value = ''; }
     ctRenderPick();
@@ -7301,8 +7311,8 @@ td.map-cell{ width:60px; text-align:center; }
     document.getElementById('ct-check-mail').addEventListener('click', () => { ctMailOk = true; ctCheckEmails(true); });
     setInterval(() => { const v = document.getElementById('view-contracted'); if (v && !v.hidden && !document.hidden && Date.now() - ctMailAt > 150000) ctCheckEmails(false); }, 60000);
     document.getElementById('ct-form').addEventListener('submit', ctSubmitNewStorm);
-    document.getElementById('ct-f-search').addEventListener('input', ctRenderPick);
-    document.getElementById('ct-f-cust').addEventListener('change', ctRenderPick);
+    document.getElementById('ct-f-search').addEventListener('input', () => { ctPickLock = ''; ctRenderPick(); });
+    document.getElementById('ct-f-cust').addEventListener('change', () => { ctPickLock = ''; ctRenderPick(); });
     document.getElementById('ct-f-sites').addEventListener('change', e => { const c = e.target; if (!c || !c.dataset || !c.dataset.s) return; if (c.checked) ctNewPick.add(c.dataset.s); else ctNewPick.delete(c.dataset.s); ctPickCount(); ctRefreshNewService(true); });
     document.getElementById('ct-f-all').addEventListener('click', () => { ctPickShown().forEach(r => ctNewPick.add(normStore(r.store))); ctRenderPick(); ctRefreshNewService(true); });
     document.getElementById('ct-f-none').addEventListener('click', () => { ctNewPick.clear(); ctRenderPick(); ctRefreshNewService(true); });
