@@ -1248,6 +1248,7 @@ td.map-cell{ width:60px; text-align:center; }
     <div class="ct-bulk" id="ct-bulk" hidden>
       <span><b id="ct-bulk-n">0</b> selected</span>
       <select id="ct-bulk-status"><option value="">Set status to&hellip;</option></select>
+      <button class="ct-btn primary" id="ct-bulk-push" type="button" title="Send the checked Completed services to owner + sub billing">Push to billing</button>
       <button class="ct-btn" id="ct-bulk-request" type="button">Create requests for this service</button>
       <button class="ct-btn" id="ct-bulk-delete" type="button" style="color:#c0392b" title="Delete the checked sites' requests for this service">Delete selected requests</button>
       <button class="ct-btn" id="ct-bulk-clear" type="button">Clear</button>
@@ -5965,7 +5966,10 @@ td.map-cell{ width:60px; text-align:center; }
   const CT_SERVICES = ['Push', 'Salt', 'Push + Salt', 'Haul / Stack', 'Other'];
   let ctReqs = [];            // all requests (server rows + not-yet-created local ones)
   let ctState = 'idle', ctError = '';   // idle | loading | ok | error | noconn
-  let ctStorm = '';           // active storm name
+  let ctStorm = '';           // active storm name (last specific service picked)
+  let ctViewAll = true;       // true = list every service (all dates); false = only the picked service date
+  let ctShownKeys = [];       // selection keys of the rows currently shown
+  let ctFlash = '';           // message kept in the banner (e.g. after a bulk push)
   let ctStatusFilter = '';
   const ctSel = new Set();    // normalized store numbers checked in the table
   let ctScope = 'full'; try { ctScope = localStorage.getItem(CT_SCOPE_KEY) || 'full'; } catch(e){}
@@ -6465,6 +6469,7 @@ td.map-cell{ width:60px; text-align:center; }
   function ctRenderBanner(){
     const b = document.getElementById('ct-banner'); if (!b) return;
     const n = ctPendingCount();
+    if (ctFlash && ctState !== 'error' && ctState !== 'loading'){ b.hidden = false; b.className = 'ct-banner'; b.textContent = ctFlash + (ctState === 'noconn' ? ' (Not connected to Smartsheet yet; kept in this browser.)' : ''); return; }
     if (ctState === 'noconn'){ b.hidden = false; b.className = 'ct-banner bad'; b.textContent = 'Not connected to Smartsheet — enter the Worker URL and dashboard key on the Bidding tab. Services you create now are kept in this browser until then.'; return; }
     if (ctState === 'error'){ b.hidden = false; b.className = 'ct-banner bad'; b.textContent = '⚠ Dispatch log: ' + ctError + (n ? ` — ${n} change${n === 1 ? '' : 's'} saved in this browser, not yet in Smartsheet. ` : ' ');
       const rb = document.createElement('button'); rb.type = 'button'; rb.className = 'ct-btn'; rb.textContent = 'Retry'; rb.addEventListener('click', () => { ctState = 'idle'; ctLoad(true); }); b.append(rb); return; }
@@ -6476,6 +6481,22 @@ td.map-cell{ width:60px; text-align:center; }
   let ctShowAll = false; try { ctShowAll = localStorage.getItem('fdiCtShowAllV1') === '1'; } catch(e){}
   const ctOpenRows = new Set();   // "<store>|<service>" rows whose detail panel is open
   const ctOpenKey = (ns, q) => ns + '|' + (q ? q.storm : '');
+  // Row -> request. Rows carry the request's row id / key, so this works when one store appears under several service dates.
+  function ctReqOfTr(tr){
+    if (!tr) return null; const rid = tr.dataset.rid, key = tr.dataset.key;
+    if (rid || key){ const q = ctReqs.find(x => (rid && String(x.rowId) === rid) || (key && x.key === key)); if (q) return q; }
+    return ctReqs.find(x => x.storm === ctStorm && normStore(x.store) === tr.dataset.store) || null;
+  }
+  // Checked rows -> requests. "All services" rows are keyed "store|service"; single-service rows are keyed by store.
+  function ctSelReqs(){
+    const out = [];
+    ctSel.forEach(k => { let q = null;
+      if (String(k).includes('|')) q = ctReqs.find(x => ctOpenKey(normStore(x.store), x) === k);
+      else if (!ctViewAll && ctStorm) q = ctReqs.find(x => x.storm === ctStorm && normStore(x.store) === k);
+      if (q && !out.includes(q)) out.push(q); });
+    return out;
+  }
+  const ctPushReady = q => q.status === 'Completed' && blPending(q);
   // Push to billing control shown once a service is Completed (reuses the Service-history push button + handler)
   function ctPushHtml(q){
     if (!q || q.status !== 'Completed') return '';
@@ -6495,7 +6516,7 @@ td.map-cell{ width:60px; text-align:center; }
   // Drop-down under a service row: FDI side, vendor side (cost + invoice paired), notes
   function ctDetailHtml(q, ns, r){
     const m = (f, ph) => `<span class="sh-money">$<input class="sh-in" data-f="${f}" inputmode="decimal" value="${escapeHtml(q[f] || '')}" placeholder="${ph}"${q.pushedAt ? ' readonly title="Already pushed to billing"' : ''}></span>`;
-    return `<tr class="ct-detail-row" data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}" data-dstore="${escapeHtml(ns)}"><td colspan="10"><div class="ct-dgrid">
+    return `<tr class="ct-detail-row" data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}" data-dstore="${escapeHtml(ctOpenKey(ns, q))}"><td colspan="10"><div class="ct-dgrid">
       <div class="ct-dgroup"><h4>FDI / project</h4>
         <div class="ct-drow"><label>FDI amount</label>${m('fdiAmount', 'from contract')}</div>
         <div class="ct-drow"><label>Work order #</label><input class="sh-in sh-wo" data-f="workOrder" value="${escapeHtml(q.workOrder || '')}" placeholder="WO #"></div>
@@ -6517,27 +6538,36 @@ td.map-cell{ width:60px; text-align:center; }
   function ctRender(){
     const stormSel = document.getElementById('ct-storm');
     const storms = ctStorms();
-    stormSel.innerHTML = storms.length ? storms.map(s => `<option value="${escapeHtml(s.name)}"${s.name === ctStorm ? ' selected' : ''}>${escapeHtml(s.name)}${s.date ? ' (' + escapeHtml(s.date) + ')' : ''}</option>`).join('') : '<option value="">— no storms yet —</option>';
+    stormSel.innerHTML = storms.length ? `<option value="__ALL__"${ctViewAll ? ' selected' : ''}>All services (${ctReqs.length})</option>` + storms.map(s => `<option value="${escapeHtml(s.name)}"${!ctViewAll && s.name === ctStorm ? ' selected' : ''}>${escapeHtml(s.name)}${s.date ? ' (' + escapeHtml(s.date) + ')' : ''}</option>`).join('') : '<option value="">— no storms yet —</option>';
     document.getElementById('ct-scope').value = ctScope;
-    { const sa = document.getElementById('ct-show-all'); if (sa) sa.checked = ctShowAll; }
+    { const sa = document.getElementById('ct-show-all'); if (sa){ sa.checked = ctShowAll; if (sa.parentElement) sa.parentElement.style.display = ctViewAll ? 'none' : 'inline-flex'; } }
     const sites = ctVisibleSites();
     const allEligible = rows.filter(ctEligible);
     // KPIs for the active storm across ALL eligible sites (ignores filters/search)
     const counts = {}; CT_STATUSES.forEach(s => { counts[s] = 0; }); let none = 0;
-    allEligible.forEach(r => { const q = ctStorm ? ctReqFor(r, ctStorm) : null; if (q && counts[q.status] !== undefined) counts[q.status]++; else if (!q) none++; });
+    if (ctViewAll){ const en = new Set(allEligible.map(r => normStore(r.store))); ctReqs.forEach(q => { if (en.has(normStore(q.store)) && counts[q.status] !== undefined) counts[q.status]++; }); }
+    else allEligible.forEach(r => { const q = ctStorm ? ctReqFor(r, ctStorm) : null; if (q && counts[q.status] !== undefined) counts[q.status]++; else if (!q) none++; });
     const kp = CT_STATUSES.filter(s => s !== 'Cancelled').map(s => [s, counts[s], s]);
     document.getElementById('ct-kpis').innerHTML = kp.map(([k, n, l]) => `<div class="ct-kpi s-${escapeHtml(k.replace(/\s+/g, ''))}${ctStatusFilter === k && k ? ' on' : ''}" data-f="${escapeHtml(k)}"><div class="n">${n}</div><div class="l">${escapeHtml(l)}</div></div>`).join('');
-    const reqOnly = !ctShowAll && ctStatusFilter !== '__NONE__';
+    const reqOnly = ctViewAll || (!ctShowAll && ctStatusFilter !== '__NONE__');
     const shown = sites.filter(r => { const q = ctStorm ? ctReqFor(r, ctStorm) : null; if (reqOnly && !q) return false; if (!ctStatusFilter) return true; return ctStatusFilter === '__NONE__' ? !q : (q && q.status === ctStatusFilter); });
-    document.getElementById('ct-count').textContent = reqOnly ? `${shown.length} service request${shown.length === 1 ? '' : 's'} · ${allEligible.length} contracted sites` : `${shown.length} of ${allEligible.length} contracted sites`;
+    let items;
+    if (ctViewAll){
+      const vis = new Map(sites.map(r => [normStore(r.store), r]));
+      items = ctReqs.filter(q => vis.has(normStore(q.store)) && (!ctStatusFilter || ctStatusFilter === '__NONE__' ? true : q.status === ctStatusFilter))
+        .sort((a, b) => String(b.stormDate || '').localeCompare(String(a.stormDate || '')) || String(a.store).localeCompare(String(b.store), undefined, { numeric: true }))
+        .map(q => ({ r: vis.get(normStore(q.store)), q }));
+    } else items = shown.map(r => ({ r, q: ctStorm ? ctReqFor(r, ctStorm) : null }));
+    const selKeyOf = (ns, q) => ctViewAll && q ? ctOpenKey(ns, q) : ns;
+    ctShownKeys = items.map(it => selKeyOf(normStore(it.r.store), it.q));
+    document.getElementById('ct-count').textContent = ctViewAll ? `${items.length} service${items.length === 1 ? '' : 's'}, all dates · ${allEligible.length} contracted sites · pick a service date above to email vendors or customers` : (reqOnly ? `${shown.length} service request${shown.length === 1 ? '' : 's'} · ${allEligible.length} contracted sites` : `${shown.length} of ${allEligible.length} contracted sites`);
     const tb = document.getElementById('ct-tbody');
     if (!allEligible.length){
       tb.innerHTML = `<tr><td colspan="10" class="ct-empty">No sites have reached this stage yet. Sites show up here once Customer Status is <b>Contract Accepted</b> and the vendor contract is signed. (Change the stage under &ldquo;Sites&rdquo; above.)</td></tr>`;
-    } else if (!shown.length){
-      tb.innerHTML = `<tr><td colspan="10" class="ct-empty">${reqOnly ? (ctStorm ? 'No service requests match these filters.' : 'No services yet.') + ' Click <b>+ New service</b> to create one, or tick <b>Show sites without a request</b>.' : 'No sites match these filters.'}</td></tr>`;
+    } else if (!items.length){
+      tb.innerHTML = `<tr><td colspan="10" class="ct-empty">${reqOnly ? ((ctViewAll ? ctReqs.length : ctStorm) ? 'No service requests match these filters.' : 'No services yet.') + ' Click <b>+ New service</b> to create one, or tick <b>Show sites without a request</b>.' : 'No sites match these filters.'}</td></tr>`;
     } else {
-      tb.innerHTML = shown.map(r => {
-        const q = ctStorm ? ctReqFor(r, ctStorm) : null;
+      tb.innerHTML = items.map(({ r, q }) => {
         const ns = normStore(r.store);
         const season = ctReqs.filter(x => normStore(x.store) === ns);
         const done = season.filter(x => x.status === 'Completed').length;
@@ -6550,20 +6580,22 @@ td.map-cell{ width:60px; text-align:center; }
              <td><input class="ct-in" data-f="notes" value="${escapeHtml(q.notes)}" placeholder="${q.status === 'Issue' ? 'What happened?' : ''}"></td>`
           : `<td colspan="4" style="color:var(--ink-faint);font-size:12px">${ctStorm ? `<button type="button" class="ct-btn" data-act="request">Request ${escapeHtml(ctStorm)}</button>` : 'Create a service to start dispatching'}</td>`;
         const isOpen = !!q && ctOpenRows.has(ctOpenKey(ns, q));
-        return `<tr data-store="${escapeHtml(ns)}"${q ? ` data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}"` : ''} class="${q ? 'ct-main' : ''}${isOpen ? ' open' : ''}"${q ? ' title="Click to show amounts, work order, vendor invoice and notes"' : ''}><td class="select-col"><input type="checkbox" class="ct-row-sel" ${ctSel.has(ns) ? 'checked' : ''}></td>
-          <td>${q ? `<span class="ct-chev">${isOpen ? '&#9662;' : '&#9656;'}</span>` : ''}<b>${escapeHtml(r.store)}</b></td><td>${escapeHtml(r.address || '')}</td><td>${escapeHtml(r.customer || '')}</td><td>${vend}</td>${cells}
+        return `<tr data-store="${escapeHtml(ns)}" data-skey="${escapeHtml(selKeyOf(ns, q))}" data-okey="${escapeHtml(ctOpenKey(ns, q))}"${q ? ` data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}"` : ''} class="${q ? 'ct-main' : ''}${isOpen ? ' open' : ''}"${q ? ' title="Click to show amounts, work order, vendor invoice and notes"' : ''}><td class="select-col"><input type="checkbox" class="ct-row-sel" ${ctSel.has(selKeyOf(ns, q)) ? 'checked' : ''}></td>
+          <td>${q ? `<span class="ct-chev">${isOpen ? '&#9662;' : '&#9656;'}</span>` : ''}<b>${escapeHtml(r.store)}</b>${ctViewAll && q ? `<div class="ct-season" title="Service">${escapeHtml(q.storm)}</div>` : ''}</td><td>${escapeHtml(r.address || '')}</td><td>${escapeHtml(r.customer || '')}</td><td>${vend}</td>${cells}
           <td style="white-space:nowrap">${ctPushHtml(q)} ${q ? '<button type="button" class="ct-btn ct-del" data-act="delete" title="Delete this site\'s request for this service" style="padding:4px 9px;color:#c0392b">Delete</button>' : ''}</td></tr>${isOpen ? ctDetailHtml(q, ns, r) : ''}`;
       }).join('');
     }
     const nSel = [...ctSel].length; const bulk = document.getElementById('ct-bulk');
     bulk.hidden = nSel === 0; document.getElementById('ct-bulk-n').textContent = nSel;
+    { const br = document.getElementById('ct-bulk-request'); if (br) br.hidden = ctViewAll;
+      const bp = document.getElementById('ct-bulk-push'); if (bp){ const n = ctSelReqs().filter(ctPushReady).length; bp.disabled = !n; bp.textContent = n ? `Push to billing (${n})` : 'Push to billing'; } }
     const all = document.getElementById('ct-select-all');
-    if (all){ const ids = shown.map(r => normStore(r.store)); all.checked = ids.length > 0 && ids.every(i => ctSel.has(i)); }
-    document.getElementById('ct-email-vendors').disabled = !ctStorm;
-    { const ec = document.getElementById('ct-email-customers'); if (ec) ec.disabled = !ctStorm;
-      const nb = document.getElementById('ct-notify'); if (nb){ const n = ctStorm ? ctReqs.filter(q => q.storm === ctStorm && CT_NOTIFY_ST.includes(q.status) && !q.customerNotifiedAt).length : 0;
+    if (all){ const ids = ctShownKeys; all.checked = ids.length > 0 && ids.every(i => ctSel.has(i)); }
+    document.getElementById('ct-email-vendors').disabled = !ctStorm || ctViewAll;
+    { const ec = document.getElementById('ct-email-customers'); if (ec) ec.disabled = !ctStorm || ctViewAll;
+      const nb = document.getElementById('ct-notify'); if (nb){ const n = ctStorm && !ctViewAll ? ctReqs.filter(q => q.storm === ctStorm && CT_NOTIFY_ST.includes(q.status) && !q.customerNotifiedAt).length : 0;
         nb.hidden = !n; nb.className = 'ct-banner'; nb.innerHTML = n ? `&#9993; <b>${n}</b> dispatched propert${n === 1 ? 'y hasn’t' : 'ies haven’t'} been communicated to the customer yet. <button type="button" class="ct-btn primary" data-act="notify" style="margin-left:8px;padding:4px 10px">Email customers</button>` : ''; } }
-    { const d = document.getElementById('ct-del-storm'); if (d) d.disabled = !ctStorm || !ctReqs.some(q => q.storm === ctStorm); }
+    { const d = document.getElementById('ct-del-storm'); if (d) d.disabled = !ctStorm || ctViewAll || !ctReqs.some(q => q.storm === ctStorm); }
     ctRenderBanner();
     const sv = document.getElementById('view-sites'); if (sv && !sv.hidden) scRender();
     try { scRefreshHistory(); } catch(e){}
@@ -6765,7 +6797,7 @@ td.map-cell{ width:60px; text-align:center; }
     name = firstName; ctStorm = name; ctSel.clear(); ctStatusFilter = '';
     document.getElementById('ct-back').hidden = true;
     ctRender(); ctFlush().then(ctRender);
-    if (document.getElementById('ct-f-email').checked){ ctEmailSet = madeNames.slice(); ctOpenVendors(); }
+    if (document.getElementById('ct-f-email').checked){ ctViewAll = false; ctRender(); ctEmailSet = madeNames.slice(); ctOpenVendors(); }
     window.__lastStorm = { name, made, dates: dates.length, skipped: sites.length * dates.length - made };
   }
 
@@ -6801,7 +6833,7 @@ td.map-cell{ width:60px; text-align:center; }
       'Please reply to confirm you’re on it, and let me know right away if any site can’t be reached or if there’s an issue. Send completion photos / time on site when done.', '', 'Thanks,', 'Zak Kranich', 'Farmer Development'].filter((x, i, a) => !(x === '' && a[i - 1] === '')).join('\n');
   }
   async function ctOpenVendors(){
-    if (!ctStorm) return;
+    if (!ctStorm || ctViewAll) return;
     document.getElementById('ctv-back').hidden = false;
     document.getElementById('ctv-sub').textContent = 'Loading vendor contacts…';
     try { await vtEnsureRows(); } catch(e){}
@@ -6909,7 +6941,7 @@ td.map-cell{ width:60px; text-align:center; }
       <div class="acts"><button type="button" class="ct-btn primary" data-act="draft">${done ? 'Draft again' : 'Draft email'}</button><button type="button" class="ct-btn" data-act="notified"${done ? ' disabled' : ''}>Mark emailed</button></div></div>`; }).join('');
     document.getElementById('cn-list')._groups = groups;
   }
-  function ctOpenCustomers(){ if (!ctStorm) return; ctCustAll = false; document.getElementById('cn-msg').textContent = ''; ctRenderCustomers(); document.getElementById('cn-back').hidden = false; }
+  function ctOpenCustomers(){ if (!ctStorm || ctViewAll) return; ctCustAll = false; document.getElementById('cn-msg').textContent = ''; ctRenderCustomers(); document.getElementById('cn-back').hidden = false; }
   async function ctDraftCustomer(i, rowEl){
     const g = document.getElementById('cn-list')._groups[i]; const msg = document.getElementById('cn-msg');
     const email = rowEl.querySelector('.cn-email').value.trim();
@@ -7319,7 +7351,7 @@ td.map-cell{ width:60px; text-align:center; }
       const detail = document.createElement('tr'); detail.className = 'detail-row'; detail.dataset.idx = String(idx); detail.dataset.store = store; detail.dataset.view = 'sites';
       fillDetail(detail, idx, true); tr.after(detail);
     });
-    document.getElementById('ct-storm').addEventListener('change', e => { ctStorm = e.target.value; ctStatusFilter = ''; ctRender(); });
+    document.getElementById('ct-storm').addEventListener('change', e => { ctViewAll = e.target.value === '__ALL__'; if (!ctViewAll) ctStorm = e.target.value; ctStatusFilter = ''; ctSel.clear(); ctFlash = ''; ctRender(); });
     ['ct-pm', 'ct-region'].forEach(id => document.getElementById(id).addEventListener('change', ctRender));
     document.getElementById('ct-search').addEventListener('input', ctRender);
     document.getElementById('ct-show-all').addEventListener('change', e => { ctShowAll = e.target.checked; try { localStorage.setItem('fdiCtShowAllV1', ctShowAll ? '1' : '0'); } catch(x){} ctRender(); });
@@ -7427,10 +7459,10 @@ td.map-cell{ width:60px; text-align:center; }
       if (b.dataset.act === 'draft') ctDraftVendor(i, rowEl); else if (b.dataset.act === 'dispatched') ctMarkDispatched(i);
     });
     const tb = document.getElementById('ct-tbody');
-    const reqOfRow = el => { const tr = el.closest('tr'); const ns = tr && tr.dataset.store; return { tr, ns, q: ctReqs.find(x => x.storm === ctStorm && normStore(x.store) === ns) }; };
+    const reqOfRow = el => { const tr = el.closest('tr'); const ns = tr && tr.dataset.store; return { tr, ns, q: ctReqOfTr(tr) }; };
     tb.addEventListener('change', e => {
       const el = e.target;
-      if (el.classList.contains('ct-row-sel')){ const ns = el.closest('tr').dataset.store; if (el.checked) ctSel.add(ns); else ctSel.delete(ns); ctRender(); return; }
+      if (el.classList.contains('ct-row-sel')){ const k = el.closest('tr').dataset.skey; ctFlash = ''; if (el.checked) ctSel.add(k); else ctSel.delete(k); ctRender(); ctRenderBanner(); return; }
       if (el.classList.contains('ct-param')){
         const dr = el.closest('tr'); const q = ctReqs.find(x => (dr.dataset.rid && String(x.rowId) === dr.dataset.rid) || (dr.dataset.key && x.key === dr.dataset.key)); if (!q || q.pushedAt) return;
         const site = rows.find(r => normStore(r.store) === normStore(q.store)); if (!site) return;
@@ -7443,40 +7475,51 @@ td.map-cell{ width:60px; text-align:center; }
         if (picked.length){ const a = ctAmountsFor(site, picked); ctSetField(q, 'fdiAmount', a.fdiAmount); if (a.vendorCost !== '') ctSetField(q, 'vendorCost', a.vendorCost); }
         ctRender(); ctFlush().then(ctRenderBanner); return;
       }
-      if (el.classList.contains('sh-in')){ if (el.dataset.f === 'notes'){ const mr = [...tb.querySelectorAll('tr.ct-main')].find(t => t.dataset.store === (el.closest('tr').dataset.dstore || '')); const mi = mr && mr.querySelector('input[data-f="notes"]'); if (mi) mi.value = el.value.trim(); } return; }
+      if (el.classList.contains('sh-in')){ if (el.dataset.f === 'notes'){ const mr = [...tb.querySelectorAll('tr.ct-main')].find(t => t.dataset.okey === (el.closest('tr').dataset.dstore || '')); const mi = mr && mr.querySelector('input[data-f="notes"]'); if (mi) mi.value = el.value.trim(); } return; }
       const f = el.dataset.f; if (!f) return; const { q } = reqOfRow(el); if (!q) return;
       if (f === 'status'){ ctSetStatus(q, el.value); ctRender(); }
-      else { ctSetField(q, f, el.value.trim()); if (f === 'service') ctRender(); else { ctRenderBanner(); if (f === 'notes'){ const dr = [...tb.querySelectorAll('tr.ct-detail-row')].find(t => t.dataset.dstore === (el.closest('tr').dataset.store || '')); const dt = dr && dr.querySelector('textarea'); if (dt) dt.value = q.notes || ''; } } }
+      else { ctSetField(q, f, el.value.trim()); if (f === 'service') ctRender(); else { ctRenderBanner(); if (f === 'notes'){ const dr = [...tb.querySelectorAll('tr.ct-detail-row')].find(t => t.dataset.dstore === (el.closest('tr').dataset.okey || '')); const dt = dr && dr.querySelector('textarea'); if (dt) dt.value = q.notes || ''; } } }
       ctFlush().then(ctRenderBanner);
     });
     tb.addEventListener('click', e => {
       { const tr = e.target.closest('tr.ct-main');
-        if (tr && !e.target.closest('input, select, button, textarea, label, a')){ const ns = tr.dataset.store; const q = ctStorm && ctReqs.find(x => x.storm === ctStorm && normStore(x.store) === ns); if (q){ const k = ctOpenKey(ns, q); if (ctOpenRows.has(k)) ctOpenRows.delete(k); else ctOpenRows.add(k); ctRender(); } return; } }
+        if (tr && !e.target.closest('input, select, button, textarea, label, a')){ const ns = tr.dataset.store; const q = ctReqOfTr(tr); if (q){ const k = ctOpenKey(ns, q); if (ctOpenRows.has(k)) ctOpenRows.delete(k); else ctOpenRows.add(k); ctRender(); } return; } }
       const d = e.target.closest('button[data-act="delete"]');
-      if (d){ const ns = d.closest('tr').dataset.store; const q = ctStorm && ctReqs.find(x => x.storm === ctStorm && normStore(x.store) === ns); if (q) blDeleteOne(q); return; }
+      if (d){ const q = ctReqOfTr(d.closest('tr')); if (q) blDeleteOne(q); return; }
       const b = e.target.closest('button[data-act="request"]'); if (!b) return;
-      const ns = b.closest('tr').dataset.store; const r = rows.find(x => normStore(x.store) === ns); if (!r || !ctStorm) return;
+      const ns = b.closest('tr').dataset.store; const r = rows.find(x => normStore(x.store) === ns); if (!r || !ctStorm || ctViewAll) return;
       const info = ctStorms().find(s => s.name === ctStorm) || {};
       ctNewRequest(r, ctStorm, info.date || ctToday()); ctRender(); ctFlush().then(ctRender);
     });
-    document.getElementById('ct-select-all').addEventListener('change', e => { ctVisibleSites().forEach(r => { const ns = normStore(r.store); if (e.target.checked) ctSel.add(ns); else ctSel.delete(ns); }); ctRender(); });
-    document.getElementById('ct-bulk-clear').addEventListener('click', () => { ctSel.clear(); ctRender(); });
+    document.getElementById('ct-select-all').addEventListener('change', e => { ctFlash = ''; ctShownKeys.forEach(k => { if (e.target.checked) ctSel.add(k); else ctSel.delete(k); }); ctRender(); ctRenderBanner(); });
+    document.getElementById('ct-bulk-clear').addEventListener('click', () => { ctSel.clear(); ctFlash = ''; ctRender(); ctRenderBanner(); });
+    document.getElementById('ct-bulk-push').addEventListener('click', () => {
+      const reqs = ctSelReqs(); const ready = reqs.filter(ctPushReady); const b = document.getElementById('ct-banner');
+      if (!ready.length){ ctFlash = ''; b.hidden = false; b.className = 'ct-banner bad'; b.textContent = 'None of the checked services can be pushed yet. A service needs status Completed and an FDI amount or vendor cost, and must not already be in billing.'; return; }
+      let o = 0, sB = 0; ready.forEach(q => { o += blAmt(q, 'fdiAmount'); sB += blAmt(q, 'vendorCost'); });
+      const skipped = reqs.length - ready.length;
+      if (!window.confirm(`Push ${ready.length} service${ready.length === 1 ? '' : 's'} to billing?\n\nOwner billing ${shMoney(o)}\nSub billing ${shMoney(sB)}` + (skipped ? `\n\n${skipped} checked service${skipped === 1 ? ' is' : 's are'} not ready (not Completed, no amount, or already pushed) and will be left alone.` : ''))) return;
+      const stamp = ctToday(); ready.forEach(q => ctSetField(q, 'pushedAt', stamp));
+      ctSel.clear(); ctFlash = `Pushed ${ready.length} service${ready.length === 1 ? '' : 's'} to billing: Owner billing ${shMoney(o)}, Sub billing ${shMoney(sB)}.` + (skipped ? ` ${skipped} skipped (not ready).` : '');
+      try { scRefreshHistory(); } catch(e){} ctRender(); ctFlush().then(() => { ctRenderBanner(); });
+      ctRenderBanner();
+    });
     document.getElementById('ct-bulk-status').addEventListener('change', e => {
-      const st = e.target.value; if (!st || !ctStorm) return; let n = 0;
-      ctSel.forEach(ns => { const q = ctReqs.find(x => x.storm === ctStorm && normStore(x.store) === ns); if (q){ ctSetStatus(q, st); n++; } });
+      const st = e.target.value; if (!st) return; let n = 0;
+      ctSelReqs().forEach(q => { ctSetStatus(q, st); n++; });
       e.target.value = ''; ctRender(); ctFlush().then(ctRender);
       const b = document.getElementById('ct-banner'); if (!n){ b.hidden = false; b.className = 'ct-banner bad'; b.textContent = 'None of the checked sites have a request in this storm yet.'; }
     });
     document.getElementById('ct-del-storm').addEventListener('click', () => {
-      if (!ctStorm) return; const list = ctReqs.filter(q => q.storm === ctStorm);
+      if (!ctStorm || ctViewAll) return; const list = ctReqs.filter(q => q.storm === ctStorm);
       ctDeleteMany(list, `every site in &ldquo;${escapeHtml(ctStorm)}&rdquo;`);
     });
     document.getElementById('ct-bulk-delete').addEventListener('click', () => {
-      if (!ctStorm) return; const list = []; ctSel.forEach(ns => { const q = ctReqs.find(x => x.storm === ctStorm && normStore(x.store) === ns); if (q) list.push(q); });
-      ctDeleteMany(list, `the ${list.length} checked site${list.length === 1 ? '' : 's'} in &ldquo;${escapeHtml(ctStorm)}&rdquo;`);
+      const list = ctSelReqs();
+      ctDeleteMany(list, ctViewAll ? `the ${list.length} checked service${list.length === 1 ? '' : 's'}` : `the ${list.length} checked site${list.length === 1 ? '' : 's'} in &ldquo;${escapeHtml(ctStorm)}&rdquo;`);
     });
     document.getElementById('ct-bulk-request').addEventListener('click', () => {
-      if (!ctStorm) return; const info = ctStorms().find(s => s.name === ctStorm) || {};
+      if (!ctStorm || ctViewAll) return; const info = ctStorms().find(s => s.name === ctStorm) || {};
       ctSel.forEach(ns => { const r = rows.find(x => normStore(x.store) === ns); if (r && !ctReqFor(r, ctStorm)) ctNewRequest(r, ctStorm, info.date || ctToday()); });
       ctRender(); ctFlush().then(ctRender);
     });
