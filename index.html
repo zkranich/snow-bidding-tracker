@@ -1197,6 +1197,7 @@ td.map-cell{ width:60px; text-align:center; }
       <button type="button" class="sub-tab" id="bl-tab-sub">Sub billing</button>
       <span id="bl-note" style="font-size:12px;color:var(--ink-muted)"></span>
       <button type="button" class="ct-btn primary" id="bl-invoice" style="margin-left:auto" disabled>Create invoice</button>
+      <button type="button" class="ct-btn" id="bl-ar" title="Add every service in billing to Accounts Receivable on the PBR (ones already there are skipped)">Send to AR</button>
       <button type="button" class="ct-btn" id="bl-csv">Download CSV</button>
     </div>
     <div id="bl-body" style="margin-top:12px"></div>
@@ -6296,12 +6297,27 @@ td.map-cell{ width:60px; text-align:center; }
     ok.forEach(q => ctDeleteService(q)); ctSel.clear(); ctPickStorm();
     ctRender(); try { scRefreshHistory(); } catch(e){} ctFlush().then(() => { ctRenderBanner(); });
   }
+  // Send pushed services to Accounts Receivable (PBR). The Worker skips any project number that is already there.
+  async function blArSend(list){
+    if (!SMARTSHEET_WORKER_URL) return { skipped: true };
+    const items = list.filter(q => String(q.projectNo || '').trim()).map(q => { const site = rows.find(x => normStore(x.store) === normStore(q.store)) || {};
+      return { projectNo: q.projectNo, store: q.store, storm: q.storm, stormDate: q.stormDate, fdiAmount: q.fdiAmount, vendorCost: q.vendorCost, vendor: q.vendor || site.vendor2627 || '', customer: site.customer || '', address: q.address || site.address || '', workOrder: q.workOrder || '', vendorInvoice: q.vendorInvoice || '' }; });
+    if (!items.length) return { error: 'no project number on ' + (list.length === 1 ? 'this service' : 'these services') };
+    try {
+      const resp = await fetch(ctBase() + '/ar-push', { method: 'POST', headers: ctHdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ items }) });
+      const d = await resp.json().catch(() => ({}));
+      if (!resp.ok || d.error) throw new Error(d.error || ('HTTP ' + resp.status + (resp.status === 404 ? ' (deploy the latest worker.js)' : '')));
+      return d;
+    } catch (e) { return { error: String((e && e.message) || e) }; }
+  }
+  const blArText = r => r.skipped ? '' : r.error ? ` Accounts Receivable: NOT sent (${r.error}). Use “Send to AR” on the Billing tab to retry.` : ` Added ${r.added.length} to Accounts Receivable` + (r.existing && r.existing.length ? ` (${r.existing.length} already there)` : '') + '.';
   function blPushOne(q){
     if (!blPending(q)) return;
     const o = blAmt(q, 'fdiAmount'), sB = blAmt(q, 'vendorCost');
     ctSetField(q, 'pushedAt', ctToday());
     blMsg[normStore(q.store)] = `Pushed ${q.projectNo || 'service'}: Owner billing ${shMoney(o)}, Sub billing ${shMoney(sB)}.`;
     blConfirm = ''; scRefreshHistory(); blRender(); try { ctRender(); } catch(e){} ctFlush().then(() => { ctRenderBanner(); });
+    const k = normStore(q.store); blArSend([q]).then(res => { const t = blArText(res); if (!t) return; blMsg[k] = (blMsg[k] || '') + t; try { scRefreshHistory(); } catch(e){} });
   }
   function blDoPush(r){
     const list = serviceHistoryRows(r).filter(blPending); if (!list.length) return;
@@ -6309,6 +6325,7 @@ td.map-cell{ width:60px; text-align:center; }
     list.forEach(q => { o += blAmt(q, 'fdiAmount'); sB += blAmt(q, 'vendorCost'); ctSetField(q, 'pushedAt', stamp); });
     blMsg[normStore(r.store)] = `Pushed ${list.length} service${list.length === 1 ? '' : 's'}: Owner billing ${shMoney(o)}, Sub billing ${shMoney(sB)}.`;
     blConfirm = ''; scRefreshHistory(); blRender(); ctFlush().then(() => { ctRenderBanner(); });
+    const k = normStore(r.store); blArSend(list).then(res => { const t = blArText(res); if (!t) return; blMsg[k] = (blMsg[k] || '') + t; try { scRefreshHistory(); } catch(e){} });
   }
   function blRows(mode){
     const f = mode === 'owner' ? 'fdiAmount' : 'vendorCost';
@@ -7515,6 +7532,13 @@ td.map-cell{ width:60px; text-align:center; }
     document.getElementById('bl-tab-owner').addEventListener('click', () => { blMode = 'owner'; blRender(); });
     document.getElementById('bl-tab-sub').addEventListener('click', () => { blMode = 'sub'; blRender(); });
     document.getElementById('bl-csv').addEventListener('click', blCsv);
+    document.getElementById('bl-ar').addEventListener('click', async () => {
+      const b = document.getElementById('bl-ar'), note = document.getElementById('bl-note'); const list = blRows('owner');
+      if (!list.length){ note.textContent = 'Nothing in billing to send yet.'; return; }
+      b.disabled = true; note.textContent = 'Sending to Accounts Receivable…';
+      const res = await blArSend(list); b.disabled = false;
+      note.textContent = (blArText(res) || 'Not connected to Smartsheet.').trim();
+    });
     document.getElementById('bl-invoice').addEventListener('click', invOpen);
     document.getElementById('inv-make').addEventListener('click', invMake);
     document.getElementById('inv-cancel').addEventListener('click', () => { document.getElementById('inv-back').hidden = true; });
@@ -7618,6 +7642,7 @@ td.map-cell{ width:60px; text-align:center; }
       ctSel.clear(); ctFlash = `Pushed ${ready.length} service${ready.length === 1 ? '' : 's'} to billing: Owner billing ${shMoney(o)}, Sub billing ${shMoney(sB)}.` + (skipped ? ` ${skipped} skipped (not ready).` : '');
       try { scRefreshHistory(); } catch(e){} ctRender(); ctFlush().then(() => { ctRenderBanner(); });
       ctRenderBanner();
+      const flash0 = ctFlash; blArSend(ready).then(res => { const t = blArText(res); if (t && ctFlash === flash0){ ctFlash = flash0 + t; ctRenderBanner(); } });
     });
     document.getElementById('ct-bulk-status').addEventListener('change', e => {
       const st = e.target.value; if (!st) return; let n = 0;
