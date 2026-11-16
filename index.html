@@ -6169,7 +6169,7 @@ td.map-cell{ width:60px; text-align:center; }
     const money = (q, f) => `<span class="sh-money">$<input class="sh-in" data-f="${f}" inputmode="decimal" value="${escapeHtml(q[f] || '')}" placeholder="—"${q.pushedAt ? ' readonly title="Already pushed to billing"' : ''}></span>`;
     return `<div class="sh-sum">${list.length} service${list.length === 1 ? '' : 's'} logged &middot; FDI ${shMoney(sum('fdiAmount'))} &middot; Vendor ${shMoney(sum('vendorCost'))}</div>
       <table class="sh-table sh-hist"><thead><tr><th>Project #</th><th>Request date</th><th>Service date</th><th>Service</th><th>Vendor</th><th>FDI Amount</th><th>Vendor Cost</th><th>Work Order #</th><th>Vendor Invoice #</th><th>Notes</th><th>Billing</th><th></th></tr></thead><tbody>`
-      + list.map(q => `<tr data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}"><td class="sh-pn">${escapeHtml(q.projectNo || '')}</td><td>${escapeHtml(shReqDate(q))}</td><td>${escapeHtml(shMdy(q.stormDate))}${q.pushedAt ? `<div class="sh-bl"><span class="sh-pushed" title="Pushed to owner + sub billing">Pushed to billing ${escapeHtml(shMdy(q.pushedAt))}</span></div>` : ''}</td><td>${escapeHtml(q.serviceItems || q.service || '')}${q.serviceItems && q.service ? `<div class="sh-items">${escapeHtml(q.service)}</div>` : ''}</td><td>${escapeHtml(q.vendor || '')}</td><td>${money(q, 'fdiAmount')}</td><td>${money(q, 'vendorCost')}</td><td><input class="sh-in sh-wo" data-f="workOrder" value="${escapeHtml(q.workOrder || '')}" placeholder="WO #"></td><td><input class="sh-in sh-vi" data-f="vendorInvoice" value="${escapeHtml(q.vendorInvoice || '')}" placeholder="Invoice #"></td><td><textarea class="sh-in sh-notes" data-f="notes" rows="1" placeholder="Add a note…">${escapeHtml(q.notes || '')}</textarea></td><td>${q.pushedAt ? '<span class="sh-pushed" title="Already in owner + sub billing">&#10003; In billing</span>' : `<button type="button" class="ct-btn sh-push-one" style="white-space:nowrap;padding:5px 10px"${blPending(q) ? '' : ' disabled'} title="${blPending(q) ? 'Send just this service to owner + sub billing' : 'Add an FDI amount or vendor cost first'}">Push to billing</button>`}</td><td><button type="button" class="ct-btn sh-del" title="Delete this service" style="padding:5px 10px;color:#c0392b">Delete</button></td></tr>`).join('')
+      + list.map(q => `<tr data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}"><td class="sh-pn">${escapeHtml(q.projectNo || '')}</td><td>${escapeHtml(shReqDate(q))}</td><td>${escapeHtml(shMdy(q.stormDate))}${q.pushedAt ? `<div class="sh-bl"><span class="sh-pushed" title="Pushed to owner + sub billing">Pushed to billing ${escapeHtml(shMdy(q.pushedAt))}</span></div>` : ''}</td><td>${escapeHtml(q.serviceItems || q.service || '')}${q.serviceItems && q.service ? `<div class="sh-items">${escapeHtml(q.service)}</div>` : ''}</td><td>${escapeHtml(q.vendor || '')}</td><td>${money(q, 'fdiAmount')}</td><td>${money(q, 'vendorCost')}</td><td><input class="sh-in sh-wo" data-f="workOrder" value="${escapeHtml(q.workOrder || '')}" placeholder="WO #"></td><td><input class="sh-in sh-vi" data-f="vendorInvoice" value="${escapeHtml(q.vendorInvoice || '')}" placeholder="Invoice #"></td><td><textarea class="sh-in sh-notes" data-f="notes" rows="1" placeholder="Add a note…">${escapeHtml(q.notes || '')}</textarea></td><td>${q.pushedAt ? '<span class="sh-pushed" title="Already in owner + sub billing">&#10003; In billing</span>' : `<button type="button" class="ct-btn sh-push-one" style="white-space:nowrap;padding:5px 10px"${blPending(q) ? '' : ' disabled'} title="${blPending(q) ? 'Send just this service to owner + sub billing' : 'Add an FDI amount or vendor cost first'}">Push to billing</button>`}</td><td style="white-space:nowrap"><button type="button" class="ct-btn sh-edit" title="Edit every detail of this service" style="padding:5px 10px">Edit</button> <button type="button" class="ct-btn sh-del" title="Delete this service" style="padding:5px 10px;color:#c0392b">Delete</button></td></tr>`).join('')
       + '</tbody></table>' + blPushBarHtml(r, list);
   }
   // ----- Push to billing: owner billing gets the FDI amount only, sub billing gets the vendor cost only
@@ -6196,6 +6196,59 @@ td.map-cell{ width:60px; text-align:center; }
       const done = v => { b.hidden = true; ok.onclick = null; no.onclick = null; res(v); };
       ok.onclick = () => done(true); no.onclick = () => done(false); b.hidden = false; (infoOnly ? ok : no).focus();
     });
+  }
+  // ----- Edit one service (Service history > Edit): every detail in one form
+  function svcEditOpen(q){
+    let back = document.getElementById('svc-edit-back');
+    if (!back){ back = document.createElement('div'); back.className = 'as-back'; back.id = 'svc-edit-back'; back.style.zIndex = '90'; back.hidden = true; document.body.appendChild(back); }
+    const locked = !!q.pushedAt || !!q.ownerInvoice;
+    const day = v => { const d = new Date(v || ''); if (isNaN(d)) return ''; return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+    const sd = /^\d{4}-\d{2}-\d{2}/.test(String(q.stormDate || '')) ? String(q.stormDate).slice(0, 10) : '';
+    const opts = (list, cur) => { const l = list.slice(); if (cur && !l.includes(cur)) l.unshift(cur); return l.map(o => `<option${o === cur ? ' selected' : ''}>${escapeHtml(o)}</option>`).join(''); };
+    const vendors = new Set(); rows.forEach(r => { if (r.vendor2627) vendors.add(r.vendor2627); }); try { (vtRows || []).forEach(v => vendors.add(v.name)); } catch(e){}
+    const g = f => escapeHtml(q[f] == null ? '' : String(q[f]));
+    const dis = locked ? ' disabled' : '';
+    back.innerHTML = `<form class="as-card" id="svc-edit-form" autocomplete="off" style="max-width:560px">
+      <h3>Edit service ${escapeHtml(q.projectNo || '')}</h3>
+      <p class="as-sub">${escapeHtml(q.store || '')}${q.address ? ' &mdash; ' + escapeHtml(q.address) : ''}</p>
+      <div class="as-grid">
+        <div><label>Status</label><select id="se-status">${opts(CT_STATUSES, q.status || 'Requested')}</select></div>
+        <div><label>Service type</label><select id="se-service"><option value=""></option>${opts(CT_SERVICES, q.service || '')}</select></div>
+        <div><label>Service date</label><input type="date" id="se-date" value="${escapeHtml(sd)}"></div>
+        <div><label>Request date</label><input type="date" id="se-req" value="${escapeHtml(day(q.requestedAt))}"></div>
+        <div class="full"><label>Service items (what was done)</label><input type="text" id="se-items" value="${g('serviceItems')}" placeholder="e.g. Push — 2–3.99&quot;; Salt — Deicer"></div>
+        <div class="full"><label>Vendor</label><input type="text" id="se-vendor" list="se-vendor-list" value="${g('vendor')}"><datalist id="se-vendor-list">${[...vendors].sort((a, b) => a.localeCompare(b)).map(v => `<option value="${escapeHtml(v)}"></option>`).join('')}</datalist></div>
+        <div><label>FDI amount $</label><input type="text" inputmode="decimal" id="se-fdi" value="${g('fdiAmount')}"${dis}></div>
+        <div><label>Vendor cost $</label><input type="text" inputmode="decimal" id="se-ven" value="${g('vendorCost')}"${dis}></div>
+        <div><label>Work order #</label><input type="text" id="se-wo" value="${g('workOrder')}"></div>
+        <div><label>Vendor invoice #</label><input type="text" id="se-vi" value="${g('vendorInvoice')}"></div>
+        <div class="full"><label>Notes</label><textarea id="se-notes" rows="3">${g('notes')}</textarea></div>
+      </div>
+      ${locked ? `<p class="as-sub" style="margin:8px 0 0">${q.ownerInvoice ? 'On owner invoice #' + escapeHtml(q.ownerInvoice) : 'Already pushed to billing'} &mdash; the amounts are locked. Undo it in Billing to change them.</p>` : ''}
+      <div id="se-msg" class="as-sub" style="color:#b91c1c;margin:8px 0 0"></div>
+      <div class="as-actions"><button type="submit" id="se-save" style="background:var(--accent,#1c6e8c);border-color:var(--accent,#1c6e8c);color:#fff">Save changes</button><button type="button" id="se-cancel">Cancel</button></div>
+    </form>`;
+    back.hidden = false;
+    const close = () => { back.hidden = true; back.innerHTML = ''; };
+    back.querySelector('#se-cancel').onclick = close;
+    back.onclick = e => { if (e.target === back) close(); };
+    back.querySelector('#svc-edit-form').onsubmit = ev => {
+      ev.preventDefault();
+      const v = id => back.querySelector('#' + id).value.trim(), msg = back.querySelector('#se-msg');
+      const next = { status: v('se-status'), service: v('se-service'), serviceItems: v('se-items'), vendor: v('se-vendor'), workOrder: v('se-wo'), vendorInvoice: v('se-vi'), notes: back.querySelector('#se-notes').value.trim() };
+      if (!locked){
+        for (const [id, f] of [['se-fdi', 'fdiAmount'], ['se-ven', 'vendorCost']]){ const raw = v(id), n = shNum(raw); if (raw !== '' && n === null){ msg.textContent = 'Amounts must be numbers.'; return; } next[f] = n === null ? '' : String(n); }
+      }
+      const dt = v('se-date'); if (dt) next.stormDate = dt;
+      const rq = v('se-req'); if (rq && rq !== day(q.requestedAt)) next.requestedAt = new Date(rq + 'T12:00:00').toISOString();
+      let changed = 0;
+      Object.keys(next).forEach(f => { if (String(next[f]) !== String(q[f] == null ? '' : q[f])){ ctSetField(q, f, next[f]); changed++; } });
+      close();
+      if (!changed) return;
+      blMsg[normStore(q.store)] = 'Saved changes to ' + (q.projectNo || 'service') + '.';
+      try { scRefreshHistory(); } catch(e){} try { scRefreshFin(); } catch(e){} try { ctRender(); } catch(e){} try { blRender(); } catch(e){}
+      ctFlush().then(() => { ctRenderBanner(); });
+    };
   }
   async function blDeleteOne(q){
     const key = normStore(q.store);
@@ -7273,6 +7326,11 @@ td.map-cell{ width:60px; text-align:center; }
       const b = e.target.closest && e.target.closest('button.sh-push-one'); if (!b || b.disabled) return; e.stopPropagation();
       const tr = b.closest('tr'); const rid = tr.dataset.rid, key = tr.dataset.key;
       const q = ctReqs.find(x => (rid && String(x.rowId) === rid) || (key && x.key === key)); if (q) blPushOne(q);
+    });
+    document.addEventListener('click', e => {
+      const b = e.target.closest && e.target.closest('button.sh-edit'); if (!b) return; e.stopPropagation();
+      const tr = b.closest('tr'); const rid = tr.dataset.rid, key = tr.dataset.key;
+      const q = ctReqs.find(x => (rid && String(x.rowId) === rid) || (key && x.key === key)); if (q) svcEditOpen(q);
     });
     document.addEventListener('click', e => {
       const b = e.target.closest && e.target.closest('button.sh-del'); if (!b) return; e.stopPropagation();
