@@ -18,6 +18,7 @@
   .pill{ display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600; background:#e6ebf1; color:#33445a; white-space:nowrap; }
   .pill.go{ background:#d9f0e2; color:#14572f; } .pill.mid{ background:#fdecc8; color:#7a4f00; } .pill.bad{ background:#f6d6d3; color:#8a1d15; }
   .mapbtn{ display:inline-block; margin:0 0 8px; padding:5px 12px; border:1px solid var(--accent); border-radius:7px; color:var(--accent); font-size:13px; font-weight:600; text-decoration:none; }
+  .info .mapbtn{ margin:0; padding:2px 10px; font-size:12.5px; }
   .addr a{ color:var(--accent); text-decoration:none; } .addr{ margin:2px 0 8px; }
   .svc{ font-weight:600; } .meta{ color:var(--muted); font-size:13px; }
   .info{ margin:10px 0 4px; background:var(--row); border:1px solid var(--line); border-radius:10px; padding:10px 12px; display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-size:14px; }
@@ -190,8 +191,9 @@
     if (s.phone) rows.push(`<dt>Phone</dt><dd><a href="tel:${esc(tel(s.phone))}">${esc(s.phone)}</a></dd>`);
     if (s.email) rows.push(`<dt>Email</dt><dd><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></dd>`);
     rows.push(`<dt>Gate code</dt>` + (s.gate ? `<dd class="gate">${esc(s.gate)}</dd>` : `<dd class="locked">None on file</dd>`));
+    rows.push(`<dt>Overhead map</dt>` + (mapBtn(s) ? `<dd>${mapBtn(s)}</dd>` : `<dd class="locked">None on file</dd>`));
     return `<div class="card"><div class="top"><div class="store">${esc(s.store)}</div>${s.region ? `<span class="pill">${esc(s.region)}</span>` : ''}</div>
-      <div class="addr">${maps ? `<a href="${maps}" target="_blank" rel="noopener">${esc(s.address)}</a>` : esc(s.address)}</div>${mapBtn(s)}<dl class="info">${rows.join('')}</dl></div>`;
+      <div class="addr">${maps ? `<a href="${maps}" target="_blank" rel="noopener">${esc(s.address)}</a>` : esc(s.address)}</div><dl class="info">${rows.join('')}</dl></div>`;
   }
   function sitesHtml(){
     const all = data.sites || [], q = query.trim().toLowerCase();
