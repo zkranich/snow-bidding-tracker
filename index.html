@@ -1248,7 +1248,7 @@ td.map-cell{ width:60px; text-align:center; }
       <button class="ct-btn primary" id="ct-new-storm" type="button">&#43; New service</button>
       <button class="ct-btn" id="ct-email-vendors" type="button">&#9993; Email vendors</button>
       <button class="ct-btn" id="ct-email-customers" type="button" title="Email each customer which of their properties were dispatched and what services">&#9993; Email customers</button>
-      <button class="ct-btn" id="ct-check-mail" type="button" title="Look in Gmail for vendor emails that were sent or answered and update the status (also runs automatically every few minutes)">&#8635; Check replies</button><span class="ct-mailmsg" id="ct-mail-msg"></span>
+      <button class="ct-btn" id="ct-check-mail" type="button" title="Look in Gmail for vendor emails that were sent or answered and update the status (also runs automatically every few minutes)">&#8635; Check replies</button><button class="ct-btn" id="ct-test-alert" type="button" title="Send yourself a test of the new-customer-request email alert">&#9993; Test request alert</button><span class="ct-mailmsg" id="ct-mail-msg"></span>
       <button class="ct-btn" id="ct-del-storm" type="button" style="color:#c0392b" title="Delete every request in the selected service">&#128465; Delete service&hellip;</button>
       <span class="vc-count" id="ct-count"></span>
     </div>
@@ -7753,6 +7753,19 @@ td.map-cell{ width:60px; text-align:center; }
       ctOpenVendors();
     });
     document.getElementById('ct-check-mail').addEventListener('click', () => { ctMailOk = true; ctCheckEmails(true); });
+    document.getElementById('ct-test-alert').addEventListener('click', async () => {
+      const m = document.getElementById('ct-mail-msg'), b = document.getElementById('ct-test-alert');
+      b.disabled = true; m.textContent = 'Sending test alert\u2026';
+      try {
+        const resp = await fetch(ctBase() + '/notify-test', { method: 'POST', headers: ctHdr({ 'Content-Type': 'application/json' }), body: '{}' });
+        const d = await resp.json().catch(() => ({}));
+        if (resp.status === 404 || (resp.status === 401 && !d.result)) m.textContent = resp.status === 404 ? 'The Worker needs the latest worker.js (no /notify-test route yet).' : 'Worker rejected the dashboard key.';
+        else if (d.result === 'sent') m.textContent = 'Test alert sent \u2014 check your inbox (and Spam).';
+        else if (d.result === 'not-configured') m.textContent = 'Gmail isn\u2019t connected to the Worker (GOOGLE_CLIENT_ID / CLIENT_SECRET / REFRESH_TOKEN missing) \u2014 see GMAIL_SETUP.md.';
+        else m.textContent = 'Alert failed: ' + (d.result || resp.status);
+      } catch (e) { m.textContent = 'Could not reach the Worker.'; }
+      b.disabled = false;
+    });
     setInterval(() => { const v = document.getElementById('view-contracted'); if (v && !v.hidden && !document.hidden && Date.now() - ctMailAt > 150000) ctCheckEmails(false); }, 60000);
     document.getElementById('ct-form').addEventListener('submit', ctSubmitNewStorm);
     document.getElementById('ct-f-search').addEventListener('input', () => { ctPickLock = ''; ctRenderPick(); });
