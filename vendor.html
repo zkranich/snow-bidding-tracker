@@ -109,6 +109,8 @@
     if (o.phone) rows.push(`<dt>Phone</dt><dd><a href="tel:${esc(tel(o.phone))}">${esc(o.phone)}</a></dd>`);
     if (o.email) rows.push(`<dt>Email</dt><dd><a href="mailto:${esc(o.email)}">${esc(o.email)}</a></dd>`);
     if (o.gate) rows.push(`<dt>Gate code</dt><dd class="gate">${esc(o.gate)}</dd>`);
+    if (o.combo) rows.push(`<dt>Snow gate combo</dt><dd class="gate">${esc(o.combo)}</dd>`);
+    if (o.requests) rows.push(`<dt>Special requests</dt><dd style="font-weight:500;white-space:pre-wrap">${esc(o.requests)}</dd>`);
     const noteOpen = openNote && openNote.rowId === o.rowId;
     const live = o.status === 'Dispatched' || o.status === 'Vendor Replied' || o.status === 'On Site' || o.status === 'Issue';
     const tl = [['Requested', o.requestedAt], ['Dispatched', o.dispatchedAt], ['On site', o.onSiteAt], ['Completed', o.completedAt]].filter(x => x[1]);
@@ -191,13 +193,15 @@
     if (s.phone) rows.push(`<dt>Phone</dt><dd><a href="tel:${esc(tel(s.phone))}">${esc(s.phone)}</a></dd>`);
     if (s.email) rows.push(`<dt>Email</dt><dd><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></dd>`);
     rows.push(`<dt>Gate code</dt>` + (s.gate ? `<dd class="gate">${esc(s.gate)}</dd>` : `<dd class="locked">None on file</dd>`));
+    if (s.combo) rows.push(`<dt>Snow gate combo</dt><dd class="gate">${esc(s.combo)}</dd>`);
+    if (s.requests) rows.push(`<dt>Special requests</dt><dd style="font-weight:500;white-space:pre-wrap">${esc(s.requests)}</dd>`);
     rows.push(`<dt>Overhead map</dt>` + (mapBtn(s) ? `<dd>${mapBtn(s)}</dd>` : `<dd class="locked">None on file</dd>`));
     return `<div class="card"><div class="top"><div class="store">${esc(s.store)}</div>${s.region ? `<span class="pill">${esc(s.region)}</span>` : ''}</div>
       <div class="addr">${maps ? `<a href="${maps}" target="_blank" rel="noopener">${esc(s.address)}</a>` : esc(s.address)}</div><dl class="info">${rows.join('')}</dl></div>`;
   }
   function sitesHtml(){
     const all = data.sites || [], q = query.trim().toLowerCase();
-    const hit = q ? all.filter(s => [s.store, s.address, s.region, s.contact, s.phone, s.email, s.gate].join(' ').toLowerCase().includes(q)) : all;
+    const hit = q ? all.filter(s => [s.store, s.address, s.region, s.contact, s.phone, s.email, s.gate, s.combo, s.requests].join(' ').toLowerCase().includes(q)) : all;
     return `<input class="srch" id="srch" type="search" placeholder="Search store, address, contact, gate code\u2026" value="${esc(query)}" autocomplete="off">`
       + `<div class="meta" style="margin:-4px 2px 10px">${hit.length} of ${all.length} site${all.length === 1 ? '' : 's'}</div>`
       + (hit.length ? hit.map(siteCard).join('') : `<div class="card empty">${all.length ? 'No sites match that search.' : 'No sites are assigned to you yet.'}</div>`);

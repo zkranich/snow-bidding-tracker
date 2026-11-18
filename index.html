@@ -1640,7 +1640,7 @@ td.map-cell{ width:60px; text-align:center; }
       else if (e.field === 'customer'){ if (e.value) r.customer = String(e.value); }
       else if (e.field === 'customerEmail') r.customerEmail = e.value ? String(e.value) : '';
       else if (e.field === 'store' || e.field === 'address'){ if (e.value) r[e.field] = String(e.value); }
-      else if (e.field === 'siteContact' || e.field === 'sitePhone' || e.field === 'siteEmail' || e.field === 'siteGate') r[e.field] = e.value ? String(e.value) : '';
+      else if (e.field === 'siteContact' || e.field === 'sitePhone' || e.field === 'siteEmail' || e.field === 'siteGate' || e.field === 'siteCombo' || e.field === 'siteRequests') r[e.field] = e.value ? String(e.value) : '';
       else if (Object.prototype.hasOwnProperty.call(INTERESTED_COLUMNS, e.field)){ if (!r.interested) r.interested = {}; r.interested[e.field] = e.value ? String(e.value) : ''; }
       else if (Object.prototype.hasOwnProperty.call(LIVE_CONTRACT_COLUMNS, e.field)){
         if (!r.contractParams) r.contractParams = {};
@@ -1791,10 +1791,10 @@ td.map-cell{ width:60px; text-align:center; }
   function pmShort(name){ return name ? String(name).split(' ')[0] : ''; }
   // Vendors interested in a site: 3 x (name, email, phone), each its own Smartsheet column.
   const INTERESTED_COLUMNS = {"iv1Name": 716833319325572, "iv1Email": 5220432946696068, "iv1Phone": 2968633133010820, "iv2Name": 7472232760381316, "iv2Email": 1842733226168196, "iv2Phone": 6346332853538692, "iv3Name": 4094533039853444, "iv3Email": 8598132667223940, "iv3Phone": 435358342614916, "iv1Emailed": 4044247596306308, "iv1Quote": 8547847223676804, "iv2Emailed": 385072899067780, "iv2Quote": 4888672526438276, "iv3Emailed": 2636872712753028, "iv3Quote": 7140472340123524};
-  const LIVE_COL = { customerStatus: 7113215152263044, vendorStatus: 1483715618049924, lost: 5987315245420420, region: 260677394796420, vendor2627: 7903831494791044, customer: 4342064557100932, customerEmail: 8178725658857348, siteContact: 803364493102980, sitePhone: 5306964120473476, siteEmail: 3055164306788228, siteGate: 7558763934158724, mapUrl: 3868127368351620, fdiLocked: 10645392887684, vendorLocked: 4514245020258180 };
+  const LIVE_COL = { customerStatus: 7113215152263044, vendorStatus: 1483715618049924, lost: 5987315245420420, region: 260677394796420, vendor2627: 7903831494791044, customer: 4342064557100932, customerEmail: 8178725658857348, siteContact: 803364493102980, sitePhone: 5306964120473476, siteEmail: 3055164306788228, siteGate: 7558763934158724, siteCombo: 5451845019144068, siteRequests: 3200045205458820, mapUrl: 3868127368351620, fdiLocked: 10645392887684, vendorLocked: 4514245020258180 };
   // A cheap fingerprint of everything a refresh can change, so the screen is only rebuilt when something actually differs.
   function rowsSig(){
-    return rows.length + '#' + rows.map(r => [r.rowId, r.customerStatus, r.vendorStatus, r.lost ? 1 : 0, r.store, r.address, r.region, r.vendor2627, r.pm, r.customer, r.customerEmail, r.siteContact, r.sitePhone, r.siteEmail, r.siteGate, r.mapUrl, r.fdiLocked ? 1 : 0, r.vendorLocked ? 1 : 0,
+    return rows.length + '#' + rows.map(r => [r.rowId, r.customerStatus, r.vendorStatus, r.lost ? 1 : 0, r.store, r.address, r.region, r.vendor2627, r.pm, r.customer, r.customerEmail, r.siteContact, r.sitePhone, r.siteEmail, r.siteGate, r.siteCombo, r.siteRequests, r.mapUrl, r.fdiLocked ? 1 : 0, r.vendorLocked ? 1 : 0,
       JSON.stringify(r.contractParams || null), JSON.stringify(r.interested || null)].join('|')).join('\n');
   }
   let lastAttSig = '';
@@ -1873,7 +1873,7 @@ td.map-cell{ width:60px; text-align:center; }
         if (c[AS_COL.store] && String(c[AS_COL.store]).trim()) r.store = String(c[AS_COL.store]).trim();
         if (c[AS_COL.address] && String(c[AS_COL.address]).trim()) r.address = String(c[AS_COL.address]).trim();
         r.customerEmail = c[LIVE_COL.customerEmail] ? String(c[LIVE_COL.customerEmail]) : '';
-        ['siteContact', 'sitePhone', 'siteEmail', 'siteGate'].forEach(k => { r[k] = c[LIVE_COL[k]] ? String(c[LIVE_COL[k]]) : ''; });
+        ['siteContact', 'sitePhone', 'siteEmail', 'siteGate', 'siteCombo', 'siteRequests'].forEach(k => { r[k] = c[LIVE_COL[k]] ? String(c[LIVE_COL[k]]) : ''; });
         r.mapUrl = c[LIVE_COL.mapUrl] ? String(c[LIVE_COL.mapUrl]).trim() : '';   // Sitefotos Map (overhead map link)
       });
       try { buildCustomerFilter(); } catch(e){}
@@ -3451,7 +3451,7 @@ td.map-cell{ width:60px; text-align:center; }
       row.getCell(2).value = String(r.store || '');
       row.getCell(3).value = String(r.address || '');
       row.getCell(4).value = String(effectiveRegion(r) || '');
-      row.getCell(6).value = v('contact'); row.getCell(7).value = v('phone'); row.getCell(8).value = v('gate');
+      row.getCell(6).value = v('contact'); row.getCell(7).value = v('phone'); row.getCell(8).value = v('gate'); row.getCell(9).value = v('combo'); row.getCell(10).value = v('requests');
       for (let c = 1; c <= 10; c++){ const cell = row.getCell(c); cell.border = box; cell.alignment = { vertical: 'top', wrapText: true }; if (c >= 6) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF8DC' } }; }
       row.getCell(7).numFmt = '@'; row.getCell(8).numFmt = '@'; row.getCell(9).numFmt = '@';
       let placed = false, note = '';
@@ -6289,8 +6289,8 @@ td.map-cell{ width:60px; text-align:center; }
   function ciFor(r){ return (ciMap && ciMap.get(normStore(r.store))) || null; }
   const ciTel = v => { const d = String(v || '').replace(/[^\d+]/g, ''); return d ? `<a href="tel:${escapeHtml(d)}">${escapeHtml(v)}</a>` : escapeHtml(v); };
   // Each of the four fields: what you typed (saved on the bidding sheet) wins; otherwise the value from the Customer Information sheet.
-  const CI_FIELD = { contact: 'siteContact', phone: 'sitePhone', email: 'siteEmail', gate: 'siteGate' };
-  const CI_LABEL = { contact: 'On-site contact', phone: 'On-site phone', email: 'On-site email', gate: 'Gate code' };
+  const CI_FIELD = { contact: 'siteContact', phone: 'sitePhone', email: 'siteEmail', gate: 'siteGate', combo: 'siteCombo', requests: 'siteRequests' };
+  const CI_LABEL = { contact: 'On-site contact', phone: 'On-site phone', email: 'On-site email', gate: 'Gate code', combo: 'Snow gate combo code', requests: 'Special requests' };
   function ciSheetValue(r, key){
     const i = ciFor(r); if (!i) return '';
     if (key === 'contact') return i.contact || '';
@@ -6312,7 +6312,7 @@ td.map-cell{ width:60px; text-align:center; }
   function ciBoxHtml(r){
     const f = k => `<div class="ci-item" data-store="${escapeHtml(normStore(r.store))}" data-ci="${k}"><div class="k">${CI_LABEL[k]}</div><div class="v ci-v">${ciFieldHtml(r, k)}</div></div>`;
     setTimeout(() => { ciEnsure().then(ciRefresh); }, 0);
-    return f('contact') + f('phone') + f('email') + f('gate');
+    return f('contact') + f('phone') + f('email') + f('gate') + f('combo') + f('requests');
   }
   function ciRefresh(){
     document.querySelectorAll('.ci-item').forEach(el => {
