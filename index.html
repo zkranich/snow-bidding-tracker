@@ -1839,6 +1839,7 @@ td.map-cell{ width:60px; text-align:center; }
           estFiles.set(String(sr.id), estList(sr.attachments));
           ohFiles.set(String(sr.id), sr.attachments.filter(a => ohIsMap(a.name)).map(a => ({ id: a.id, name: a.name, mime: a.mimeType || '' })));
           ocFiles.set(String(sr.id), sr.attachments.filter(a => ocIsOwner(a.name)).map(a => ({ id: a.id, name: a.name, mime: a.mimeType || '', size: a.sizeInKb ? a.sizeInKb * 1024 : null })));
+          cdFiles.set(String(sr.id), cdList(sr.attachments));
           sr.attachments.forEach(a => attSigParts.push(a.id));
         }
       });
@@ -2330,6 +2331,23 @@ td.map-cell{ width:60px; text-align:center; }
   const OC_PREFIX = 'Owner Contract - ';
   const ocFiles = new Map();   // rowId -> [{id,name,mime,size}]
   const ocIsOwner = n => /^owner contract\s*[-–]/i.test(String(n || ''));
+  // Documents the customer uploaded from their private link ("Customer Doc - <file>" attachments on the site's Bidding row).
+  const cdFiles = new Map();   // rowId -> [{id,name,mime,size}]
+  const cdIs = n => /^customer doc\s*[-–]/i.test(String(n || ''));
+  const cdList = atts => (atts || []).filter(a => cdIs(a.name)).map(a => ({ id: a.id, name: a.name, mime: a.mimeType || '', size: a.sizeInKb ? a.sizeInKb * 1024 : null }));
+  function custDocsInner(r){
+    const list = cdFiles.get(String(r.rowId)) || [];
+    return '<div class="k">Customer Documents</div><div class="v">' + list.map(d => `<div class="owner-contract-item"><a data-ohatt="${escapeHtml(String(d.id))}" href="#" title="Click to view / download">${escapeHtml(d.name.replace(/^customer doc\s*[-–]\s*/i, ''))}</a>${d.size ? ` <span style="color:var(--ink-faint)">${formatBytes(d.size)}</span>` : ''}</div>`).join('') + '<div class="owner-contract-hint">Uploaded by the customer from their private link (Sites tab).</div></div>';
+  }
+  function custDocsBlockHtml(r){
+    const has = (cdFiles.get(String(r.rowId)) || []).length > 0;
+    return `<div class="contract-params cust-docs" data-rowid="${r.rowId ?? ''}"${has ? '' : ' hidden'}>${has ? custDocsInner(r) : ''}</div>`;
+  }
+  function custDocsRefresh(detail, r){
+    const box = detail && detail.querySelector(`.cust-docs[data-rowid="${r.rowId}"]`); if (!box) return;
+    const has = (cdFiles.get(String(r.rowId)) || []).length > 0; box.hidden = !has; box.innerHTML = has ? custDocsInner(r) : '';
+  }
+  document.addEventListener('click', e => { const a = e.target.closest && e.target.closest('.cust-docs [data-ohatt]'); if (a){ e.preventDefault(); e.stopPropagation(); ohOpen(a.dataset.ohatt); } }, true);
   const ocMsg = new Map();     // rowId -> {text,bad}
   function ownerContractListHtml(r){
     if (r.rowId == null) return '';
@@ -3374,12 +3392,14 @@ td.map-cell{ width:60px; text-align:center; }
       ohFiles.set(String(rowId), (d.data || []).filter(a => ohIsMap(a.name)).map(a => ({ id: a.id, name: a.name, mime: a.mimeType || '' })));
       estFiles.set(String(rowId), estList(d.data));
       ocFiles.set(String(rowId), (d.data || []).filter(a => ocIsOwner(a.name)).map(a => ({ id: a.id, name: a.name, mime: a.mimeType || '', size: a.sizeInKb ? a.sizeInKb * 1024 : null })));
+      cdFiles.set(String(rowId), cdList(d.data));
     } catch(e){
       ohMsg.set(String(rowId), { text: 'Could not load the overhead map list (' + ((e && e.message) || e) + ')', bad: true });
     }
     ohRender(detail, rowId);
     ivEstRender(detail, rowId);
     { const oc = detail.querySelector(`.owner-contract-list[data-rowid="${rowId}"]`); if (oc) oc.innerHTML = ownerContractListHtml({ rowId }); }
+    custDocsRefresh(detail, { rowId });
     ohFillCells(rowId);
   }
   const ohBlobs = new Map();   // attId -> Promise<{url,type}>
@@ -5103,6 +5123,7 @@ td.map-cell{ width:60px; text-align:center; }
       ${contractParamsHtml(r)}
       ${detail.dataset.view === 'sites' ? '' : interestedVendorsHtml(r)}
       ${overheadMapHtml(r)}
+    ${custDocsBlockHtml(r)}
     <div class="contract-params"><div class="k">Owner Contracts</div><div class="v">
         <div class="owner-contract-list" data-rowid="${r.rowId ?? ''}">${ownerContractListHtml(r)}</div>
         ${r.rowId!=null?`<label class="owner-contract-upload-btn">&#128206; Upload owner contract<input type="file" class="owner-contract-input" accept="application/pdf,image/*" data-rowid="${r.rowId}" hidden></label>

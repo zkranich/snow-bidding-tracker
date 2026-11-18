@@ -42,6 +42,16 @@
   .sitecard textarea{ min-height:70px; }
   .sitecard .sv{ display:flex; align-items:center; gap:12px; margin-top:12px; } .sitecard .sv button{ font:inherit; font-weight:700; color:#fff; background:var(--accent); border:0; border-radius:8px; padding:9px 18px; cursor:pointer; }
   .sitecard .sv button:disabled{ opacity:.55; cursor:default; } .sitecard .st{ font-size:13px; color:var(--muted); } .sitecard .st.ok{ color:var(--ok); } .sitecard .st.bad{ color:var(--bad); }
+  .mapbtn{ display:inline-block; padding:4px 11px; border:1px solid var(--accent); border-radius:7px; color:var(--accent); font-size:13px; font-weight:600; text-decoration:none; }
+  .docs{ margin-top:14px; border-top:1px solid var(--line); padding-top:12px; } .docs .dh{ font-size:13px; font-weight:600; margin-bottom:6px; }
+  .docs .d{ display:flex; justify-content:space-between; align-items:center; gap:10px; font-size:14px; padding:4px 0; } .docs .d .nm{ overflow-wrap:anywhere; } .docs .d .sz{ color:var(--muted); font-size:12px; margin-left:6px; }
+  .docs .none{ color:var(--muted); font-size:13px; } .docs .rm{ background:none; border:0; color:var(--bad); font:inherit; font-size:13px; cursor:pointer; padding:0; text-decoration:underline; }
+  .docs .up{ display:inline-block; margin-top:6px; padding:8px 14px; border:1px solid var(--accent); border-radius:8px; color:var(--accent); font-weight:600; font-size:14px; cursor:pointer; } .docs .up.busy{ opacity:.55; pointer-events:none; }
+  .docs .up input{ display:none; } .docs .dmsg{ font-size:13px; margin-left:8px; color:var(--muted); } .docs .dmsg.bad{ color:var(--bad); }
+  .pick{ border:1px solid var(--line); border-radius:8px; max-height:280px; overflow:auto; background:#fff; } @media (prefers-color-scheme: dark){ .pick{ background:#101820; } }
+  .pick label{ display:flex; gap:10px; align-items:flex-start; margin:0; padding:9px 12px; border-bottom:1px solid var(--line); font-weight:500; cursor:pointer; } .pick label:last-child{ border-bottom:0; }
+  .pick input{ width:auto; margin-top:3px; flex:none; } .pick .a{ color:var(--muted); font-size:13px; display:block; }
+  .pickbar{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin:0 0 8px; font-size:13px; } .pickbar .cnt{ color:var(--muted); margin-left:auto; }
   .pillneed{ display:inline-block; padding:2px 9px; border-radius:999px; font-size:12px; font-weight:600; background:#fdecc8; color:#7a4f00; }
   .err{ text-align:center; padding:28px 8px; color:var(--bad); }
   @media (prefers-color-scheme: dark){
@@ -97,16 +107,53 @@
 
   // ---- Sites tab: one card per contracted site; customer fills in / corrects the on-site details ----
   const FIELDS = [['contact', 'Site contact', 'name', 100], ['phone', 'Site phone', 'tel', 40], ['gate', 'Gate code', 'off', 60], ['combo', 'Snow gate combo code', 'off', 60]];
+  const fmtKb = kb => kb >= 1024 ? (kb / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(kb)) + ' KB';
+  function docsHtml(s){
+    const d = s.docs || [];
+    return d.length ? d.map(x => `<div class="d"><span class="nm">${esc(x.name)}<span class="sz">${esc(fmtKb(x.kb || 0))}</span></span><button type="button" class="rm" data-rm="${esc(x.id)}">Remove</button></div>`).join('') : '<div class="none">No documents uploaded yet (contracts, site plans, gate instructions, etc.).</div>';
+  }
+  async function uploadDocs(c, input){
+    const s = sites[Number(c.dataset.i)], msg = c.querySelector('.dmsg'), lbl = c.querySelector('label.up');
+    const files = [...input.files]; input.value = ''; if (!files.length) return;
+    lbl.classList.add('busy'); msg.className = 'dmsg'; let done = 0, bad = '';
+    for (const f of files){
+      msg.textContent = `Uploading ${f.name}…`;
+      if (f.size > 10 * 1024 * 1024){ bad = f.name + ' is over the 10 MB limit.'; continue; }
+      try {
+        const r = await fetch(WORKER + '/portal/doc?c=' + encodeURIComponent(C) + '&t=' + encodeURIComponent(T) + '&store=' + encodeURIComponent(s.store) + '&name=' + encodeURIComponent(f.name), { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: f });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok || !d.ok){ bad = d.error || ('Could not upload ' + f.name + '.'); continue; }
+        (s.docs = s.docs || []).push(d.doc); done++;
+        c.querySelector('.dl').innerHTML = docsHtml(s);
+      } catch(e){ bad = 'Could not reach the service. Please try again.'; }
+    }
+    lbl.classList.remove('busy');
+    msg.className = 'dmsg' + (bad ? ' bad' : ''); msg.textContent = bad || (done + ' uploaded ✓');
+  }
+  async function removeDoc(c, id){
+    const s = sites[Number(c.dataset.i)], msg = c.querySelector('.dmsg'), d = (s.docs || []).find(x => x.id === id); if (!d) return;
+    if (!confirm('Remove "' + d.name + '"?')) return;
+    msg.className = 'dmsg'; msg.textContent = 'Removing…';
+    try {
+      const r = await fetch(WORKER + '/portal/doc-delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ c: C, t: T, store: s.store, id }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.ok){ msg.className = 'dmsg bad'; msg.textContent = j.error || 'Could not remove that file.'; return; }
+      s.docs = s.docs.filter(x => x.id !== id); c.querySelector('.dl').innerHTML = docsHtml(s); msg.textContent = 'Removed';
+    } catch(e){ msg.className = 'dmsg bad'; msg.textContent = 'Could not reach the service. Please try again.'; }
+  }
   function siteCardHtml(s, i){
     const need = !(s.contact && s.phone);
     const inp = (f) => `<div><label>${f[1]}<input data-f="${f[0]}" maxlength="${f[3]}" autocomplete="${f[2]}"${f[0] === 'phone' ? ' inputmode="tel"' : ''} value="${esc(s[f[0]] || '')}"></label></div>`;
     return `<div class="sitecard" data-i="${i}" data-search="${esc((s.store + ' ' + (s.address || '')).toLowerCase())}">
       <div class="sc-top"><div class="sc-store">${esc(s.store)}</div>${need ? '<span class="pillneed" data-need>Needs info</span>' : ''}</div>
       <div class="sc-addr">${esc(s.address || '')}</div>
+      ${s.mapUrl && /^https?:\/\//i.test(s.mapUrl) ? `<div style="margin:2px 0 6px"><a class="mapbtn" href="${esc(s.mapUrl)}" target="_blank" rel="noopener">Overhead Map</a></div>` : ''}
       <div class="two">${inp(FIELDS[0])}${inp(FIELDS[1])}${inp(FIELDS[2])}${inp(FIELDS[3])}</div>
       <label>Special requests <span style="font-weight:400;color:var(--muted)">(anything our crews should know about this site)</span><textarea data-f="requests" maxlength="1000">${esc(s.requests || '')}</textarea></label>
       <div class="hp" aria-hidden="true"><label>Website<input data-f="website" tabindex="-1" autocomplete="off"></label></div>
       <div class="sv"><button type="button" data-save>Save</button><span class="st" role="status"></span></div>
+      <div class="docs"><div class="dh">Documents</div><div class="dl">${docsHtml(s)}</div>
+        <label class="up">&#128206; Upload a document<input type="file" data-up multiple accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.heic,.doc,.docx,.xls,.xlsx,.csv,.txt"></label><span class="dmsg" role="status"></span></div>
     </div>`;
   }
   function sitesList(){
@@ -120,7 +167,8 @@
       document.getElementById('snone').hidden = n > 0;
     });
     sp.addEventListener('input', e => { const c = e.target.closest('.sitecard'); if (!c) return; const st = c.querySelector('.st'); st.className = 'st'; st.textContent = ''; c.querySelector('[data-save]').disabled = false; });
-    sp.addEventListener('click', e => { const b = e.target.closest('[data-save]'); if (b) saveSite(b.closest('.sitecard'), b); });
+    sp.addEventListener('click', e => { const b = e.target.closest('[data-save]'); if (b) return saveSite(b.closest('.sitecard'), b); const rm = e.target.closest('[data-rm]'); if (rm) removeDoc(rm.closest('.sitecard'), rm.dataset.rm); });
+    sp.addEventListener('change', e => { if (e.target.matches('input[data-up]')) uploadDocs(e.target.closest('.sitecard'), e.target); });
   }
   async function saveSite(c, btn){
     const s = sites[Number(c.dataset.i)], st = c.querySelector('.st');
@@ -141,8 +189,10 @@
   function form(note){
     card.innerHTML = `
       <form id="f" autocomplete="on" novalidate>
-        <label for="store">Site</label>
-        <select id="store" required>${sites.length > 1 ? '<option value="">Choose a site&hellip;</option>' : ''}${sites.map(s => `<option value="${esc(s.store)}">${esc(s.store)}${s.address ? ' — ' + esc(s.address) : ''}</option>`).join('')}</select>
+        <div class="lbl">${sites.length > 1 ? 'Sites <span style="font-weight:400;color:var(--muted)">(select one or more)</span>' : 'Site'}</div>
+        ${sites.length > 6 ? '<input id="pq" type="search" placeholder="Search by store number or address" style="margin-bottom:8px">' : ''}
+        ${sites.length > 1 ? '<div class="pickbar"><button type="button" class="link" id="pall">Select all shown</button><button type="button" class="link" id="pnone">Clear</button><span class="cnt" id="pcnt">0 selected</span></div>' : ''}
+        <div class="pick" id="pick">${sites.map((s, i) => `<label data-s="${esc((s.store + ' ' + (s.address || '')).toLowerCase())}"><input type="checkbox" name="store" value="${esc(s.store)}"${sites.length === 1 ? ' checked' : ''}><span>${esc(s.store)}<span class="a">${esc(s.address || '')}</span></span></label>`).join('')}</div>
         <div class="lbl" style="margin-top:14px">Service needed</div>
         <div class="opts" id="svc">
           ${['Push','Salt','Push + Salt','Other'].map((o, i) => `<label class="opt" style="margin:0"><input type="radio" name="service" value="${esc(o)}"${i === 0 ? ' checked' : ''}><span>${esc(o)}</span></label>`).join('')}
@@ -158,6 +208,14 @@
         <div class="msg bad" id="msg" role="alert">${esc(note || '')}</div>
       </form>`;
     document.getElementById('f').addEventListener('submit', submit);
+    const pick = document.getElementById('pick'), cnt = document.getElementById('pcnt');
+    const upd = () => { if (cnt) cnt.textContent = pick.querySelectorAll('input:checked').length + ' selected'; };
+    pick.addEventListener('change', upd);
+    const pq = document.getElementById('pq');
+    if (pq) pq.addEventListener('input', () => { const v = pq.value.trim().toLowerCase(); pick.querySelectorAll('label').forEach(l => { l.hidden = !!v && !l.dataset.s.includes(v); }); });
+    if (document.getElementById('pall')) document.getElementById('pall').addEventListener('click', () => { pick.querySelectorAll('label:not([hidden]) input').forEach(i => { i.checked = true; }); upd(); });
+    if (document.getElementById('pnone')) document.getElementById('pnone').addEventListener('click', () => { pick.querySelectorAll('input').forEach(i => { i.checked = false; }); upd(); });
+    upd();
   }
 
   async function submit(ev){
@@ -165,15 +223,16 @@
     const msg = document.getElementById('msg'), go = document.getElementById('go');
     const v = id => document.getElementById(id).value.trim();
     const svc = (document.querySelector('input[name=service]:checked') || {}).value || '';
-    if (!v('store')) return void (msg.textContent = 'Please choose a site.');
+    const stores = [...document.querySelectorAll('#pick input:checked')].map(i => i.value);
+    if (!stores.length) return void (msg.textContent = 'Please select at least one site.');
     if (!v('name') || !v('contact')) return void (msg.textContent = 'Please enter your name and a phone number or email so we can reach you.');
     msg.textContent = ''; go.disabled = true; go.textContent = 'Sending…';
     try {
-      const r = await fetch(WORKER + '/portal/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ c: C, t: T, store: v('store'), service: svc, notes: v('notes'), name: v('name'), contact: v('contact'), website: v('website') }) });
+      const r = await fetch(WORKER + '/portal/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ c: C, t: T, stores, service: svc, notes: v('notes'), name: v('name'), contact: v('contact'), website: v('website') }) });
       const d = await r.json().catch(() => ({}));
       if (!r.ok || !d.ok){ msg.textContent = d.error || 'We could not send your request. Please try again or call us.'; go.disabled = false; go.textContent = 'Submit request'; return; }
-      const store = v('store');
-      card.innerHTML = `<div class="done"><div class="tick">&#10003;</div><h2>Request received</h2><p>We&rsquo;ve logged your ${esc(svc)} request for ${esc(store)} and our team will follow up with you shortly.</p><button class="link" id="again" type="button">Submit another request</button></div>`;
+      const what = stores.length === 1 ? esc(stores[0]) : stores.length + ' sites';
+      card.innerHTML = `<div class="done"><div class="tick">&#10003;</div><h2>Request received</h2><p>We&rsquo;ve logged your ${esc(svc)} request for ${what} and our team will follow up with you shortly.</p><button class="link" id="again" type="button">Submit another request</button></div>`;
       document.getElementById('again').addEventListener('click', () => form());
     } catch(e){ msg.textContent = 'We could not reach the service. Please check your connection and try again.'; go.disabled = false; go.textContent = 'Submit request'; }
   }
