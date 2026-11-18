@@ -48,7 +48,12 @@
   .docs .none{ color:var(--muted); font-size:13px; } .docs .rm{ background:none; border:0; color:var(--bad); font:inherit; font-size:13px; cursor:pointer; padding:0; text-decoration:underline; }
   .docs .up{ display:inline-block; margin-top:6px; padding:8px 14px; border:1px solid var(--accent); border-radius:8px; color:var(--accent); font-weight:600; font-size:14px; cursor:pointer; } .docs .up.busy{ opacity:.55; pointer-events:none; }
   .docs .up input{ display:none; } .docs .dmsg{ font-size:13px; margin-left:8px; color:var(--muted); } .docs .dmsg.bad{ color:var(--bad); }
-  .pick{ border:1px solid var(--line); border-radius:8px; max-height:280px; overflow:auto; background:#fff; } @media (prefers-color-scheme: dark){ .pick{ background:#101820; } }
+  .dd{ position:relative; }
+  .ddb{ width:100%; display:flex; justify-content:space-between; align-items:center; gap:10px; font:inherit; text-align:left; padding:11px 12px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--ink); cursor:pointer; }
+  .ddb:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; } .ddb .ph{ color:var(--muted); }
+  .ddp{ position:absolute; z-index:20; left:0; right:0; top:calc(100% + 4px); background:var(--card); border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.18); padding:10px; }
+  .ddp[hidden]{ display:none; } .ddp .pick{ max-height:260px; }
+  .pick{ border:1px solid var(--line); border-radius:8px; max-height:280px; overflow:auto; background:#fff; } @media (prefers-color-scheme: dark){ .pick, .ddb{ background:#101820; } }
   .pick label{ display:flex; gap:10px; align-items:flex-start; margin:0; padding:9px 12px; border-bottom:1px solid var(--line); font-weight:500; cursor:pointer; } .pick label:last-child{ border-bottom:0; }
   .pick input{ width:auto; margin-top:3px; flex:none; } .pick .a{ color:var(--muted); font-size:13px; display:block; }
   .pickbar{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin:0 0 8px; font-size:13px; } .pickbar .cnt{ color:var(--muted); margin-left:auto; }
@@ -190,9 +195,12 @@
     card.innerHTML = `
       <form id="f" autocomplete="on" novalidate>
         <div class="lbl">${sites.length > 1 ? 'Sites <span style="font-weight:400;color:var(--muted)">(select one or more)</span>' : 'Site'}</div>
+        <div class="dd" id="dd"><button type="button" class="ddb" id="ddb" aria-haspopup="true" aria-expanded="false"><span id="ddt" class="ph">Choose sites&hellip;</span><span aria-hidden="true">&#9662;</span></button>
+        <div class="ddp" id="ddp" hidden>
         ${sites.length > 6 ? '<input id="pq" type="search" placeholder="Search by store number or address" style="margin-bottom:8px">' : ''}
-        ${sites.length > 1 ? '<div class="pickbar"><button type="button" class="link" id="pall">Select all shown</button><button type="button" class="link" id="pnone">Clear</button><span class="cnt" id="pcnt">0 selected</span></div>' : ''}
+        ${sites.length > 1 ? '<div class="pickbar"><button type="button" class="link" id="pall">Select all shown</button><button type="button" class="link" id="pnone">Clear</button><span class="cnt" id="pcnt">0 selected</span><button type="button" class="link" id="pdone">Done</button></div>' : ''}
         <div class="pick" id="pick">${sites.map((s, i) => `<label data-s="${esc((s.store + ' ' + (s.address || '')).toLowerCase())}"><input type="checkbox" name="store" value="${esc(s.store)}"${sites.length === 1 ? ' checked' : ''}><span>${esc(s.store)}<span class="a">${esc(s.address || '')}</span></span></label>`).join('')}</div>
+        </div></div>
         <div class="lbl" style="margin-top:14px">Service needed</div>
         <div class="opts" id="svc">
           ${['Push','Salt','Push + Salt','Other'].map((o, i) => `<label class="opt" style="margin:0"><input type="radio" name="service" value="${esc(o)}"${i === 0 ? ' checked' : ''}><span>${esc(o)}</span></label>`).join('')}
@@ -209,7 +217,18 @@
       </form>`;
     document.getElementById('f').addEventListener('submit', submit);
     const pick = document.getElementById('pick'), cnt = document.getElementById('pcnt');
-    const upd = () => { if (cnt) cnt.textContent = pick.querySelectorAll('input:checked').length + ' selected'; };
+    const ddb = document.getElementById('ddb'), ddp = document.getElementById('ddp'), ddt = document.getElementById('ddt');
+    const upd = () => {
+      const on = [...pick.querySelectorAll('input:checked')].map(i => i.value);
+      if (cnt) cnt.textContent = on.length + ' selected';
+      ddt.className = on.length ? '' : 'ph';
+      ddt.textContent = !on.length ? 'Choose sites…' : on.length === 1 ? on[0] : on.length + ' sites selected';
+    };
+    const setOpen = o => { ddp.hidden = !o; ddb.setAttribute('aria-expanded', String(o)); if (o){ const q = document.getElementById('pq'); if (q) q.focus(); } };
+    ddb.addEventListener('click', () => setOpen(ddp.hidden));
+    if (document.getElementById('pdone')) document.getElementById('pdone').addEventListener('click', () => setOpen(false));
+    document.addEventListener('click', e => { if (!ddp.hidden && !e.target.closest('#dd')) setOpen(false); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !ddp.hidden){ setOpen(false); ddb.focus(); } });
     pick.addEventListener('change', upd);
     const pq = document.getElementById('pq');
     if (pq) pq.addEventListener('input', () => { const v = pq.value.trim().toLowerCase(); pick.querySelectorAll('label').forEach(l => { l.hidden = !!v && !l.dataset.s.includes(v); }); });
