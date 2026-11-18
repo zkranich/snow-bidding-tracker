@@ -20,6 +20,7 @@
   td{ padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
   tr.site{ cursor:pointer; } tr.site:hover td{ background:var(--row); } tr.site.open td{ background:var(--row); }
   td.store{ font-weight:700; white-space:nowrap; }
+  .mapbtn{ display:inline-block; padding:4px 11px; border:1px solid var(--accent); border-radius:7px; color:var(--accent); font-size:12.5px; font-weight:600; text-decoration:none; }
   .pill{ display:inline-block; padding:2px 9px; border-radius:999px; font-size:12px; font-weight:600; background:#e6ebf1; color:#33445a; white-space:nowrap; }
   .pill.ok{ background:#d9f0e2; color:#14572f; } .pill.mid{ background:#fdecc8; color:#7a4f00; } .pill.lost{ background:#f6d6d3; color:#8a1d15; }
   tr.detail td{ background:var(--row); padding:14px 16px 18px; }
@@ -110,17 +111,18 @@
     const list = visible(), tb = document.getElementById('tb');
     document.getElementById('cnt').textContent = list.length + ' of ' + sites.length + ' sites';
     if (!list.length){ tb.innerHTML = '<tr><td colspan="7" class="empty">No sites match.</td></tr>'; return; }
-    tb.innerHTML = list.map(s => `<tr class="site${open === s.rowId ? ' open' : ''}" data-id="${s.rowId}"><td class="store">${esc(s.store)}</td><td>${esc(s.address)}</td><td>${esc(s.customer)}</td><td>${esc(s.region)}</td><td>${esc(s.sf)}</td><td>${s.lost ? '<span class="pill lost">Lost</span>' : `<span class="pill ${pillCls(s.customerStatus)}">${esc(s.customerStatus || '—')}</span>`}</td><td><span class="pill">${esc(s.vendorStatus || '—')}</span></td></tr>`
+    tb.innerHTML = list.map(s => `<tr class="site${open === s.rowId ? ' open' : ''}" data-id="${s.rowId}"><td class="store">${esc(s.store)}</td><td>${esc(s.address)}${s.mapUrl ? `<div style="margin-top:4px">${mapBtn(s)}</div>` : ''}</td><td>${esc(s.customer)}</td><td>${esc(s.region)}</td><td>${esc(s.sf)}</td><td>${s.lost ? '<span class="pill lost">Lost</span>' : `<span class="pill ${pillCls(s.customerStatus)}">${esc(s.customerStatus || '—')}</span>`}</td><td><span class="pill">${esc(s.vendorStatus || '—')}</span></td></tr>`
       + (open === s.rowId ? detail(s) : '')).join('');
   }
 
+  const mapBtn = s => s && s.mapUrl && /^https?:\/\//i.test(s.mapUrl) ? `<a class="mapbtn" href="${esc(s.mapUrl)}" target="_blank" rel="noopener">Overhead Map</a>` : '';
   function detail(s){
-    return `<tr class="detail" data-for="${s.rowId}"><td colspan="7"><div class="dh">FDI contract parameters</div><div class="grid">${fieldsFor(s).map(k => {
+    return `<tr class="detail" data-for="${s.rowId}"><td colspan="7">${s.mapUrl ? `<div style="margin-bottom:12px">${mapBtn(s)}</div>` : ''}<div class="dh">FDI contract parameters</div><div class="grid">${fieldsFor(s).map(k => {
       const v = s.params[k]; return `<div class="cp"><label for="f${s.rowId}${k}">${esc(LABELS[k])}</label><div class="cpw"><span>$</span><input id="f${s.rowId}${k}" type="number" min="0" step="0.01" inputmode="decimal" data-id="${s.rowId}" data-f="${k}" value="${v === null || v === undefined ? '' : esc(v)}" placeholder="—"></div><div class="st"></div></div>`; }).join('')}</div><div class="note">Changes save to Smartsheet as soon as you leave a field.</div></td></tr>`;
   }
 
   function onClick(e){
-    if (e.target.closest('tr.detail')) return;
+    if (e.target.closest('tr.detail') || e.target.closest('a')) return;
     const tr = e.target.closest('tr.site'); if (!tr) return;
     const id = Number(tr.dataset.id); open = open === id ? null : id; render();
   }

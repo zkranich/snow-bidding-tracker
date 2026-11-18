@@ -17,6 +17,7 @@
   .store{ font-weight:700; font-size:17px; }
   .pill{ display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600; background:#e6ebf1; color:#33445a; white-space:nowrap; }
   .pill.go{ background:#d9f0e2; color:#14572f; } .pill.mid{ background:#fdecc8; color:#7a4f00; } .pill.bad{ background:#f6d6d3; color:#8a1d15; }
+  .mapbtn{ display:inline-block; margin:0 0 8px; padding:5px 12px; border:1px solid var(--accent); border-radius:7px; color:var(--accent); font-size:13px; font-weight:600; text-decoration:none; }
   .addr a{ color:var(--accent); text-decoration:none; } .addr{ margin:2px 0 8px; }
   .svc{ font-weight:600; } .meta{ color:var(--muted); font-size:13px; }
   .info{ margin:10px 0 4px; background:var(--row); border:1px solid var(--line); border-radius:10px; padding:10px 12px; display:grid; grid-template-columns:auto 1fr; gap:4px 12px; font-size:14px; }
@@ -35,6 +36,23 @@
   .tabs{ display:flex; gap:6px; margin:4px 0 14px; } .tabs button{ flex:1; min-height:42px; } .tabs button.on{ background:var(--accent); border-color:var(--accent); color:#fff; }
   .srch{ width:100%; font:inherit; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:var(--card); color:var(--ink); margin-bottom:12px; }
   .srch:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+  .card.tap{ cursor:pointer; } .card.tap:active{ background:var(--row); }
+  .chev{ color:var(--muted); font-size:20px; line-height:1; margin-left:4px; }
+  .back{ background:none; border:0; color:var(--accent); padding:8px 0; min-height:40px; font-weight:600; }
+  .when{ margin:6px 0 0; font-size:13px; color:var(--muted); }
+  .tl{ margin:12px 0 4px; border-left:2px solid var(--line); padding-left:12px; display:grid; gap:6px; font-size:14px; }
+  .tl div span{ color:var(--muted); display:inline-block; min-width:92px; } .tl b{ font-weight:600; }
+  h3{ font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:18px 0 8px; }
+  .picbtns{ display:flex; gap:8px; flex-wrap:wrap; } .picbtns label{ flex:1; min-width:140px; text-align:center; padding:12px 14px; border-radius:10px; border:1px solid var(--line); font-weight:600; cursor:pointer; min-height:44px; display:flex; align-items:center; justify-content:center; }
+  .picbtns label.p{ background:var(--accent); border-color:var(--accent); color:#fff; } .picbtns input{ display:none; }
+  .picbtns label.busy{ opacity:.5; pointer-events:none; }
+  .pics{ display:grid; grid-template-columns:repeat(auto-fill,minmax(104px,1fr)); gap:8px; margin-top:10px; }
+  .pic{ position:relative; border-radius:10px; overflow:hidden; background:var(--row); border:1px solid var(--line); aspect-ratio:1; }
+  .pic img{ width:100%; height:100%; object-fit:cover; display:block; cursor:zoom-in; }
+  .pic span{ position:absolute; left:0; right:0; bottom:0; background:rgba(0,0,0,.55); color:#fff; font-size:11px; padding:2px 6px; }
+  .lb{ position:fixed; inset:0; background:rgba(0,0,0,.92); z-index:50; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px; }
+  .lb img{ max-width:100%; max-height:86vh; border-radius:8px; } .lb button{ margin-top:12px; }
+  .done.tap{ cursor:pointer; }
   .done{ display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); font-size:14px; } .done:last-child{ border-bottom:0; }
   .err{ text-align:center; padding:40px 10px; color:var(--bad); } .empty{ text-align:center; padding:28px; color:var(--muted); }
   @media (prefers-color-scheme: dark){
@@ -68,9 +86,22 @@
     const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(s) ? s + 'T12:00:00' : s);
     return isNaN(d) ? s : d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
   }
+  const ET = { timeZone:'America/New_York' };
+  function fmtET(s, short){
+    if (!s) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return fmtDate(s) + (short ? '' : ', ' + s.slice(0, 4)) + ' (time not recorded)';
+    const d = new Date(s); if (isNaN(d)) return s;
+    const day = d.toLocaleDateString('en-US', Object.assign({ month:'short', day:'numeric' }, short ? {} : { year:'numeric' }, ET));
+    const tm = d.toLocaleTimeString('en-US', Object.assign({ hour:'numeric', minute:'2-digit', timeZoneName:'short' }, ET));
+    return day + ' at ' + tm;
+  }
+  const sel = () => { const m = location.hash.match(/^#s(\d+)/); return m ? Number(m[1]) : null; };
+  const findSvc = id => (data.active || []).find(x => Number(x.rowId) === id) || (data.done || []).find(x => Number(x.rowId) === id) || null;
+  let photos = { rowId: null, list: null, busy: false, msg: '', bad: false };
   const tel = p => String(p).replace(/[^\d+]/g, '');
 
-  function cardHtml(o){
+  const mapBtn = o => o && o.mapUrl && /^https?:\/\//i.test(o.mapUrl) ? `<a class="mapbtn" href="${esc(o.mapUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Overhead Map</a>` : '';
+  function cardHtml(o, detail){
     const maps = o.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.address)}` : '';
     const rows = [];
     if (o.contact) rows.push(`<dt>On-site contact</dt><dd>${esc(o.contact)}</dd>`);
@@ -79,10 +110,14 @@
     if (o.gate) rows.push(`<dt>Gate code</dt><dd class="gate">${esc(o.gate)}</dd>`);
     const noteOpen = openNote && openNote.rowId === o.rowId;
     const live = o.status === 'Dispatched' || o.status === 'Vendor Replied' || o.status === 'On Site' || o.status === 'Issue';
-    return `<div class="card" data-id="${esc(o.rowId)}">
-      <div class="top"><div class="store">${esc(o.store)}</div><span class="pill ${PILL[o.status] || ''}">${esc(o.status)}</span></div>
+    const tl = [['Requested', o.requestedAt], ['Dispatched', o.dispatchedAt], ['On site', o.onSiteAt], ['Completed', o.completedAt]].filter(x => x[1]);
+    return `<div class="card${detail ? '' : ' tap'}" data-id="${esc(o.rowId)}"${detail ? '' : ` data-open="${esc(o.rowId)}"`}>
+      <div class="top"><div class="store">${esc(o.store)}</div><span><span class="pill ${PILL[o.status] || ''}">${esc(o.status)}</span>${detail ? '' : '<span class="chev">&rsaquo;</span>'}</span></div>
       <div class="addr">${maps ? `<a href="${maps}" target="_blank" rel="noopener">${esc(o.address)}</a>` : ''}</div>
+      ${mapBtn(o)}
       <div><span class="svc">${esc(o.service || 'Service')}</span>${o.serviceDate ? ` <span class="meta">&middot; ${esc(fmtDate(o.serviceDate))}</span>` : ''}</div>
+      ${!detail && o.requestedAt ? `<div class="when">Requested ${esc(fmtET(o.requestedAt, true))}</div>` : ''}
+      ${detail && tl.length ? `<div class="tl">${tl.map(x => `<div><span>${x[0]}</span><b>${esc(fmtET(x[1]))}</b></div>`).join('')}</div>` : ''}
       ${rows.length ? `<dl class="info">${rows.join('')}</dl>` : ''}
       ${o.issue ? `<div class="issue">Issue: ${esc(o.issue)}</div>` : ''}
       ${o.notes ? `<div class="notes">${esc(o.notes)}</div>` : ''}
@@ -94,7 +129,58 @@
           <button class="w" data-act="issue" data-id="${esc(o.rowId)}">Problem</button>
           <button data-act="note" data-id="${esc(o.rowId)}">Add note</button></div>` : '')}
       <div class="row-msg"></div>
+      ${detail ? '<h3>Photos</h3><div id="photos"></div>' : ''}
     </div>`;
+  }
+
+  function detailHtml(o){
+    return '<button class="back" data-back="1">&lsaquo; All services</button>' + cardHtml(o, true);
+  }
+  const phUrl = (id) => `${WORKER}/vendor/photo?v=${encodeURIComponent(V)}&t=${encodeURIComponent(T)}&rowId=${photos.rowId}&id=${encodeURIComponent(id)}`;
+  function paintPhotos(){
+    const box = document.getElementById('photos'); if (!box) return;
+    const list = photos.list || [];
+    box.innerHTML = `<div class="picbtns"><label class="p${photos.busy ? ' busy' : ''}">Take photo<input id="pic-cam" type="file" accept="image/*" capture="environment"></label><label class="${photos.busy ? 'busy' : ''}">Upload photos<input id="pic-lib" type="file" accept="image/*" multiple></label></div>`
+      + `<div class="row-msg${photos.bad ? ' bad' : ''}">${esc(photos.msg)}</div>`
+      + (photos.list === null ? '<div class="meta">Loading photos\u2026</div>' : list.length ? `<div class="pics">${list.map(p => `<div class="pic"><img loading="lazy" alt="Service photo" data-full="${esc(p.id)}" src="${esc(phUrl(p.id))}"><span>${esc(fmtET(p.at, true).replace(/ at /, ' ').replace(/ [A-Z]{2,4}$/, ''))}</span></div>`).join('')}</div>` : '<div class="meta">No photos yet. Take one from the job site.</div>');
+  }
+  async function loadPhotos(id){
+    if (photos.rowId !== id){ photos = { rowId: id, list: null, busy: false, msg: '', bad: false }; }
+    paintPhotos();
+    try {
+      const r = await fetch(`${WORKER}/vendor/photos?v=${encodeURIComponent(V)}&t=${encodeURIComponent(T)}&rowId=${id}`);
+      const j = await r.json().catch(() => ({}));
+      if (photos.rowId !== id) return;
+      if (!r.ok || !j.ok){ photos.list = photos.list || []; photos.msg = j.error || 'Could not load photos.'; photos.bad = true; } else { photos.list = j.photos || []; }
+    } catch(e){ if (photos.rowId !== id) return; photos.list = photos.list || []; photos.msg = 'Could not load photos.'; photos.bad = true; }
+    paintPhotos();
+  }
+  // shrink phone photos (about 1600px JPEG) so uploads are quick on cell service
+  async function shrink(file){
+    let bmp = null;
+    try { bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch(e){ try { bmp = await createImageBitmap(file); } catch(e2){ bmp = null; } }
+    if (!bmp){ if (/^image\/(jpeg|png|webp)$/.test(file.type)) return file; throw new Error('Could not read that photo.'); }
+    const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    return await new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('Could not read that photo.')), 'image/jpeg', 0.82));
+  }
+  async function uploadFiles(files){
+    const id = photos.rowId; if (!id || !files.length || photos.busy) return;
+    photos.busy = true; photos.bad = false; let ok = 0, fails = [];
+    for (let i = 0; i < files.length; i++){
+      photos.msg = `Uploading ${i + 1} of ${files.length}\u2026`; paintPhotos();
+      try {
+        const blob = await shrink(files[i]);
+        const r = await fetch(`${WORKER}/vendor/photo?v=${encodeURIComponent(V)}&t=${encodeURIComponent(T)}&rowId=${id}`, { method:'POST', headers:{ 'Content-Type': blob.type || 'image/jpeg' }, body: blob });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || !j.ok) throw new Error(j.error || 'Upload failed.');
+        ok++;
+      } catch(e){ fails.push(String((e && e.message) || e)); }
+    }
+    photos.busy = false; photos.bad = !!fails.length;
+    photos.msg = fails.length ? `${ok ? ok + ' uploaded. ' : ''}${fails[0]}` : `${ok} photo${ok === 1 ? '' : 's'} uploaded.`;
+    paintPhotos(); await loadPhotos(id);
   }
 
   function siteCard(s){
@@ -105,7 +191,7 @@
     if (s.email) rows.push(`<dt>Email</dt><dd><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></dd>`);
     rows.push(`<dt>Gate code</dt>` + (s.gate ? `<dd class="gate">${esc(s.gate)}</dd>` : `<dd class="locked">None on file</dd>`));
     return `<div class="card"><div class="top"><div class="store">${esc(s.store)}</div>${s.region ? `<span class="pill">${esc(s.region)}</span>` : ''}</div>
-      <div class="addr">${maps ? `<a href="${maps}" target="_blank" rel="noopener">${esc(s.address)}</a>` : esc(s.address)}</div><dl class="info">${rows.join('')}</dl></div>`;
+      <div class="addr">${maps ? `<a href="${maps}" target="_blank" rel="noopener">${esc(s.address)}</a>` : esc(s.address)}</div>${mapBtn(s)}<dl class="info">${rows.join('')}</dl></div>`;
   }
   function sitesHtml(){
     const all = data.sites || [], q = query.trim().toLowerCase();
@@ -118,12 +204,18 @@
     document.getElementById('ttl').textContent = data.vendor || 'Vendor Portal';
     const act = data.active || [], done = data.done || [];
     document.title = (data.vendor || 'Vendor') + ' – Portal';
+    const sid = sel();
+    if (sid){
+      const o = findSvc(sid);
+      if (o){ main.innerHTML = detailHtml(o); paintPhotos(); loadPhotos(sid); window.scrollTo(0, 0); return; }
+      history.replaceState(null, '', location.pathname + location.search);
+    }
     const nSites = (data.sites || []).length;
     const tabs = `<div class="tabs"><button data-tab="open" class="${tab === 'open' ? 'on' : ''}">Open services${act.length ? ' (' + act.length + ')' : ''}</button><button data-tab="sites" class="${tab === 'sites' ? 'on' : ''}">All my sites${nSites ? ' (' + nSites + ')' : ''}</button></div>`;
     if (tab === 'sites'){ const had = document.activeElement && document.activeElement.id === 'srch'; main.innerHTML = tabs + sitesHtml(); if (had){ const i = document.getElementById('srch'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); } return; }
     main.innerHTML = tabs + '<h2>Open services' + (act.length ? ' (' + act.length + ')' : '') + '</h2>'
-      + (act.length ? act.map(cardHtml).join('') : '<div class="card empty">Nothing open right now. New requests show up here as soon as they are dispatched.</div>')
-      + (done.length ? '<h2>Recently completed</h2><div class="card">' + done.map(o => `<div class="done"><div><b>${esc(o.store)}</b><div class="meta">${esc(o.service || '')}</div></div><div class="meta">${esc(fmtDate(o.serviceDate))}</div></div>`).join('') + '</div>' : '');
+      + (act.length ? act.map(o => cardHtml(o)).join('') : '<div class="card empty">Nothing open right now. New requests show up here as soon as they are dispatched.</div>')
+      + (done.length ? '<h2>Recently completed</h2><div class="card">' + done.map(o => `<div class="done tap" data-open="${esc(o.rowId)}"><div><b>${esc(o.store)}</b><div class="meta">${esc(o.service || '')}</div></div><div class="meta">${esc(fmtDate(o.serviceDate))}</div></div>`).join('') + '</div>' : '');
   }
 
   async function load(){
@@ -151,9 +243,18 @@
     }
   }
 
+  main.addEventListener('change', e => {
+    if (e.target.id === 'pic-cam' || e.target.id === 'pic-lib'){ const fl = [...e.target.files]; e.target.value = ''; uploadFiles(fl); }
+  });
+  window.addEventListener('hashchange', () => { if (data) render(); });
   main.addEventListener('input', e => { if (e.target.id === 'srch'){ query = e.target.value; render(); } });
   main.addEventListener('click', e => {
     const tb = e.target.closest('button[data-tab]'); if (tb){ tab = tb.dataset.tab; render(); return; }
+    if (e.target.closest('[data-back]')){ location.hash = ''; if (!sel()) render(); return; }
+    const im = e.target.closest('img[data-full]');
+    if (im){ const lb = document.createElement('div'); lb.className = 'lb'; lb.innerHTML = `<img alt=""><button>Close</button>`; lb.querySelector('img').src = im.src; lb.addEventListener('click', () => lb.remove()); document.body.appendChild(lb); return; }
+    const op = e.target.closest('[data-open]');
+    if (op && !e.target.closest('a, button, textarea, input, label')){ location.hash = 's' + op.dataset.open; return; }
     const b = e.target.closest('button[data-act]'); if (!b) return;
     const card = b.closest('.card'), act = b.dataset.act, id = b.dataset.id;
     if (act === 'cancel'){ openNote = null; render(); return; }
