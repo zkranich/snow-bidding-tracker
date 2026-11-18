@@ -1258,6 +1258,7 @@ td.map-cell{ width:60px; text-align:center; }
       <span><b id="ct-bulk-n">0</b> selected</span>
       <select id="ct-bulk-status"><option value="">Set status to&hellip;</option></select>
       <button class="ct-btn primary" id="ct-bulk-push" type="button" title="Send the checked Completed services to owner + sub billing">Push to billing</button>
+      <button class="ct-btn primary" id="ct-bulk-email" type="button" title="Email the vendors for the checked services that are still at Requested">&#9993; Email vendors</button>
       <button class="ct-btn" id="ct-bulk-request" type="button">Create requests for this service</button>
       <button class="ct-btn" id="ct-bulk-delete" type="button" style="color:#c0392b" title="Delete the checked sites' requests for this service">Delete selected requests</button>
       <button class="ct-btn" id="ct-bulk-clear" type="button">Clear</button>
@@ -6903,7 +6904,8 @@ td.map-cell{ width:60px; text-align:center; }
       const bp = document.getElementById('ct-bulk-push'); if (bp){ const n = ctSelReqs().filter(ctPushReady).length; bp.disabled = !n; bp.textContent = n ? `Push to billing (${n})` : 'Push to billing'; } }
     const all = document.getElementById('ct-select-all');
     if (all){ const ids = ctShownKeys; all.checked = ids.length > 0 && ids.every(i => ctSel.has(i)); }
-    document.getElementById('ct-email-vendors').disabled = !ctStorm || ctViewAll;
+    document.getElementById('ct-email-vendors').disabled = ctViewAll ? !ctReqs.some(q => q.status === 'Requested') : !ctStorm;
+    { const be = document.getElementById('ct-bulk-email'); if (be){ const n = ctSelReqs().filter(q => q.status === 'Requested').length; be.disabled = !n; be.textContent = n ? `\u2709 Email vendors (${n})` : '\u2709 Email vendors'; be.title = n ? 'Email the vendors for the checked services that are still at Requested' : 'Check one or more services at Requested first'; } }
     { const ec = document.getElementById('ct-email-customers'); if (ec) ec.disabled = !ctStorm || ctViewAll;
       const nb = document.getElementById('ct-notify'); if (nb){ const n = ctStorm && !ctViewAll ? ctReqs.filter(q => q.storm === ctStorm && CT_NOTIFY_ST.includes(q.status) && !q.customerNotifiedAt).length : 0;
         nb.hidden = !n; nb.className = 'ct-banner'; nb.innerHTML = n ? `&#9993; <b>${n}</b> dispatched propert${n === 1 ? 'y hasn’t' : 'ies haven’t'} been communicated to the customer yet. <button type="button" class="ct-btn primary" data-act="notify" style="margin-left:8px;padding:4px 10px">Email customers</button>` : ''; } }
@@ -6971,7 +6973,7 @@ td.map-cell{ width:60px; text-align:center; }
   // Offered for every site (even when the depth isn't known yet): generic Push / Salt and Walks
   const CT_GENERIC_ITEMS = [{ label: 'Push', kind: 'plow', money: '' }, { label: 'Salt', kind: 'salt', money: '' }, { label: 'Walks', kind: 'walk', money: '' }, { label: 'Monthly service', kind: 'monthly', money: '' }];
   // Sites picked in the New service dialog (search by customer / store / address, then tick each site that needs service)
-  let ctNewPick = new Set(), ctLastSingle = '', ctEmailSet = null, ctPickLock = '';   // ctPickLock: opened from one site -> list shows only that site until the search box is edited
+  let ctNewPick = new Set(), ctLastSingle = '', ctEmailSet = null, ctEmailReqs = null, ctPickLock = '';   // ctPickLock: opened from one site -> list shows only that site until the search box is edited
   const ctByStore = (a, b) => String(a.store).localeCompare(String(b.store), undefined, { numeric: true });
   function ctNewSites(){ return rows.filter(r => ctEligible(r) && ctNewPick.has(normStore(r.store))).sort(ctByStore); }
   function ctPickShown(){
@@ -7109,14 +7111,14 @@ td.map-cell{ width:60px; text-align:center; }
     name = firstName; ctStorm = name; ctSel.clear(); ctStatusFilter = '';
     document.getElementById('ct-back').hidden = true;
     ctRender(); ctFlush().then(ctRender);
-    if (document.getElementById('ct-f-email').checked){ ctViewAll = false; ctRender(); ctEmailSet = madeNames.slice(); ctOpenVendors(); }
+    if (document.getElementById('ct-f-email').checked){ ctViewAll = false; ctRender(); ctEmailSet = madeNames.slice(); ctEmailReqs = null; ctOpenVendors(); }
     window.__lastStorm = { name, made, dates: dates.length, skipped: sites.length * dates.length - made };
   }
 
   // ----- Email vendors (one email per vendor listing that vendor's sites for the active storm)
   function ctVendorGroups(){
     const g = new Map();
-    ctReqs.filter(q => (ctEmailSet || [ctStorm]).includes(q.storm) && q.status === 'Requested').forEach(q => {
+    (ctEmailReqs || ctReqs.filter(q => (ctEmailSet || [ctStorm]).includes(q.storm))).filter(q => q.status === 'Requested').forEach(q => {
       const site = rows.find(r => normStore(r.store) === normStore(q.store)); const name = (q.vendor || (site && site.vendor2627) || '').trim();
       const key = name ? vtNorm(name) || name.toLowerCase() : '__none__';
       if (!g.has(key)) g.set(key, { name: name || '(no vendor assigned)', hasName: !!name, reqs: [], sites: [] });
@@ -7145,7 +7147,7 @@ td.map-cell{ width:60px; text-align:center; }
       'Please reply to confirm you’re on it, and let me know right away if any site can’t be reached or if there’s an issue. Send completion photos / time on site when done.', '', 'Thanks,', 'Zak Kranich', 'Farmer Development'].filter((x, i, a) => !(x === '' && a[i - 1] === '')).join('\n');
   }
   async function ctOpenVendors(){
-    if (!ctStorm || ctViewAll) return;
+    if (!ctEmailReqs && (!ctStorm || ctViewAll)) return;
     document.getElementById('ctv-back').hidden = false;
     document.getElementById('ctv-sub').textContent = 'Loading vendor contacts…';
     try { await vtEnsureRows(); } catch(e){}
@@ -7738,7 +7740,18 @@ td.map-cell{ width:60px; text-align:center; }
       else if (t.classList.contains('bl-chk-all')){ blRows('owner').filter(x => !x.ownerInvoice).forEach(x => { if (t.checked) blSel.add(blKey(x)); else blSel.delete(blKey(x)); }); blRender(); }
     });
     document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('button.bl-inv-print'); if (b){ e.stopPropagation(); invReprint(b.dataset.no); } });
-    document.getElementById('ct-email-vendors').addEventListener('click', () => { ctEmailSet = null; ctOpenVendors(); });
+    document.getElementById('ct-email-vendors').addEventListener('click', () => {
+      if (ctViewAll){ ctEmailReqs = ctReqs.filter(q => q.status === 'Requested'); ctEmailSet = [...new Set(ctEmailReqs.map(q => q.storm))]; }
+      else { ctEmailSet = null; ctEmailReqs = null; }
+      ctOpenVendors();
+    });
+    // Checked services -> email just those vendors (only services still at Requested)
+    document.getElementById('ct-bulk-email').addEventListener('click', () => {
+      const picked = ctSelReqs().filter(q => q.status === 'Requested');
+      if (!picked.length) return;
+      ctEmailReqs = picked; ctEmailSet = [...new Set(picked.map(q => q.storm))];
+      ctOpenVendors();
+    });
     document.getElementById('ct-check-mail').addEventListener('click', () => { ctMailOk = true; ctCheckEmails(true); });
     setInterval(() => { const v = document.getElementById('view-contracted'); if (v && !v.hidden && !document.hidden && Date.now() - ctMailAt > 150000) ctCheckEmails(false); }, 60000);
     document.getElementById('ct-form').addEventListener('submit', ctSubmitNewStorm);
