@@ -43,6 +43,11 @@
   .when{ margin:6px 0 0; font-size:13px; color:var(--muted); }
   .tl{ margin:12px 0 4px; border-left:2px solid var(--line); padding-left:12px; display:grid; gap:6px; font-size:14px; }
   .tl div span{ color:var(--muted); display:inline-block; min-width:92px; } .tl b{ font-weight:600; }
+  .comp{ margin-top:12px; border-top:1px solid var(--line); padding-top:4px; } .comp h3{ margin:10px 0 6px; }
+  .chk{ display:flex; align-items:center; gap:10px; padding:10px 2px; border-top:1px solid var(--line); cursor:pointer; } .chk:first-of-type{ border-top:0; }
+  .chk input{ width:22px; height:22px; flex:none; } .chk span{ flex:1; font-weight:600; } .chk .rate{ flex:none; font-weight:400; color:var(--muted); font-size:13px; }
+  .comp .lbl{ display:block; margin:12px 0 4px; font-size:13px; color:var(--muted); }
+  .inp{ width:100%; font:inherit; padding:11px 12px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); }
   h3{ font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:18px 0 8px; }
   .picbtns{ display:flex; gap:8px; flex-wrap:wrap; } .picbtns label{ flex:1; min-width:140px; text-align:center; padding:12px 14px; border-radius:10px; border:1px solid var(--line); font-weight:600; cursor:pointer; min-height:44px; display:flex; align-items:center; justify-content:center; }
   .picbtns label.p{ background:var(--accent); border-color:var(--accent); color:#fff; } .picbtns input{ display:none; }
@@ -80,6 +85,8 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
   const PILL = { 'Requested':'', 'Dispatched':'mid', 'Vendor Replied':'mid', 'On Site':'go', 'Issue':'bad', 'Completed':'go' };
   let data = null, openNote = null, tab = 'open', query = ''; // openNote = { rowId, action }
+  let completeOpen = null;   // { rowId, picked:Set(labels), invoice } while the "what did you complete" panel is open
+  const GENERIC_ITEMS = ['Push', 'Salt', 'Walks', 'Haul / Stack', 'Other'];
 
   function fail(msg){ main.innerHTML = `<div class="err">${esc(msg)}</div>`; }
   function fmtDate(s){
@@ -101,6 +108,22 @@
   let photos = { rowId: null, list: null, busy: false, msg: '', bad: false };
   const tel = p => String(p).replace(/[^\d+]/g, '');
 
+  const money = n => '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
+  const itemsFor = o => (o.items && o.items.length) ? o.items : GENERIC_ITEMS.map(l => ({ label: l, rate: null }));
+  function completeHtml(o){
+    const c = completeOpen, items = itemsFor(o);
+    return `<div class="comp"><h3>What did you complete?</h3>`
+      + items.map(it => `<label class="chk"><input type="checkbox" data-item="${esc(it.label)}"${c.picked.has(it.label) ? ' checked' : ''}><span>${esc(it.label)}</span>${typeof it.rate === 'number' ? `<span class="rate">${money(it.rate)}</span>` : ''}</label>`).join('')
+      + `<label class="lbl" for="comp-inv">Your invoice number (optional, you can add it later)</label><input id="comp-inv" class="inp" type="text" maxlength="40" value="${esc(c.invoice)}" placeholder="e.g. 10452" autocomplete="off">`
+      + `<div class="acts"><button class="ok" data-act="completesend" data-id="${esc(o.rowId)}">Submit completed</button><button data-act="cancel">Cancel</button></div></div>`;
+  }
+  function billingHtml(o){
+    return `<div class="comp"><h3>Billing</h3>`
+      + (o.picked && o.picked.length ? `<div class="meta" style="margin-bottom:6px">Completed: ${esc(o.picked.join(', '))}</div>` : '')
+      + (o.pushed ? `<div class="meta">Invoice # ${esc(o.invoice || '(none entered)')} &middot; already in billing</div>`
+        : `<label class="lbl" for="inv-edit">Your invoice number</label><input id="inv-edit" class="inp" type="text" maxlength="40" value="${esc(o.invoice || '')}" placeholder="e.g. 10452" autocomplete="off"><div class="acts"><button class="p" data-act="invoicesave" data-id="${esc(o.rowId)}">Save invoice number</button></div>`)
+      + `</div>`;
+  }
   const mapBtn = o => o && o.mapUrl && /^https?:\/\//i.test(o.mapUrl) ? `<a class="mapbtn" href="${esc(o.mapUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Overhead Map</a>` : '';
   function cardHtml(o, detail){
     const maps = o.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.address)}` : '';
@@ -124,7 +147,7 @@
       ${rows.length ? `<dl class="info">${rows.join('')}</dl>` : ''}
       ${o.issue ? `<div class="issue">Issue: ${esc(o.issue)}</div>` : ''}
       ${o.notes ? `<div class="notes">${esc(o.notes)}</div>` : ''}
-      ${noteOpen ? `<textarea placeholder="${openNote.action === 'issue' ? 'What happened? (required)' : 'Add a note for Farmer Development'}"></textarea>
+      ${completeOpen && completeOpen.rowId === o.rowId && live ? completeHtml(o) : noteOpen ? `<textarea placeholder="${openNote.action === 'issue' ? 'What happened? (required)' : 'Add a note for Farmer Development'}"></textarea>
         <div class="acts"><button class="${openNote.action === 'issue' ? 'w' : 'p'}" data-act="send" data-id="${esc(o.rowId)}">${openNote.action === 'issue' ? 'Report issue' : 'Send note'}</button><button data-act="cancel">Cancel</button></div>`
       : (live ? `<div class="acts">
           ${o.status !== 'On Site' ? `<button class="p" data-act="onsite" data-id="${esc(o.rowId)}">I'm on site</button>` : ''}
@@ -132,6 +155,7 @@
           <button class="w" data-act="issue" data-id="${esc(o.rowId)}">Problem</button>
           <button data-act="note" data-id="${esc(o.rowId)}">Add note</button></div>` : '')}
       <div class="row-msg"></div>
+      ${detail && o.status === 'Completed' ? billingHtml(o) : ''}
       ${detail ? '<h3>Photos</h3><div id="photos"></div>' : ''}
     </div>`;
   }
@@ -235,14 +259,14 @@
     } catch(e){ fail('Could not reach the server. Check your connection and refresh.'); }
   }
 
-  async function send(id, action, note, card){
+  async function send(id, action, note, card, extra){
     const msg = card.querySelector('.row-msg'); msg.className = 'row-msg'; msg.textContent = 'Saving…';
     card.querySelectorAll('button').forEach(b => { b.disabled = true; });
     try {
-      const r = await fetch(WORKER + '/vendor/update', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ v:V, t:T, rowId:Number(id), action, note: note || '' }) });
+      const r = await fetch(WORKER + '/vendor/update', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(Object.assign({ v:V, t:T, rowId:Number(id), action, note: note || '' }, extra || {})) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok || !j.ok) throw new Error(j.error || 'Could not save that.');
-      openNote = null; await load();
+      openNote = null; completeOpen = null; await load();
     } catch(e){
       card.querySelectorAll('button').forEach(b => { b.disabled = false; });
       msg.className = 'row-msg bad'; msg.textContent = String((e && e.message) || e);
@@ -250,10 +274,11 @@
   }
 
   main.addEventListener('change', e => {
+    if (e.target.dataset && e.target.dataset.item !== undefined && completeOpen){ if (e.target.checked) completeOpen.picked.add(e.target.dataset.item); else completeOpen.picked.delete(e.target.dataset.item); return; }
     if (e.target.id === 'pic-cam' || e.target.id === 'pic-lib'){ const fl = [...e.target.files]; e.target.value = ''; uploadFiles(fl); }
   });
   window.addEventListener('hashchange', () => { if (data) render(); });
-  main.addEventListener('input', e => { if (e.target.id === 'srch'){ query = e.target.value; render(); } });
+  main.addEventListener('input', e => { if (e.target.id === 'srch'){ query = e.target.value; render(); } else if (e.target.id === 'comp-inv' && completeOpen){ completeOpen.invoice = e.target.value; } });
   main.addEventListener('click', e => {
     const tb = e.target.closest('button[data-tab]'); if (tb){ tab = tb.dataset.tab; render(); return; }
     if (e.target.closest('[data-back]')){ location.hash = ''; if (!sel()) render(); return; }
@@ -263,8 +288,25 @@
     if (op && !e.target.closest('a, button, textarea, input, label')){ location.hash = 's' + op.dataset.open; return; }
     const b = e.target.closest('button[data-act]'); if (!b) return;
     const card = b.closest('.card'), act = b.dataset.act, id = b.dataset.id;
-    if (act === 'cancel'){ openNote = null; render(); return; }
-    if (act === 'issue' || act === 'note'){ openNote = { rowId: Number(id) || id, action: act }; render(); const ta = main.querySelector('textarea'); if (ta) ta.focus(); return; }
+    if (act === 'cancel'){ openNote = null; completeOpen = null; render(); return; }
+    if (act === 'complete'){
+      const o = findSvc(Number(id)); if (!o) return;
+      const its = itemsFor(o), labels = new Set(its.map(i => i.label));
+      const pre = new Set((o.picked || []).filter(l => labels.has(l)));
+      if (!pre.size && (o.items || []).length === 1) pre.add(o.items[0].label);
+      completeOpen = { rowId: o.rowId, picked: pre, invoice: o.invoice || '' }; openNote = null; render();
+      const ci = main.querySelector('.comp'); if (ci && ci.scrollIntoView) ci.scrollIntoView({ block: 'nearest' }); return;
+    }
+    if (act === 'completesend'){
+      if (!completeOpen) return;
+      send(id, 'complete', '', card, { items: [...completeOpen.picked], invoice: (completeOpen.invoice || '').trim() }); return;
+    }
+    if (act === 'invoicesave'){
+      const inv = ((card.querySelector('#inv-edit') || {}).value || '').trim();
+      if (!inv){ const m = card.querySelector('.row-msg'); m.className = 'row-msg bad'; m.textContent = 'Enter your invoice number.'; return; }
+      send(id, 'invoice', '', card, { invoice: inv }); return;
+    }
+    if (act === 'issue' || act === 'note'){ openNote = { rowId: Number(id) || id, action: act }; completeOpen = null; render(); const ta = main.querySelector('textarea'); if (ta) ta.focus(); return; }
     if (act === 'send'){
       const note = (card.querySelector('textarea') || {}).value || '';
       send(id, openNote.action, note.trim(), card); return;

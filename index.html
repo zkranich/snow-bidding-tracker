@@ -6202,6 +6202,26 @@ td.map-cell{ width:60px; text-align:center; }
     ctReqs = ctReqs.filter(r => r.rowId != null);
     ob.creates.forEach(c => { if (!ctReqs.some(r => r.storm === c.fields.storm && normStore(r.store) === normStore(c.fields.store))) ctReqs.push(Object.assign({ rowId: null, key: c.key }, c.fields)); });
   }
+  // A vendor finished a service on their portal and ticked what they completed (the Worker saved serviceItems + their invoice #
+  // and left both amounts blank). Fill the amounts here from that store's contract rates so it's ready to review and push to billing.
+  function ctAutoBill(){
+    let n = 0;
+    ctReqs.forEach(q => {
+      if (q.rowId == null || q.pushedAt || q.status !== 'Completed' || !q.serviceItems) return;
+      if (String(q.fdiAmount || '').trim() !== '' || String(q.vendorCost || '').trim() !== '') return;
+      const site = rows.find(r => normStore(r.store) === normStore(q.store)); if (!site) return;
+      const labels = new Set(String(q.serviceItems).split(/\s*;\s*/).filter(Boolean));
+      const pool = ctContractInfo(site).items.concat(CT_GENERIC_ITEMS, CT_EXTRA_ITEMS);
+      const picked = []; labels.forEach(l => { const it = pool.find(p => p.label === l); if (it) picked.push(it); });
+      if (!picked.length) return;
+      const a = ctAmountsFor(site, picked);
+      if (a.fdiAmount === '' && a.vendorCost === '') return;
+      if (a.fdiAmount !== '') ctSetField(q, 'fdiAmount', a.fdiAmount);
+      if (a.vendorCost !== '') ctSetField(q, 'vendorCost', a.vendorCost);
+      ctSetField(q, 'service', ctServiceFromItems(picked)); n++;
+    });
+    return n;
+  }
   async function ctLoad(force){
     if (!SMARTSHEET_WORKER_URL){ ctState = 'noconn'; ctApplyOutbox(); ctPickStorm(); ctRender(); return; }
     if (!force && ctState === 'ok' && Date.now() - ctLoadedAt < 20000) return;
@@ -6211,7 +6231,7 @@ td.map-cell{ width:60px; text-align:center; }
       if (!resp.ok) throw new Error('HTTP ' + resp.status + (resp.status === 404 ? ' (the Worker needs the latest worker.js deployed)' : resp.status === 401 || resp.status === 403 ? ' (dashboard key rejected)' : ''));
       const sheet = await resp.json();
       if (!sheet || !Array.isArray(sheet.rows)) throw new Error('unexpected response');
-      ctReqs = ctParse(sheet); ctApplyOutbox(); ctState = 'ok'; ctError = ''; ctLoadedAt = Date.now();
+      ctReqs = ctParse(sheet); ctApplyOutbox(); try { ctAutoBill(); } catch(e){} ctState = 'ok'; ctError = ''; ctLoadedAt = Date.now();
       ctPickStorm(); ctRender();
       ctFlush();
     } catch(e){
