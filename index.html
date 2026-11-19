@@ -433,6 +433,7 @@ button.sh-push-one:disabled{ opacity:.55; cursor:not-allowed; }
 @media (max-width:760px){ .ct-dgrid{ grid-template-columns:1fr; } }
 .ct-dfiles .svc-bar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:8px; } .ct-dfiles .svc-upl{ cursor:pointer; } .ct-dfiles .svc-sub{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#5b6b7b; margin:8px 0 4px; }
 .ct-dfiles .svc-f{ display:flex; align-items:center; gap:8px; padding:3px 0; font-size:13px; } .ct-dfiles .svc-f a{ color:#1f5f99; cursor:pointer; text-decoration:underline; word-break:break-all; } .ct-dfiles .svc-meta{ color:#6b7a89; font-size:11px; white-space:nowrap; }
+.ct-ph{ display:flex; align-items:center; gap:4px; margin-top:5px; } .ct-ph img{ width:38px; height:38px; object-fit:cover; border-radius:5px; border:1px solid #c5d0dc; background:#dfe6ee; cursor:pointer; } .ct-phn{ font-size:11px; color:var(--ink-faint); margin-left:2px; white-space:nowrap; }
 .ct-dfiles .svc-grid{ display:flex; flex-wrap:wrap; gap:8px; } .ct-dfiles .svc-th{ position:relative; width:92px; height:92px; border-radius:8px; overflow:hidden; background:#dfe6ee; border:1px solid #c5d0dc; } .ct-dfiles .svc-th img{ width:100%; height:100%; object-fit:cover; cursor:pointer; display:block; }
 .ct-dfiles .svc-th .svc-del{ position:absolute; top:3px; right:3px; } .ct-dfiles .svc-del{ border:0; background:rgba(0,0,0,.55); color:#fff; width:20px; height:20px; border-radius:50%; cursor:pointer; line-height:20px; padding:0; font-size:13px; } .ct-dfiles .svc-f .svc-del{ background:#c0392b; }
 .ct-dfiles .svc-msg{ font-size:12px; color:#2d6a3e; } .ct-dfiles .svc-msg.bad{ color:#c0392b; }
@@ -6187,6 +6188,7 @@ td.map-cell{ width:60px; text-align:center; }
       const o = { rowId: sr.id, key: null };
       Object.keys(CT_COLS).forEach(k => { o[k] = ''; });
       (sr.cells || []).forEach(c => { const k = byCol[c.columnId]; if (k && c.value !== undefined && c.value !== null) o[k] = String(c.value).slice(0, k === 'stormDate' ? 10 : 4000); });
+      o.photos = (sr.attachments || []).filter(a => (!a.attachmentType || a.attachmentType === 'FILE') && !/^Invoice - /.test(a.name || '') && (/^image\//i.test(a.mimeType || '') || /\.(jpe?g|png|gif|webp|heic|heif)$/i.test(a.name || ''))).map(a => ({ id: String(a.id), name: String(a.name || ''), at: a.createdAt || '' })).sort((a, b) => String(a.at).localeCompare(String(b.at)));
       if (o.service) o.service = o.service.replace(/\bPlow\b/g, 'Push');
       if (o.serviceItems) o.serviceItems = o.serviceItems.replace(/\bPlow\b/g, 'Push').replace(/\bplow \+ salt\b/g, 'push + salt');   // older entries said Plow
       return o;
@@ -6724,6 +6726,19 @@ td.map-cell{ width:60px; text-align:center; }
       if (q && !out.includes(q)) out.push(q); });
     return out;
   }
+  // Photos on the service (from the vendor's portal or added here): count + up to 3 thumbnails right in the list; click one to open it full size
+  function ctPhotosHtml(q){
+    const ph = (q && q.photos) || []; if (!ph.length) return '';
+    const mine = ph.filter(a => /^VP_/.test(a.name)).length;
+    return `<div class="ct-ph" title="${ph.length} photo${ph.length === 1 ? '' : 's'}${mine ? ' (' + mine + ' from the vendor)' : ''}. Click one to open it, or open the service for all of them.">${ph.slice(-3).map(a => `<img class="svc-open ct-phth" data-att="${escapeHtml(a.id)}" alt="" title="${escapeHtml(a.name.replace(/^(Photo - |VP_)/, ''))}">`).join('')}<span class="ct-phn">&#128247; ${ph.length}</span></div>`;
+  }
+  function ctLoadThumbs(root){
+    const imgs = [...root.querySelectorAll('img.ct-phth')].filter(im => !im.getAttribute('src'));
+    const load = im => svcBlob(im.dataset.att).then(b => { if (im.isConnected) im.src = b.url; }).catch(() => { im.alt = '!'; });
+    if (typeof IntersectionObserver === 'undefined'){ imgs.forEach(load); return; }
+    const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting){ io.unobserve(en.target); load(en.target); } }), { rootMargin: '200px' });
+    imgs.forEach(im => io.observe(im));
+  }
   const ctPushReady = q => q.status === 'Completed' && blPending(q);
   // Push to billing control shown once a service is Completed (reuses the Service-history push button + handler)
   function ctPushHtml(q){
@@ -6901,7 +6916,7 @@ td.map-cell{ width:60px; text-align:center; }
         const vend = r.vendor2627 ? escapeHtml(r.vendor2627) : '<span class="ct-novendor">no vendor</span>';
         const opt = (list, cur) => list.map(s => `<option value="${escapeHtml(s)}"${s === cur ? ' selected' : ''}>${escapeHtml(s)}</option>`).join('');
         const cells = q
-          ? `<td><select class="ct-in ct-status st-${escapeHtml(q.status.replace(/\s+/g, ''))}" data-f="status">${opt(CT_STATUSES, q.status)}</select>${q.customerNotifiedAt ? `<div class="ct-season" title="Customer was emailed that this service was dispatched">&#9993; customer notified ${escapeHtml(ctFmt(q.customerNotifiedAt))}</div>` : ''}${q.status === 'Vendor Replied' && q.vendorReply ? `<div class="ct-season ct-reply" title="${escapeHtml(q.vendorReply)}${q.vendorRepliedAt ? ' — ' + escapeHtml(ctFmt(q.vendorRepliedAt)) : ''}">&#8617; ${escapeHtml(q.vendorReply.length > 70 ? q.vendorReply.slice(0, 68) + '…' : q.vendorReply)}</div>` : ''}</td>
+          ? `<td><select class="ct-in ct-status st-${escapeHtml(q.status.replace(/\s+/g, ''))}" data-f="status">${opt(CT_STATUSES, q.status)}</select>${ctPhotosHtml(q)}${q.customerNotifiedAt ? `<div class="ct-season" title="Customer was emailed that this service was dispatched">&#9993; customer notified ${escapeHtml(ctFmt(q.customerNotifiedAt))}</div>` : ''}${q.status === 'Vendor Replied' && q.vendorReply ? `<div class="ct-season ct-reply" title="${escapeHtml(q.vendorReply)}${q.vendorRepliedAt ? ' — ' + escapeHtml(ctFmt(q.vendorRepliedAt)) : ''}">&#8617; ${escapeHtml(q.vendorReply.length > 70 ? q.vendorReply.slice(0, 68) + '…' : q.vendorReply)}</div>` : ''}</td>
              <td><select class="ct-in" data-f="service"><option value=""></option>${opt(CT_SERVICES, q.service)}</select>${q.serviceItems ? `<div class="ct-season" title="Contract parameters selected">${escapeHtml(q.serviceItems)}</div>` : ''}</td>
              <td>${ctWhenHtml(q)}</td>
              <td><input class="ct-in" data-f="notes" value="${escapeHtml(q.notes)}" placeholder="${q.status === 'Issue' ? 'What happened?' : ''}"></td>`
@@ -6911,6 +6926,7 @@ td.map-cell{ width:60px; text-align:center; }
           <td>${q ? `<span class="ct-chev">${isOpen ? '&#9662;' : '&#9656;'}</span>` : ''}<b>${escapeHtml(r.store)}</b>${ctViewAll && q ? `<div class="ct-season" title="Service">${escapeHtml(q.storm)}</div>` : ''}</td><td>${escapeHtml(r.address || '')}</td><td>${escapeHtml(r.customer || '')}</td><td>${vend}</td>${cells}
           <td style="white-space:nowrap">${q && q.status === 'Requested' ? '<button type="button" class="ct-btn primary" data-act="dispatch" title="Email this service to its vendor and mark it Dispatched" style="padding:4px 9px"' + (ctDispatching ? ' disabled' : '') + '>Dispatch</button> ' : ''}${ctPushHtml(q)} ${q ? '<button type="button" class="ct-btn ct-del" data-act="delete" title="Delete this site\'s request for this service" style="padding:4px 9px;color:#c0392b">Delete</button>' : ''}</td></tr>${isOpen ? ctDetailHtml(q, ns, r) : ''}`;
       }).join('');
+      ctLoadThumbs(tb);
     }
     try { svcHydrate(); } catch(e){}
     const nSel = [...ctSel].length; const bulk = document.getElementById('ct-bulk');
@@ -7870,7 +7886,7 @@ td.map-cell{ width:60px; text-align:center; }
     });
     tb.addEventListener('click', e => {
       { const tr = e.target.closest('tr.ct-main');
-        if (tr && !e.target.closest('input, select, button, textarea, label, a')){ const ns = tr.dataset.store; const q = ctReqOfTr(tr); if (q){ const k = ctOpenKey(ns, q); if (ctOpenRows.has(k)) ctOpenRows.delete(k); else ctOpenRows.add(k); ctRender(); } return; } }
+        if (tr && !e.target.closest('input, select, button, textarea, label, a, .svc-open')){ const ns = tr.dataset.store; const q = ctReqOfTr(tr); if (q){ const k = ctOpenKey(ns, q); if (ctOpenRows.has(k)) ctOpenRows.delete(k); else ctOpenRows.add(k); ctRender(); } return; } }
       const dp = e.target.closest('button[data-act="dispatch"]');
       if (dp){ const q = ctReqOfTr(dp.closest('tr')); if (q) ctDispatch([q]); return; }
       const d = e.target.closest('button[data-act="delete"]');
