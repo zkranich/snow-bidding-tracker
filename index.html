@@ -1258,6 +1258,7 @@ td.map-cell{ width:60px; text-align:center; }
       <span><b id="ct-bulk-n">0</b> selected</span>
       <select id="ct-bulk-status"><option value="">Set status to&hellip;</option></select>
       <button class="ct-btn primary" id="ct-bulk-push" type="button" title="Send the checked Completed services to owner + sub billing">Push to billing</button>
+      <button class="ct-btn primary" id="ct-bulk-dispatch" type="button" title="Email the vendors for the checked services that are still at Requested and mark them Dispatched">Dispatch</button>
       <button class="ct-btn primary" id="ct-bulk-email" type="button" title="Email the vendors for the checked services that are still at Requested">&#9993; Email vendors</button>
       <button class="ct-btn" id="ct-bulk-request" type="button">Create requests for this service</button>
       <button class="ct-btn" id="ct-bulk-delete" type="button" style="color:#c0392b" title="Delete the checked sites' requests for this service">Delete selected requests</button>
@@ -6218,6 +6219,7 @@ td.map-cell{ width:60px; text-align:center; }
   }
   // push whatever is still waiting: new requests first (they get a row id), then field updates
   let ctFlushing = false;
+  let ctDispatching = false;   // a Dispatch (vendor emails) is in flight
   let ctFlushAgain = false;   // changes queued while a flush was running get sent right after it
   async function ctFlush(){
     if (!SMARTSHEET_WORKER_URL) return; if (ctFlushing){ ctFlushAgain = true; return; } ctFlushing = true;
@@ -6236,13 +6238,26 @@ td.map-cell{ width:60px; text-align:center; }
       }
       ob = ctOutLoad();
       const goneIds = new Set(ob.deletes.map(String));
+      const cancelledIds = [];
       for (const u of Object.values(ob.updates)){
         if (goneIds.has(String(u.rowId))) continue;
         try {
           const resp = await fetch(ctBase() + '/dispatch-update', { method: 'POST', headers: ctHdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ rowId: u.rowId, field: u.field, value: u.value }) });
-          if (resp.ok){ const cur = ctOutLoad(); const k = u.rowId + '|' + u.field; if (cur.updates[k] && cur.updates[k].ts === u.ts){ delete cur.updates[k]; ctOutSave(cur); } }
+          if (resp.ok){ const cur = ctOutLoad(); const k = u.rowId + '|' + u.field; if (cur.updates[k] && cur.updates[k].ts === u.ts){ delete cur.updates[k]; ctOutSave(cur); } if (u.field === 'status' && u.value === 'Cancelled') cancelledIds.push(u.rowId); }
           else { ctError = 'HTTP ' + resp.status; ctState = 'error'; }
         } catch(e){ ctError = 'could not reach the Worker URL'; ctState = 'error'; }
+      }
+      // services just saved as Cancelled: the Worker emails each vendor once (only vendors that were actually emailed about that service)
+      if (cancelledIds.length){
+        try {
+          const resp = await fetch(ctBase() + '/vendor-cancel', { method: 'POST', headers: ctHdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ rowIds: cancelledIds }) });
+          const d = await resp.json().catch(() => null);
+          if (resp.ok && d){
+            const sentTxt = (d.sent || []).map(x => `${x.vendor} (${x.n})`).join(', '), skipTxt = (d.skipped || []).map(x => `${x.vendor}: ${x.reason}`).join('; ');
+            if (d.error === 'gmail-not-configured') ctMailSay('Cancelled — vendors were not emailed (Gmail isn’t connected to the Worker).', true);
+            else if (sentTxt || skipTxt) ctMailSay((sentTxt ? 'Cancellation emailed to ' + sentTxt + '.' : '') + (skipTxt ? ' Not emailed — ' + skipTxt + '.' : ''), !!skipTxt && !sentTxt);
+          }
+        } catch(e){}
       }
       for (const id of ob.deletes.slice()){
         try {
@@ -6894,7 +6909,7 @@ td.map-cell{ width:60px; text-align:center; }
         const isOpen = !!q && ctOpenRows.has(ctOpenKey(ns, q));
         return `<tr data-store="${escapeHtml(ns)}" data-skey="${escapeHtml(selKeyOf(ns, q))}" data-okey="${escapeHtml(ctOpenKey(ns, q))}"${q ? ` data-rid="${q.rowId == null ? '' : escapeHtml(String(q.rowId))}" data-key="${escapeHtml(q.key || '')}"` : ''} class="${q ? 'ct-main' : ''}${isOpen ? ' open' : ''}"${q ? ' title="Click to show amounts, work order, vendor invoice and notes"' : ''}><td class="select-col"><input type="checkbox" class="ct-row-sel" ${ctSel.has(selKeyOf(ns, q)) ? 'checked' : ''}></td>
           <td>${q ? `<span class="ct-chev">${isOpen ? '&#9662;' : '&#9656;'}</span>` : ''}<b>${escapeHtml(r.store)}</b>${ctViewAll && q ? `<div class="ct-season" title="Service">${escapeHtml(q.storm)}</div>` : ''}</td><td>${escapeHtml(r.address || '')}</td><td>${escapeHtml(r.customer || '')}</td><td>${vend}</td>${cells}
-          <td style="white-space:nowrap">${ctPushHtml(q)} ${q ? '<button type="button" class="ct-btn ct-del" data-act="delete" title="Delete this site\'s request for this service" style="padding:4px 9px;color:#c0392b">Delete</button>' : ''}</td></tr>${isOpen ? ctDetailHtml(q, ns, r) : ''}`;
+          <td style="white-space:nowrap">${q && q.status === 'Requested' ? '<button type="button" class="ct-btn primary" data-act="dispatch" title="Email this service to its vendor and mark it Dispatched" style="padding:4px 9px"' + (ctDispatching ? ' disabled' : '') + '>Dispatch</button> ' : ''}${ctPushHtml(q)} ${q ? '<button type="button" class="ct-btn ct-del" data-act="delete" title="Delete this site\'s request for this service" style="padding:4px 9px;color:#c0392b">Delete</button>' : ''}</td></tr>${isOpen ? ctDetailHtml(q, ns, r) : ''}`;
       }).join('');
     }
     try { svcHydrate(); } catch(e){}
@@ -6905,6 +6920,7 @@ td.map-cell{ width:60px; text-align:center; }
     const all = document.getElementById('ct-select-all');
     if (all){ const ids = ctShownKeys; all.checked = ids.length > 0 && ids.every(i => ctSel.has(i)); }
     document.getElementById('ct-email-vendors').disabled = ctViewAll ? !ctReqs.some(q => q.status === 'Requested') : !ctStorm;
+    { const bd = document.getElementById('ct-bulk-dispatch'); if (bd){ const n = ctSelReqs().filter(q => q.status === 'Requested').length; bd.disabled = !n || ctDispatching; bd.textContent = n ? `Dispatch (${n})` : 'Dispatch'; } }
     { const be = document.getElementById('ct-bulk-email'); if (be){ const n = ctSelReqs().filter(q => q.status === 'Requested').length; be.disabled = !n; be.textContent = n ? `\u2709 Email vendors (${n})` : '\u2709 Email vendors'; be.title = n ? 'Email the vendors for the checked services that are still at Requested' : 'Check one or more services at Requested first'; } }
     { const ec = document.getElementById('ct-email-customers'); if (ec) ec.disabled = !ctStorm || ctViewAll;
       const nb = document.getElementById('ct-notify'); if (nb){ const n = ctStorm && !ctViewAll ? ctReqs.filter(q => q.storm === ctStorm && CT_NOTIFY_ST.includes(q.status) && !q.customerNotifiedAt).length : 0;
@@ -7152,6 +7168,31 @@ td.map-cell{ width:60px; text-align:center; }
     document.getElementById('ctv-sub').textContent = 'Loading vendor contacts…';
     try { await vtEnsureRows(); } catch(e){}
     ctRenderVendors();
+  }
+  // ----- Dispatch: you decide. Emails the vendor(s) (one email per vendor) through the Worker and marks the services Dispatched.
+  async function ctDispatch(reqs){
+    if (ctDispatching || !SMARTSHEET_WORKER_URL) return;
+    reqs = reqs.filter(q => q.status === 'Requested'); if (!reqs.length) return;
+    const vname = q => { const site = rows.find(r => normStore(r.store) === normStore(q.store)); return (q.vendor || (site && site.vendor2627) || '').trim() || '(no vendor assigned)'; };
+    const byV = {}; reqs.forEach(q => { const v = vname(q); byV[v] = (byV[v] || 0) + 1; });
+    const list = Object.entries(byV).map(([v, n]) => `${v}: ${n} site${n === 1 ? '' : 's'}`).join('\n');
+    if (!window.confirm(`Dispatch ${reqs.length} service${reqs.length === 1 ? '' : 's'}? This emails the vendor${Object.keys(byV).length === 1 ? '' : 's'} now:\n\n${list}`)) return;
+    ctDispatching = true; ctRender(); ctMailSay('Dispatching\u2026');
+    try {
+      await ctFlush();   // make sure every service exists in Smartsheet and its latest edits are saved first
+      const ids = reqs.filter(q => q.rowId != null).map(q => q.rowId);
+      if (!ids.length){ ctMailSay('Those services are still saving to Smartsheet — try Dispatch again in a moment.', true); return; }
+      const resp = await fetch(ctBase() + '/vendor-dispatch', { method: 'POST', headers: ctHdr({ 'Content-Type': 'application/json' }), body: JSON.stringify({ rowIds: ids }) });
+      const d = await resp.json().catch(() => null);
+      if (resp.status === 404){ ctMailSay('The Worker needs the latest worker.js (no /vendor-dispatch route yet).', true); return; }
+      if (!resp.ok || !d){ ctMailSay('Dispatch failed (' + ((d && d.error) || resp.status) + ').', true); return; }
+      if (d.error){ ctMailSay(d.error === 'gmail-not-configured' ? 'Nothing sent — Gmail isn’t connected to the Worker (see GMAIL_SETUP.md).' : d.error === 'vendor-email-off' ? 'Nothing sent — vendor emails are switched off on the Worker (AUTO_VENDOR_EMAIL=off).' : 'Nothing sent (' + d.error + ').', true); return; }
+      (d.done || []).forEach(x => { const q = ctReqs.find(r => String(r.rowId) === String(x.rowId)); if (q){ q.status = 'Dispatched'; q.emailRef = x.ref; q.vendor = x.vendor; q.dispatchedAt = x.dispatchedAt; } });
+      const sentTxt = (d.sent || []).map(x => `${x.vendor} (${x.n})`).join(', '), skipTxt = (d.skipped || []).map(x => `${x.vendor || x.stores.join(', ')}: ${x.reason}`).join('; ');
+      ctMailSay((sentTxt ? 'Dispatched and emailed ' + sentTxt + '.' : 'Nothing was emailed.') + (skipTxt ? ' Not sent — ' + skipTxt + '. Use Email vendors to draft those by hand.' : ''), !!skipTxt && !sentTxt);
+      ctSel.clear();
+    } catch(e){ ctMailSay('Could not reach the Worker.', true); }
+    finally { ctDispatching = false; ctRender(); }
   }
   function ctRenderVendors(){
     const groups = ctVendorGroups();
@@ -7746,6 +7787,7 @@ td.map-cell{ width:60px; text-align:center; }
       ctOpenVendors();
     });
     // Checked services -> email just those vendors (only services still at Requested)
+    document.getElementById('ct-bulk-dispatch').addEventListener('click', () => { const picked = ctSelReqs().filter(q => q.status === 'Requested'); if (picked.length) ctDispatch(picked); });
     document.getElementById('ct-bulk-email').addEventListener('click', () => {
       const picked = ctSelReqs().filter(q => q.status === 'Requested');
       if (!picked.length) return;
@@ -7829,6 +7871,8 @@ td.map-cell{ width:60px; text-align:center; }
     tb.addEventListener('click', e => {
       { const tr = e.target.closest('tr.ct-main');
         if (tr && !e.target.closest('input, select, button, textarea, label, a')){ const ns = tr.dataset.store; const q = ctReqOfTr(tr); if (q){ const k = ctOpenKey(ns, q); if (ctOpenRows.has(k)) ctOpenRows.delete(k); else ctOpenRows.add(k); ctRender(); } return; } }
+      const dp = e.target.closest('button[data-act="dispatch"]');
+      if (dp){ const q = ctReqOfTr(dp.closest('tr')); if (q) ctDispatch([q]); return; }
       const d = e.target.closest('button[data-act="delete"]');
       if (d){ const q = ctReqOfTr(d.closest('tr')); if (q) blDeleteOne(q); return; }
       const b = e.target.closest('button[data-act="request"]'); if (!b) return;
